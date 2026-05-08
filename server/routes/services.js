@@ -1,0 +1,228 @@
+const express = require('express');
+const router = express.Router();
+const { protect } = require('../middleware/auth');
+const { supabase } = require('../config/db');
+
+// ── Helpers ──────────────────────────────────────────────────
+
+const mapSeller = (s) => s ? {
+  _id: s.id,
+  name: s.name,
+  avatar: { public_id: s.avatar_public_id || '', url: s.avatar_url || '' },
+  department: s.department,
+  yearOfStudy: s.year_of_study,
+  bio: s.bio,
+  rating: s.rating,
+  reviewCount: s.review_count,
+  createdAt: s.created_at,
+} : null;
+
+const mapService = (row) => {
+  if (!row) return null;
+  const { seller, ...svc } = row;
+  return {
+    ...svc,
+    _id: svc.id,
+    sellerId: svc.seller_id,
+    deliveryDays: svc.delivery_days,
+    isActive: svc.is_active,
+    reviewCount: svc.review_count,
+    coverImageUrl: svc.cover_image_url || '',
+    createdAt: svc.created_at,
+    updatedAt: svc.updated_at,
+    seller: mapSeller(seller),
+  };
+};
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/services — browse all active services (public)
+// ─────────────────────────────────────────────────────────────
+router.get('/', async (req, res) => {
+  try {
+    const { search, category, sort, page = 1, limit = 12 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    let query = supabase
+      .from('services')
+      .select('*, seller:users!seller_id(id, name, avatar_url, avatar_public_id, department, year_of_study, rating, review_count)', { count: 'exact' })
+      .eq('is_active', true);
+
+    if (category) query = query.eq('category', category);
+    if (search)   query = query.textSearch('fts', search, { type: 'websearch' });
+
+    if (sort === 'price_asc')  query = query.order('price', { ascending: true });
+    else if (sort === 'price_desc') query = query.order('price', { ascending: false });
+    else if (sort === 'rating')     query = query.order('rating', { ascending: false });
+    else                            query = query.order('created_at', { ascending: false });
+
+    query = query.range(skip, skip + Number(limit) - 1);
+
+    const { data: services, error, count } = await query;
+    if (error) throw error;
+
+    res.status(200).json({
+      success: true,
+      total: count,
+      page: Number(page),
+      pages: Math.ceil(count / limit),
+      services: services.map(mapService),
+    });
+  } catch (error) {
+    console.error('Get services error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/services/user/:userId — services by a specific seller (public)
+// ─────────────────────────────────────────────────────────────
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const { data: services, error } = await supabase
+      .from('services')
+      .select('*, seller:users!seller_id(id, name, avatar_url, avatar_public_id, department, rating)')
+      .eq('seller_id', req.params.userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.status(200).json({ success: true, services: services.map(mapService) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/services/:id — single service detail (public)
+// ─────────────────────────────────────────────────────────────
+router.get('/:id', async (req, res) => {
+  try {
+    const { data: service, error } = await supabase
+      .from('services')
+      .select('*, seller:users!seller_id(id, name, avatar_url, avatar_public_id, department, year_of_study, bio, rating, review_count, created_at)')
+      .eq('id', req.params.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!service || !service.is_active) {
+      return res.status(404).json({ success: false, message: 'Service not found' });
+    }
+
+    res.status(200).json({ success: true, service: mapService(service) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/services — create a new service (protected)
+// ─────────────────────────────────────────────────────────────
+router.post('/', protect, async (req, res) => {
+  try {
+    if (!req.user.is_onboarding_complete) {
+      return res.status(403).json({ success: false, message: 'You must complete your profile onboarding before posting a service.' });
+    }
+
+    const { title, description, category, price, deliveryDays, tags, coverImageUrl } = req.body;
+
+    if (!title || !description || !category || !price || !deliveryDays) {
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+
+    const validCategories = ['Study Helper','Tech & Coding','Art & Design','Writing & CV','Research & Data','Other Talents'];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ success: false, message: 'Invalid category' });
+    }
+
+    const { data: service, error } = await supabase
+      .from('services')
+      .insert({
+        seller_id: req.user._id,
+        title: title.trim(),
+        description,
+        category,
+        price: Number(price),
+        delivery_days: Number(deliveryDays),
+        tags: tags || [],
+        cover_image_url: coverImageUrl || '',
+      })
+      .select('*, seller:users!seller_id(id, name, avatar_url, avatar_public_id, department, rating)')
+      .single();
+
+    if (error) throw error;
+
+    res.status(201).json({ success: true, service: mapService(service) });
+  } catch (error) {
+    console.error('Create service error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/services/:id — update own service (protected)
+// ─────────────────────────────────────────────────────────────
+router.put('/:id', protect, async (req, res) => {
+  try {
+    const { data: service, error: fetchErr } = await supabase
+      .from('services')
+      .select('id, seller_id')
+      .eq('id', req.params.id)
+      .maybeSingle();
+
+    if (fetchErr || !service) return res.status(404).json({ success: false, message: 'Service not found' });
+    if (service.seller_id !== req.user._id)
+      return res.status(403).json({ success: false, message: 'You can only edit your own services' });
+
+    const fieldMap = {
+      title: 'title', description: 'description', category: 'category',
+      price: 'price', deliveryDays: 'delivery_days', tags: 'tags', isActive: 'is_active',
+      coverImageUrl: 'cover_image_url',
+    };
+
+    const updates = {};
+    Object.entries(fieldMap).forEach(([bodyKey, dbKey]) => {
+      if (req.body[bodyKey] !== undefined) updates[dbKey] = req.body[bodyKey];
+    });
+
+    const { data: updated, error } = await supabase
+      .from('services')
+      .update(updates)
+      .eq('id', req.params.id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    res.status(200).json({ success: true, service: mapService(updated) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/services/:id — soft-delete own service (protected)
+// ─────────────────────────────────────────────────────────────
+router.delete('/:id', protect, async (req, res) => {
+  try {
+    const { data: service, error: fetchErr } = await supabase
+      .from('services')
+      .select('id, seller_id')
+      .eq('id', req.params.id)
+      .maybeSingle();
+
+    if (fetchErr || !service) return res.status(404).json({ success: false, message: 'Service not found' });
+    if (service.seller_id !== req.user._id)
+      return res.status(403).json({ success: false, message: 'You can only delete your own services' });
+
+    const { error } = await supabase
+      .from('services')
+      .update({ is_active: false })
+      .eq('id', req.params.id);
+
+    if (error) throw error;
+    res.status(200).json({ success: true, message: 'Service removed successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+module.exports = router;
