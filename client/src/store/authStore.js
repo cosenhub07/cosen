@@ -3,7 +3,16 @@ import api from '../lib/api';
 
 // Load persisted state from localStorage
 const storedToken = localStorage.getItem('cosen_token') || null;
-const storedUser  = JSON.parse(localStorage.getItem('cosen_user') || 'null');
+let storedUser = null;
+try {
+  const userStr = localStorage.getItem('cosen_user');
+  if (userStr && userStr !== 'undefined') {
+    storedUser = JSON.parse(userStr);
+  }
+} catch (e) {
+  console.error("Failed to parse stored user from localStorage", e);
+  localStorage.removeItem('cosen_user');
+}
 
 const useAuthStore = create((set, get) => ({
   user:    storedUser,
@@ -52,7 +61,11 @@ const useAuthStore = create((set, get) => ({
 
   // ── Update profile in store after PUT /me ──────────────
   setUser: (user) => {
-    localStorage.setItem('cosen_user', JSON.stringify(user));
+    if (user) {
+      localStorage.setItem('cosen_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('cosen_user');
+    }
     set({ user });
   },
 
