@@ -196,30 +196,32 @@ router.post('/forgot-password', async (req, res) => {
       .eq('id', user.id);
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
 
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Password reset token',
-        message: `Click this link to reset your password: ${resetUrl}`,
-        html: `<p>Click this link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`
-      });
-      res.status(200).json({ success: true, message: 'Password reset link sent to your email.' });
-    } catch (err) {
-      console.log('Error sending reset password email:', err);
-      // rollback token
-      await supabase
+    // ✅ Send response immediately — don't block on email
+    res.status(200).json({ success: true, message: 'Password reset link sent to your email.' });
+
+    // 🔥 Send email in background
+    sendEmail({
+      email: user.email,
+      subject: 'Cosen - Password Reset Link',
+      message: `Click this link to reset your password: ${resetUrl}`,
+      html: `<p>Click this link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`
+    }).catch((err) => {
+      console.error('Background forgot-password email failed:', err.message);
+      // Rollback token silently since response already sent
+      supabase
         .from('users')
         .update({ reset_password_token: null, reset_password_expire: null })
-        .eq('id', user.id);
-      return res.status(500).json({ success: false, message: 'Email could not be sent' });
-    }
+        .eq('id', user.id)
+        .then(() => console.log('Reset token rolled back due to email failure.'));
+    });
+
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 });
+
 
 // ─────────────────────────────────────────────────────────────
 // POST /api/auth/reset-password/:token
