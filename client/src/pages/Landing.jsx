@@ -128,6 +128,11 @@ export default function Landing() {
     return () => vid.removeEventListener('loadedmetadata', setSpeed);
   }, []);
 
+  // If user is already logged in, skip landing page and go to browse
+  useEffect(() => {
+    if (user) navigate('/browse', { replace: true });
+  }, [user, navigate]);
+
   // Auto-play for How it Works steps
   useEffect(() => {
     const timer = setInterval(() => {

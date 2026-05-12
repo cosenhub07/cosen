@@ -93,7 +93,7 @@ export default function Signup() {
     const result = await register(payload);
     if (result.success) {
       setSuccess(result.message || 'Account created! Redirecting…');
-      setTimeout(() => navigate('/dashboard'), 1500);
+      setTimeout(() => navigate('/browse'), 1500);
     }
   };
 
@@ -101,7 +101,7 @@ export default function Signup() {
     const result = await useAuthStore.getState().loginWithGoogle(credentialResponse.credential);
     if (result.success) {
       setSuccess('Google signup successful! Redirecting…');
-      setTimeout(() => navigate('/dashboard'), 1500);
+      setTimeout(() => navigate('/browse'), 1500);
     } else {
       setLocalError('Google signup failed. Please try email registration.');
     }

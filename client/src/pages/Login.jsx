@@ -25,15 +25,14 @@ export default function Login() {
     }
     const result = await login(form.email, form.password);
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/browse');
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     const result = await useAuthStore.getState().loginWithGoogle(credentialResponse.credential);
     if (result.success) {
-      // If onboarding is incomplete, we should redirect to /onboarding instead, but the protected route handles that.
-      navigate('/dashboard');
+      navigate('/browse');
     }
   };
 
