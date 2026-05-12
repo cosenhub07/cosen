@@ -3,8 +3,23 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, CheckCircle, AlertCircle, Loader,
   User, BookOpen, GraduationCap, Code, Palette, PenTool,
-  Database, Music, ArrowLeft, Shield, FileText, X,
+  Database, Music, ArrowLeft, Shield, X, Eye, EyeOff, Mail, Lock, UserCircle,
 } from 'lucide-react';
+
+const EDU_REGEX = /^[^\s@]+@[^\s@]+\.(edu|ac\.in)$/i;
+
+const getPasswordStrength = (pw) => {
+  if (!pw) return { score: 0, label: '', color: '' };
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { score, label: 'Weak',   color: '#EF4444' };
+  if (score <= 3) return { score, label: 'Medium', color: '#F59E0B' };
+  return               { score, label: 'Strong', color: '#10B981' };
+};
 import { GoogleLogin } from '@react-oauth/google';
 import useAuthStore from '../store/authStore';
 import BrandLogo from '../components/BrandLogo';
@@ -173,31 +188,60 @@ export default function Signup() {
   const [role, setRole]     = useState('');
   const [skills, setSkills] = useState([]);
 
-  const [localError, setLocalError] = useState('');
-  const [success,    setSuccess]    = useState('');
-  const [agreed,     setAgreed]     = useState(false);
-  const [showPolicy, setShowPolicy] = useState(false);
+  const [localError,   setLocalError]   = useState('');
+  const [success,      setSuccess]      = useState('');
+  const [agreed,       setAgreed]       = useState(false);
+  const [showPolicy,   setShowPolicy]   = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [fieldErrors,  setFieldErrors]  = useState({ name: '', email: '', password: '' });
 
   const handleChange = (e) => {
     clearError();
     setLocalError('');
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors(f => ({ ...f, [e.target.name]: '' }));
+    }
+  };
+
+  const handleBlur1 = (e) => {
+    const { name, value } = e.target;
+    let err = '';
+    if (name === 'name') {
+      if (!value.trim()) err = 'Full name is required.';
+      else if (value.trim().length < 2) err = 'Name must be at least 2 characters.';
+    }
+    if (name === 'email') {
+      if (!value.trim()) err = 'Email is required.';
+      else if (!value.includes('@')) err = 'Enter a valid email address.';
+      else if (!EDU_REGEX.test(value)) err = 'Must be a university email ending in .edu or .ac.in';
+    }
+    if (name === 'password') {
+      if (!value) err = 'Password is required.';
+      else if (value.length < 8) err = 'Password must be at least 8 characters.';
+    }
+    setFieldErrors(f => ({ ...f, [name]: err }));
   };
 
   const toggleSkill = (id) =>
     setSkills(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
-  /* ── Step validation ── */
+  /* ── Step 1 validation ── */
   const validateStep1 = () => {
-    if (!form.name.trim())     return 'Full name is required.';
-    if (!form.email.trim())    return 'Email is required.';
-    if (form.password.length < 8) return 'Password must be at least 8 characters.';
-    return '';
+    const errors = {
+      name:     !form.name.trim() ? 'Full name is required.'
+                : form.name.trim().length < 2 ? 'Name must be at least 2 characters.' : '',
+      email:    !form.email.trim() ? 'Email is required.'
+                : !EDU_REGEX.test(form.email) ? 'Must be a university email (.edu or .ac.in)' : '',
+      password: !form.password ? 'Password is required.'
+                : form.password.length < 8 ? 'Password must be at least 8 characters.' : '',
+    };
+    setFieldErrors(errors);
+    return Object.values(errors).some(Boolean);
   };
 
   const nextStep = () => {
-    const err = step === 1 ? validateStep1() : '';
-    if (err) { setLocalError(err); return; }
+    if (step === 1 && validateStep1()) return;
     setLocalError('');
     setStep(s => s + 1);
   };
@@ -221,6 +265,17 @@ export default function Signup() {
     if (result.success) {
       setSuccess(result.message || 'Account created! Redirecting…');
       setTimeout(() => navigate('/browse'), 1500);
+    } else {
+      const raw = result.message || '';
+      if (raw.toLowerCase().includes('already exists')) {
+        setLocalError('An account with this email already exists. Try signing in instead.');
+      } else if (raw.toLowerCase().includes('university') || raw.toLowerCase().includes('ac.in')) {
+        setLocalError('Only university emails (.edu or .ac.in) are accepted on Cosen.');
+      } else if (raw.toLowerCase().includes('server error')) {
+        setLocalError('Something went wrong on our end. Please try again in a moment.');
+      } else {
+        setLocalError(raw || 'Registration failed. Please try again.');
+      }
     }
   };
 
@@ -311,7 +366,7 @@ export default function Signup() {
             <div className="flex justify-center mb-5">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
-                onError={() => setLocalError('Google Registration Failed')}
+                onError={() => setLocalError('Google sign-up was cancelled or failed. Please try again.')}
               />
             </div>
             <div className="flex items-center text-xs text-gray-400 mb-5 uppercase tracking-wider">
@@ -321,22 +376,105 @@ export default function Signup() {
             </div>
 
             <div className="flex flex-col gap-4">
+
+              {/* Full Name */}
               <div>
                 <label className="block text-sm font-semibold mb-1.5">Full Name</label>
-                <input id="signup-name" type="text" name="name" placeholder="Ankit Rajput"
-                  className="stripe-input" value={form.name} onChange={handleChange} autoFocus />
+                <div className="relative">
+                  <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
+                    style={{ color: fieldErrors.name ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
+                  <input
+                    id="signup-name" type="text" name="name"
+                    placeholder="Ankit Rajput"
+                    className="stripe-input pl-9"
+                    style={{ borderColor: fieldErrors.name ? '#F87171' : undefined, boxShadow: fieldErrors.name ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined }}
+                    value={form.name}
+                    onChange={handleChange}
+                    onBlur={handleBlur1}
+                    autoFocus
+                  />
+                </div>
+                {fieldErrors.name
+                  ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}><AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.name}</p>
+                  : <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Your real name (shown on your profile)</p>
+                }
               </div>
+
+              {/* University Email */}
               <div>
                 <label className="block text-sm font-semibold mb-1.5">University Email</label>
-                <input id="signup-email" type="email" name="email" placeholder="ankit@university.ac.in"
-                  className="stripe-input" value={form.email} onChange={handleChange} />
-                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Must be a .edu or .ac.in address</p>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
+                    style={{ color: fieldErrors.email ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
+                  <input
+                    id="signup-email" type="email" name="email"
+                    placeholder="ankit@university.ac.in"
+                    className="stripe-input pl-9"
+                    style={{ borderColor: fieldErrors.email ? '#F87171' : undefined, boxShadow: fieldErrors.email ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined }}
+                    value={form.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur1}
+                  />
+                </div>
+                {fieldErrors.email
+                  ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}><AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.email}</p>
+                  : <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Must end in .edu or .ac.in</p>
+                }
               </div>
+
+              {/* Password */}
               <div>
                 <label className="block text-sm font-semibold mb-1.5">Password</label>
-                <input id="signup-password" type="password" name="password" placeholder="Min. 8 characters"
-                  className="stripe-input" value={form.password} onChange={handleChange} />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
+                    style={{ color: fieldErrors.password ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
+                  <input
+                    id="signup-password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    placeholder="Min. 8 characters"
+                    className="stripe-input pl-9 pr-10"
+                    style={{ borderColor: fieldErrors.password ? '#F87171' : undefined, boxShadow: fieldErrors.password ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined }}
+                    value={form.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur1}
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5"
+                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+
+                {/* Password strength bar */}
+                {form.password && (() => {
+                  const s = getPasswordStrength(form.password);
+                  return (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[1,2,3,4,5].map(i => (
+                          <div key={i} className="flex-1 h-1 rounded-full transition-all"
+                            style={{ background: i <= s.score ? s.color : 'rgba(255,255,255,0.1)' }} />
+                        ))}
+                      </div>
+                      <p className="text-xs font-semibold" style={{ color: s.color }}>
+                        {s.label} password
+                        {s.score <= 1 && ' — try adding numbers, capitals, or symbols'}
+                      </p>
+                    </div>
+                  );
+                })()}
+
+                {fieldErrors.password
+                  ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}><AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.password}</p>
+                  : !form.password && <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Minimum 8 characters</p>
+                }
               </div>
+
               <button id="signup-next" type="button" onClick={nextStep}
                 className="btn-primary justify-center py-3 mt-1">
                 Continue <ChevronRight className="h-4 w-4" />
@@ -351,6 +489,8 @@ export default function Signup() {
             </div>
           </>
         )}
+
+
 
         {/* ══ STEP 2 — Your Profile ══ */}
         {step === 2 && (
