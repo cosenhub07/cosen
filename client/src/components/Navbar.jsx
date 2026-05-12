@@ -265,88 +265,23 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-2.5">
               {/* Messages icon with badge */}
               {user && (
-                <>
-                  <Link
-                    to="/messages"
-                    id="nav-messages"
-                    className="relative p-2 rounded-lg transition-colors"
-                    style={{ color: location.pathname === '/messages' ? '#635BFF' : '#425466' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#F6F9FC'; e.currentTarget.style.color = '#635BFF'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = location.pathname === '/messages' ? '#635BFF' : '#425466'; }}
-                    title="Messages"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    {unreadDMs > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-stripe-purple text-white text-[9px] font-bold flex items-center justify-center">
-                        {unreadDMs > 9 ? '9+' : unreadDMs}
-                      </span>
-                    )}
-                  </Link>
-
-                  {/* Notification Bell */}
-                  <div className="relative" ref={bellRef}>
-                    <button
-                      id="nav-bell"
-                      onClick={openBell}
-                      className="relative p-2 rounded-lg transition-colors"
-                      style={{ color: bellOpen ? '#635BFF' : '#425466', background: bellOpen ? '#F6F9FC' : 'transparent' }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#F6F9FC'; e.currentTarget.style.color = '#635BFF'; }}
-                      onMouseLeave={e => { if (!bellOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#425466'; } }}
-                      title="Notifications"
-                    >
-                      <Bell className="h-4 w-4" />
-                      {unreadNotifs > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">
-                          {unreadNotifs > 9 ? '9+' : unreadNotifs}
-                        </span>
-                      )}
-                    </button>
-                    {bellOpen && (
-                      <div
-                        className="absolute top-full right-0 mt-2 rounded-2xl overflow-hidden"
-                        style={{ width: '340px', background: '#fff', border: '1px solid #E6EBF1', boxShadow: '0 20px 40px -8px rgba(50,50,93,0.18)', zIndex: 60 }}
-                      >
-                        <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#E6EBF1' }}>
-                          <span className="font-bold text-stripe-slate text-sm">Notifications</span>
-                          {unreadNotifs > 0 && (
-                            <button onClick={markAllRead} className="text-xs font-semibold text-stripe-purple hover:underline">Mark all read</button>
-                          )}
-                        </div>
-                        <div className="max-h-80 overflow-y-auto divide-y" style={{ borderColor: '#F6F9FC' }}>
-                          {notifications.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-10 text-center">
-                              <Bell className="h-8 w-8 text-stripe-muted opacity-30 mb-2" />
-                              <p className="text-sm text-stripe-muted">No notifications yet</p>
-                              <p className="text-xs text-stripe-muted mt-1">Order updates & reviews appear here</p>
-                            </div>
-                          ) : (
-                            notifications.map(n => (
-                              <button
-                                key={n.id}
-                                onClick={() => handleNotifClick(n)}
-                                className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-stripe-bg"
-                                style={{ background: n.is_read ? '#fff' : '#635BFF08' }}
-                              >
-                                <span className="text-lg shrink-0 mt-0.5">{notifIcon(n.type)}</span>
-                                <div className="flex-1 min-w-0">
-                                  <div className={`text-sm leading-snug ${n.is_read ? 'text-stripe-steel font-medium' : 'text-stripe-slate font-bold'}`}>
-                                    {n.title}
-                                  </div>
-                                  <div className="text-xs text-stripe-muted mt-0.5 line-clamp-2">{n.body}</div>
-                                  <div className="text-[10px] text-stripe-muted mt-1">{timeAgo(n.created_at)}</div>
-                                </div>
-                                {!n.is_read && <span className="w-2 h-2 rounded-full bg-stripe-purple shrink-0 mt-1.5" />}
-                              </button>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
+                <Link
+                  to="/messages"
+                  id="nav-messages"
+                  className="relative p-2 rounded-lg transition-colors"
+                  style={{ color: location.pathname === '/messages' ? '#635BFF' : '#425466' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#F6F9FC'; e.currentTarget.style.color = '#635BFF'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = location.pathname === '/messages' ? '#635BFF' : '#425466'; }}
+                  title="Messages"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {unreadDMs > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-stripe-purple text-white text-[9px] font-bold flex items-center justify-center">
+                      {unreadDMs > 9 ? '9+' : unreadDMs}
+                    </span>
+                  )}
+                </Link>
               )}
-
-
 
               <Link
                 to="/browse"
