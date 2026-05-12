@@ -157,6 +157,42 @@ export default function Landing() {
     return () => observer.disconnect();
   }, []);
 
+  // Auto-slide featured services on mobile devices every 2.5 seconds
+  useEffect(() => {
+    let timer;
+    const startCarousel = () => {
+      // Only auto-slide on mobile screens (width < 768px)
+      if (window.innerWidth >= 768) return;
+      
+      timer = setInterval(() => {
+        if (carouselRef.current) {
+          const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+          // Loop back to start if reached the end
+          if (scrollLeft + clientWidth >= scrollWidth - 10) {
+            carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+          } else {
+            carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+          }
+        }
+      }, 2500);
+    };
+
+    startCarousel();
+
+    // Re-check on resize
+    const handleResize = () => {
+      clearInterval(timer);
+      startCarousel();
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   const handleHeroSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
