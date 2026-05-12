@@ -587,16 +587,99 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* ── Mobile Notifications Sheet (slide up from bottom) ── */}
+      {user && bellOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'rgba(10,37,64,0.45)', backdropFilter: 'blur(4px)' }}
+            onClick={() => setBellOpen(false)}
+          />
+          {/* Sheet */}
+          <div
+            className="relative rounded-t-3xl overflow-hidden"
+            style={{ background: '#fff', maxHeight: '70vh', boxShadow: '0 -8px 40px rgba(50,50,93,0.18)' }}
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ background: '#E6EBF1' }} />
+            </div>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#E6EBF1' }}>
+              <span className="font-bold text-stripe-slate text-base">Notifications</span>
+              {unreadNotifs > 0 && (
+                <button onClick={markAllRead} className="text-sm font-semibold text-stripe-purple">Mark all read</button>
+              )}
+            </div>
+            {/* List */}
+            <div className="overflow-y-auto divide-y" style={{ maxHeight: 'calc(70vh - 100px)', borderColor: '#F6F9FC' }}>
+              {notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-14 text-center">
+                  <Bell className="h-10 w-10 text-stripe-muted opacity-25 mb-3" />
+                  <p className="text-sm text-stripe-muted font-semibold">No notifications yet</p>
+                  <p className="text-xs text-stripe-muted mt-1">Order updates & reviews appear here</p>
+                </div>
+              ) : (
+                notifications.map(n => (
+                  <button
+                    key={n.id}
+                    onClick={() => handleNotifClick(n)}
+                    className="w-full flex items-start gap-3 px-5 py-4 text-left"
+                    style={{ background: n.is_read ? '#fff' : '#635BFF08' }}
+                  >
+                    <span className="text-xl shrink-0 mt-0.5">{notifIcon(n.type)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-sm leading-snug ${n.is_read ? 'text-stripe-steel font-medium' : 'text-stripe-slate font-bold'}`}>
+                        {n.title}
+                      </div>
+                      <div className="text-xs text-stripe-muted mt-0.5 line-clamp-2">{n.body}</div>
+                      <div className="text-[10px] text-stripe-muted mt-1">{timeAgo(n.created_at)}</div>
+                    </div>
+                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-stripe-purple shrink-0 mt-1.5" />}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Mobile Bottom Navigation Bar (md:hidden) ── */}
       {user && !['/login', '/signup', '/forgot-password', '/reset-password'].includes(location.pathname) && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.04)]" style={{ borderColor: '#E6EBF1' }}>
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.06)]" style={{ borderColor: '#E6EBF1' }}>
           <div className="flex items-center justify-around h-16 px-2">
-            
+
+            {/* Browse */}
             <Link to="/browse" className="flex flex-col items-center justify-center w-full h-full transition-colors group">
               <Search className="h-5 w-5 mb-1 transition-colors" style={{ color: location.pathname === '/browse' ? '#635BFF' : '#8792A2' }} />
               <span className="text-[10px] font-semibold transition-colors" style={{ color: location.pathname === '/browse' ? '#635BFF' : '#8792A2' }}>Browse</span>
             </Link>
-            
+
+            {/* 🔔 Notification Bell */}
+            <button
+              id="mobile-nav-bell"
+              onClick={openBell}
+              className="flex flex-col items-center justify-center w-full h-full transition-colors relative group"
+            >
+              <div className="relative">
+                <Bell
+                  className="h-5 w-5 mb-1 transition-colors"
+                  style={{ color: bellOpen ? '#635BFF' : '#8792A2' }}
+                />
+                {unreadNotifs > 0 && (
+                  <span
+                    className="absolute -top-1 -right-2 w-3.5 h-3.5 rounded-full border-2 border-white flex items-center justify-center font-bold text-white text-[8px]"
+                    style={{ background: '#EF4444' }}
+                  >
+                    {unreadNotifs > 9 ? '9+' : unreadNotifs}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] font-semibold transition-colors" style={{ color: bellOpen ? '#635BFF' : '#8792A2' }}>Alerts</span>
+            </button>
+
+            {/* Post (center floating button) */}
             <Link to="/services/new" className="flex flex-col items-center justify-center w-full h-full transition-colors relative group">
               <div className="absolute -top-5 w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-4 transition-transform group-hover:scale-105"
                    style={{ background: '#635BFF', borderColor: '#fff', boxShadow: '0 8px 16px rgba(99,91,255,0.25)' }}>
@@ -604,7 +687,8 @@ export default function Navbar() {
               </div>
               <span className="text-[10px] font-semibold mt-6 transition-colors" style={{ color: location.pathname === '/services/new' ? '#635BFF' : '#8792A2' }}>Post</span>
             </Link>
-            
+
+            {/* Messages */}
             <Link to="/messages" className="flex flex-col items-center justify-center w-full h-full transition-colors relative group">
               <div className="relative">
                 <MessageCircle className="h-5 w-5 mb-1 transition-colors" style={{ color: location.pathname === '/messages' ? '#635BFF' : '#8792A2' }} />
@@ -620,6 +704,7 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
     </>
   );
 }
