@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, ChevronRight, Star, TrendingUp, ShoppingBag,
   MessageCircle, Clock, Loader, LogIn, ArrowUpRight,
-  ArrowDownRight, IndianRupee, Package, Zap, BarChart2
+  ArrowDownRight, IndianRupee, Package, Zap, BarChart2,
+  Pencil, Trash2, AlertTriangle
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import api from '../lib/api';
@@ -113,6 +114,21 @@ export default function Dashboard() {
   const { user } = useAuthStore();
   const [orders, setOrders] = useState([]);
   const [myServices, setMyServices] = useState([]);
+  const [deletingId, setDeletingId] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // service object to confirm
+
+  const handleDeleteService = async (service) => {
+    try {
+      setDeletingId(service._id);
+      await api.delete(`/services/${service._id}`);
+      setMyServices(prev => prev.filter(s => s._id !== service._id));
+      setConfirmDelete(null);
+    } catch (err) {
+      console.error('Delete failed:', err);
+    } finally {
+      setDeletingId(null);
+    }
+  };
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('orders');
   const today = new Date();
@@ -380,6 +396,25 @@ export default function Dashboard() {
                           {s.isActive ? 'Active' : 'Paused'}
                         </span>
                       </div>
+                      {/* Edit / Delete buttons */}
+                      <div className="flex gap-1 shrink-0">
+                        <Link
+                          to={`/services/new?edit=${s._id}`}
+                          className="w-8 h-8 rounded-lg border flex items-center justify-center text-stripe-muted hover:text-stripe-purple hover:border-stripe-purple transition-all"
+                          style={{ borderColor: '#E6EBF1' }}
+                          title="Edit service"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => setConfirmDelete(s)}
+                          className="w-8 h-8 rounded-lg border flex items-center justify-center text-stripe-muted hover:text-red-500 hover:border-red-300 transition-all"
+                          style={{ borderColor: '#E6EBF1' }}
+                          title="Delete service"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -472,5 +507,51 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+
+    {/* ── Delete Confirmation Modal ── */}
+    {confirmDelete && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: 'rgba(10,37,64,0.45)', backdropFilter: 'blur(4px)' }}
+        onClick={() => setConfirmDelete(null)}
+      >
+        <div
+          className="bg-white rounded-2xl shadow-2xl p-7 w-full max-w-sm"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-stripe-slate text-base">Delete Service?</h3>
+              <p className="text-xs text-stripe-muted">This action cannot be undone</p>
+            </div>
+          </div>
+          <p className="text-sm text-stripe-steel mb-6">
+            Are you sure you want to delete <strong className="text-stripe-slate">{confirmDelete.title}</strong>?
+            All associated data will be permanently removed.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setConfirmDelete(null)}
+              className="flex-1 py-2.5 rounded-xl border font-semibold text-sm text-stripe-muted hover:bg-stripe-bg transition-all"
+              style={{ borderColor: '#E6EBF1' }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleDeleteService(confirmDelete)}
+              disabled={deletingId === confirmDelete._id}
+              className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-60"
+              style={{ background: '#EF4444' }}
+            >
+              {deletingId === confirmDelete._id ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
   );
 }
