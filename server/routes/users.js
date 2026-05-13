@@ -57,9 +57,13 @@ router.put('/me', protect, async (req, res) => {
       yearOfStudy: 'year_of_study',
       bio: 'bio',
       skills: 'skills',
-      phone: 'phone',          // user saves their WhatsApp number
+      phone: 'phone',
       bannerUrl: 'banner_url',
       avatarUrl: 'avatar_url',
+      instagramUrl: 'instagram_url',
+      facebookUrl:  'facebook_url',
+      youtubeUrl:   'youtube_url',
+      xUrl:         'x_url',
     };
 
     const updates = {};
