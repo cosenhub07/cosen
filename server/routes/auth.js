@@ -363,11 +363,11 @@ router.put('/onboarding', protect, async (req, res) => {
     // Phone must be verified before completing onboarding
     const { data: currentUser } = await supabase
       .from('users')
-      .select('phone_verified, role')
+      .select('is_phone_verified, role')
       .eq('id', req.user._id)
       .single();
 
-    if (!currentUser?.phone_verified) {
+    if (!currentUser?.is_phone_verified) {
       return res.status(400).json({ success: false, message: 'Phone number must be verified before completing your profile.' });
     }
 
@@ -533,7 +533,7 @@ router.post('/send-phone-otp', protect, async (req, res) => {
       .from('users')
       .select('id')
       .eq('phone', e164)
-      .eq('phone_verified', true)
+      .eq('is_phone_verified', true)
       .neq('id', req.user._id)
       .maybeSingle();
 
@@ -551,7 +551,7 @@ router.post('/send-phone-otp', protect, async (req, res) => {
         phone: e164,
         phone_otp_token: hashedOtp,
         phone_otp_expire: expire,
-        phone_verified: false,
+        is_phone_verified: false,
       })
       .eq('id', req.user._id);
 
@@ -602,7 +602,7 @@ router.post('/verify-phone-otp', protect, async (req, res) => {
     await supabase
       .from('users')
       .update({
-        phone_verified: true,
+        is_phone_verified: true,
         phone_otp_token: null,
         phone_otp_expire: null,
       })
