@@ -6,6 +6,7 @@ import {
   ChevronRight, ChevronLeft, CheckCircle, Loader,
   User, Shield, Share2, FileText, Camera, Upload,
 } from 'lucide-react';
+import PrivacyModal from '../components/PrivacyModal';
 
 const STEPS = [
   { label: 'Basic Info',   icon: User },
@@ -21,6 +22,7 @@ export default function Onboarding() {
   const [localError, setLocalError] = useState('');
   const [uploadingId, setUploadingId]       = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [showPolicy, setShowPolicy] = useState(false);
 
   const [form, setForm] = useState({
     dob:                      user?.dob || '',
@@ -282,7 +284,15 @@ export default function Onboarding() {
                   checked={form.platformAgreementAccepted} onChange={handleChange}
                   className="mt-0.5 w-5 h-5 rounded accent-[#635BFF] cursor-pointer" />
                 <span className="text-sm font-medium leading-snug" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                  I have read and accept the <span style={{ color: '#A5A1FF' }}>Platform Agreements & Terms of Service</span>
+                  I have read and accept the{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); setShowPolicy(true); }}
+                    className="font-semibold hover:underline"
+                    style={{ color: '#A5A1FF' }}
+                  >
+                    Platform Agreements & Terms of Service
+                  </button>
                 </span>
               </label>
             </div>
@@ -316,6 +326,9 @@ export default function Onboarding() {
           </div>
         </div>
       </div>
+
+      {/* Privacy Policy Modal */}
+      {showPolicy && <PrivacyModal onClose={() => setShowPolicy(false)} />}
     </div>
   );
 }
