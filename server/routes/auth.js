@@ -189,7 +189,7 @@ router.post('/forgot-password', async (req, res) => {
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    const expire = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 minutes
+    const expire = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
 
     await supabase
       .from('users')
@@ -204,9 +204,17 @@ router.post('/forgot-password', async (req, res) => {
     // 🔥 Send email in background
     sendEmail({
       email: user.email,
-      subject: 'Cosen - Password Reset Link',
-      message: `Click this link to reset your password: ${resetUrl}`,
-      html: `<p>Click this link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a>`
+      subject: 'Cosen - Password Reset Link (valid for 5 minutes)',
+      message: `You requested a password reset for your Cosen account.\n\nClick this link to reset your password:\n${resetUrl}\n\n⚠️ This link is valid for only 5 minutes.\n\nIf you did not request this, please ignore this email.`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+          <h2 style="color:#0A2540;margin-bottom:8px;">Reset your Cosen password</h2>
+          <p style="color:#425466;">Click the button below to set a new password for your account.</p>
+          <a href="${resetUrl}" style="display:inline-block;margin:20px 0;padding:12px 28px;background:#635BFF;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password</a>
+          <p style="color:#F87171;font-size:13px;">⚠️ This link expires in <strong>5 minutes</strong>. After that you will need to request a new one.</p>
+          <p style="color:#8898AA;font-size:12px;margin-top:16px;">If you did not request a password reset, you can safely ignore this email.</p>
+        </div>
+      `
     }).catch((err) => {
       console.error('Background forgot-password email failed:', err.message);
       // Rollback token silently since response already sent
