@@ -211,12 +211,12 @@ export default function Browse() {
           </p>
           <select
             id="browse-sort"
-            className="stripe-input w-auto text-sm cursor-pointer"
+            className="stripe-input w-auto text-sm cursor-pointer font-semibold"
             value={sort}
             onChange={e => setSort(e.target.value)}
-            style={{ width: 'auto', padding: '0.4rem 0.75rem' }}
+            style={{ width: 'auto', padding: '0.4rem 0.75rem', color: sort === 'rating' ? '#635BFF' : '#425466', background: '#F6F9FC' }}
           >
-            <option value="rating">Sort: Top Rated</option>
+            <option value="rating">⭐ Top Rated First</option>
             <option value="price_asc">Price: Low to High</option>
             <option value="price_desc">Price: High to Low</option>
             <option value="-createdAt">Newest First</option>

@@ -120,7 +120,7 @@ const sendOrderEmail = (type, ctx) => {
 
 const mapOrder = (row) => {
   if (!row) return null;
-  const { service, buyer, seller, ...order } = row;
+  const { service, buyer, seller, review, ...order } = row;
   return {
     ...order,
     _id: order.id,
@@ -139,6 +139,11 @@ const mapOrder = (row) => {
     completedAt: order.completed_at,
     createdAt: order.created_at,
     updatedAt: order.updated_at,
+    review: (review && review.length > 0) ? {
+      rating: review[0].rating,
+      comment: review[0].comment,
+      createdAt: review[0].created_at
+    } : null,
     service: service ? {
       _id: service.id,
       title: service.title,
@@ -273,7 +278,8 @@ router.get('/:id', protect, async (req, res) => {
         *,
         service:services!service_id(id, title, price, delivery_days, images, category),
         buyer:users!buyer_id(id, name, email, avatar_url, avatar_public_id, phone, is_phone_verified),
-        seller:users!seller_id(id, name, email, avatar_url, avatar_public_id, department, phone, is_phone_verified)
+        seller:users!seller_id(id, name, email, avatar_url, avatar_public_id, department, phone, is_phone_verified),
+        review:reviews(rating, comment, created_at)
       `)
       .eq('id', req.params.id)
       .maybeSingle();

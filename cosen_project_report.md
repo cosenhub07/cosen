@@ -209,5 +209,88 @@ users ──────────┬──── services (seller_id)
 | **Production-Grade** | Deployed on Railway, Supabase, Cloudinary, Brevo |
 
 ---
+******
+---
 
-*Last updated: May 12, 2026 | GitHub: cosenhub07/cosen | Status: 🟢 Live in Production*
+## 📱 SMS / Phone Verification — Migration Log (May 13–14, 2026)
+
+This section documents the full journey of attempting to add phone number verification to the onboarding flow.
+
+### Attempt 1 — Brevo SMS (Legacy, Removed)
+The original codebase had a Brevo SMS integration (`server/utils/sendSms.js`) using the Brevo transactional SMS API.
+- **Removed** because Brevo provides very few free SMS credits per month, making it unsustainable for user growth.
+
+---
+
+### Attempt 2 — Firebase Phone Authentication
+
+**Goal:** Use Firebase Phone Auth (free tier: ~10,000 SMS/month) for OTP verification.
+
+**Changes Made:**
+| File | Change |
+|---|---|
+| `client/src/lib/firebase.js` | [NEW] Created Firebase client SDK initialization file using `VITE_FIREBASE_*` env vars |
+| `client/src/pages/Onboarding.jsx` | Integrated `RecaptchaVerifier` + `signInWithPhoneNumber` from `firebase/auth` |
+| `client/src/store/authStore.js` | Added `linkFirebasePhone(idToken)` method to call the backend verify endpoint |
+| `server/config/firebaseAdmin.js` | [NEW] Firebase Admin SDK initialization using service account credentials |
+| `server/routes/auth.js` | Added `POST /api/auth/firebase-phone-verify` route to validate Firebase ID tokens |
+| `server/utils/sendSms.js` | Deleted the legacy Brevo SMS utility |
+| `server/.env` | Added `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` |
+| `client/.env` | Added `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID` |
+
+**Errors Encountered & Fixed:**
+| Error | Root Cause | Fix |
+|---|---|---|
+| `Cannot find module '../utils/sendSms'` | Old import still in `auth.js` after deleting the file | Removed the import |
+| `⚠️ Firebase Admin configuration is missing` | `.env` was saved in UTF-16LE encoding, Dotenv couldn't read it | Converted `.env` to UTF-8 |
+| `auth/operation-not-allowed` | Phone sign-in provider was not enabled in Firebase Console | Enabled Phone provider in Firebase Console → Authentication → Sign-in method |
+| `auth/billing-not-enabled` | Firebase requires a Blaze (Pay-as-you-go) plan to send real SMS | **Blocker** — could not resolve |
+| `[OR_BACR2_44]` | Google Cloud billing rejected card (India debit card restrictions) | **Blocker** — could not resolve |
+
+**Outcome: ❌ Abandoned.** Google Cloud Billing refused all payment methods (India debit card restriction). Firebase Phone Auth requires the Blaze plan regardless of free quota.
+
+---
+
+### Attempt 3 — Fast2SMS
+
+**Goal:** Use Fast2SMS (India-specific SMS provider) — claimed to work without credit card.
+
+**Changes Made:**
+| File | Change |
+|---|---|
+| `client/src/lib/firebase.js` | [DELETED] Removed Firebase client SDK |
+| `server/config/firebaseAdmin.js` | [DELETED] Removed Firebase Admin SDK |
+| `server/utils/sendSms.js` | [NEW] Created Fast2SMS OTP utility using `axios` POST to `https://www.fast2sms.com/dev/bulkV2` |
+| `server/routes/auth.js` | Replaced `POST /firebase-phone-verify` with `POST /send-phone-otp` + `POST /verify-phone-otp` |
+| `server/.env` | Removed Firebase keys, added `FAST2SMS_API_KEY` |
+| `client/.env` | Removed all `VITE_FIREBASE_*` variables |
+| `client/src/store/authStore.js` | Replaced `linkFirebasePhone` with `sendPhoneOtp(phone)` and `verifyPhoneOtp(otp)` |
+| `client/src/pages/Onboarding.jsx` | Removed `RecaptchaVerifier`, Firebase imports; reconnected to `sendPhoneOtp` / `verifyPhoneOtp` store methods |
+
+**Errors Encountered:**
+| Error | Root Cause | Fix |
+|---|---|---|
+| `500` on `/send-phone-otp` (client `.env` blank page) | `.env` saved in wrong encoding, Vite couldn't read Firebase vars | Rewrote `client/.env` as clean UTF-8 |
+| Build failed on Railway: `cannot resolve firebase/auth` | `package.json` not committed to GitHub — Railway didn't install Firebase | Committed `package.json` and `package-lock.json` for both client & server |
+| `500` — `FAST2SMS_API_KEY is not configured` | API key not added to Railway Backend environment variables | Added to Railway Variables |
+| `400` — number format rejected | Was sending `+919876543210` but Fast2SMS expects `9876543210` | Fixed `sendSms.js` to strip `+91` prefix |
+| `status_code: 996` — website not verified | Fast2SMS OTP API requires DLT registration + website verification | **Blocker** — see below |
+
+**Outcome: ❌ Abandoned.** Fast2SMS OTP API requires **DLT (Distributed Ledger Technology) registration** — a mandatory TRAI (India telecom regulator) compliance process requiring a registered business entity, approved Sender ID, and approved message templates. This process takes weeks and is meant for established businesses.
+
+---
+
+### Current State — Phone Verification Suspended
+
+**The `send-phone-otp` and `verify-phone-otp` backend routes remain in the codebase** but are non-functional without a DLT-registered SMS provider.
+
+The `sendSms.js` utility is also kept for future use once DLT registration is completed.
+
+**Recommended next steps for phone verification:**
+1. **Short-term:** Make phone number collection **optional** in the onboarding wizard (skip OTP requirement). Email verification is the primary trust signal.
+2. **Long-term:** Complete DLT registration as a business entity and re-enable Fast2SMS or MSG91 OTP routes.
+
+---
+
+*Last updated: May 14, 2026 | GitHub: cosenhub07/cosen | Status: 🟢 Live in Production*
+

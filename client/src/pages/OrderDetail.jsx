@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
   Send, Loader, Clock, CheckCircle, AlertTriangle,
-  Shield, Check, Info, MessageCircle,
+  Shield, Check, Info, MessageCircle, Star
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import api from '../lib/api';
@@ -27,6 +27,12 @@ export default function OrderDetail() {
   const [sending,    setSending]    = useState(false);
   const [error,      setError]      = useState('');
   const [connected,  setConnected]  = useState(false);
+
+  // Review Modal State
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   /* ── Fetch order + messages ─────────────────────────── */
   useEffect(() => {
@@ -108,9 +114,35 @@ export default function OrderDetail() {
   const updateStatus = async (action) => {
     try {
       const { data } = await api.put(`/orders/${id}/${action}`);
-      if (data.success) setOrder(prev => ({ ...prev, status: data.order.status }));
+      if (data.success) {
+        setOrder(prev => ({ ...prev, status: data.order.status }));
+        if (action === 'complete') {
+          setShowReviewModal(true);
+        }
+      }
     } catch {
       alert(`Failed to ${action} order.`);
+    }
+  };
+
+  /* ── Review Submission ──────────────────────────────── */
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+    try {
+      const { data } = await api.post('/reviews', {
+        orderId: id,
+        rating: reviewRating,
+        comment: reviewComment
+      });
+      if (data.success) {
+        setOrder(prev => ({ ...prev, isReviewed: true, review: data.review }));
+        setShowReviewModal(false);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -350,11 +382,43 @@ export default function OrderDetail() {
                   </div>
                 )}
 
-                {order.status === 'completed' && (
+                {order.status === 'completed' && !order.isReviewed && isBuyer && (
+                  <div className="space-y-2 border border-blue-200 bg-blue-50 rounded-xl p-4 text-center">
+                    <p className="text-sm font-semibold text-blue-800 mb-2">How was your experience?</p>
+                    <button
+                      onClick={() => setShowReviewModal(true)}
+                      className="btn-primary w-full justify-center !bg-blue-600 hover:!bg-blue-700"
+                    >
+                      Leave a Review
+                    </button>
+                  </div>
+                )}
+
+                {order.status === 'completed' && (!isBuyer || order.isReviewed) && (
                   <div className="flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
                     <CheckCircle className="h-6 w-6 text-green-500 mb-2" />
                     <span className="font-semibold text-stripe-slate text-sm">Order Completed</span>
                     <span className="text-xs text-stripe-muted mt-1">Payment released.</span>
+                    {order.isReviewed && !order.review && (
+                      <span className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                        <Star className="h-3.5 w-3.5 fill-amber-500" /> You reviewed this order
+                      </span>
+                    )}
+                    {order.review && (
+                      <div className="mt-4 w-full text-left bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-bold text-stripe-slate">{isBuyer ? 'Your Review' : 'Buyer\'s Review'}</span>
+                          <div className="flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={`h-3 w-3 ${i < order.review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} />
+                            ))}
+                          </div>
+                        </div>
+                        {order.review.comment && (
+                          <p className="text-xs text-stripe-steel italic border-l-2 border-stripe-purple/20 pl-2 py-0.5">"{order.review.comment}"</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -387,6 +451,64 @@ export default function OrderDetail() {
 
         </div>
       </div>
+
+      {/* ── Review Modal ── */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+          <div className="absolute inset-0 bg-stripe-slate/40 backdrop-blur-sm" onClick={() => setShowReviewModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200">
+            <h2 className="text-2xl font-display font-bold text-stripe-slate mb-2">Leave a Review</h2>
+            <p className="text-sm text-stripe-muted mb-6">How was your experience with {otherParty.name}?</p>
+
+            <form onSubmit={handleReviewSubmit}>
+              <div className="flex justify-center gap-2 mb-6">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    className="p-1 transition-transform hover:scale-110"
+                    onClick={() => setReviewRating(star)}
+                  >
+                    <Star
+                      className={`h-10 w-10 ${
+                        reviewRating >= star ? 'fill-amber-400 text-amber-400' : 'fill-slate-100 text-slate-200'
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-stripe-slate mb-2">Comment (Optional)</label>
+                <textarea
+                  className="stripe-input w-full min-h-[100px] resize-none"
+                  placeholder="What did you like about this service?"
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  maxLength={500}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(false)}
+                  className="btn-outline flex-1 justify-center"
+                >
+                  Skip
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="btn-primary flex-1 justify-center"
+                >
+                  {submittingReview ? <Loader className="h-5 w-5 animate-spin" /> : 'Submit Review'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

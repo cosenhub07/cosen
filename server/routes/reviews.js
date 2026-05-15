@@ -78,7 +78,7 @@ router.post('/', protect, async (req, res) => {
       type: 'review_received',
       title: `⭐ New ${Number(rating)}-Star Review!`,
       body: `${req.user.name} left you a ${Number(rating)}-star review.`,
-      link: `/profile/${order.seller_id}`,
+      link: `/orders/${order.id}`,
     });
 
     res.status(201).json({ success: true, review: mapReview(review) });

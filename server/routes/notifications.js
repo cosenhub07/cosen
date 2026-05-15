@@ -41,24 +41,6 @@ router.get('/count', protect, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// PATCH /api/notifications/:id/read — mark one notification as read
-// ─────────────────────────────────────────────────────────────
-router.patch('/:id/read', protect, async (req, res) => {
-  try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('id', req.params.id)
-      .eq('user_id', req.user._id); // ensure ownership
-
-    if (error) throw error;
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-// ─────────────────────────────────────────────────────────────
 // PATCH /api/notifications/read-all — mark all as read
 // ─────────────────────────────────────────────────────────────
 router.patch('/read-all', protect, async (req, res) => {
@@ -68,6 +50,41 @@ router.patch('/read-all', protect, async (req, res) => {
       .update({ is_read: true })
       .eq('user_id', req.user._id)
       .eq('is_read', false);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// DELETE /api/notifications/all — clear all notifications
+// ─────────────────────────────────────────────────────────────
+router.delete('/all', protect, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', req.user._id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PATCH /api/notifications/:id/read — mark one notification as read
+// ─────────────────────────────────────────────────────────────
+router.patch('/:id/read', protect, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', req.params.id)
+      .eq('user_id', req.user._id); // ensure ownership
 
     if (error) throw error;
     res.json({ success: true });

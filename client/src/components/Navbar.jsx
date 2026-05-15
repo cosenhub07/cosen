@@ -89,12 +89,26 @@ export default function Navbar() {
     } catch { /* ignore */ }
   };
 
-  const handleNotifClick = async (notif) => {
-    try { await api.patch(`/notifications/${notif.id}/read`); } catch { /* ignore */ }
+  const clearAllNotifs = async () => {
+    try {
+      await api.delete('/notifications/all');
+      setNotifications([]);
+      setUnreadNotifs(0);
+      setBellOpen(false);
+    } catch { /* ignore */ }
+  };
+
+  const handleNotifClick = (notif) => {
+    // Fire-and-forget API call to prevent blocking UI
+    api.patch(`/notifications/${notif.id}/read`).catch(() => {});
+    
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
     setUnreadNotifs(prev => Math.max(0, prev - (notif.is_read ? 0 : 1)));
-    setBellOpen(false);
-    if (notif.link) navigate(notif.link);
+    
+    // Defer closing the menu so that React Router <Link> can process the navigation event first
+    setTimeout(() => {
+      setBellOpen(false);
+    }, 150);
   };
 
   // Close bell on outside click
@@ -308,11 +322,16 @@ export default function Navbar() {
                       >
                         <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#E6EBF1' }}>
                           <span className="font-bold text-stripe-slate text-sm">Notifications</span>
-                          {unreadNotifs > 0 && (
-                            <button onClick={markAllRead} className="text-xs font-semibold text-stripe-purple hover:underline">Mark all read</button>
-                          )}
+                          <div className="flex gap-3">
+                            {unreadNotifs > 0 && (
+                              <button onClick={markAllRead} className="text-xs font-semibold text-stripe-purple hover:underline">Mark all read</button>
+                            )}
+                            {notifications.length > 0 && (
+                              <button onClick={clearAllNotifs} className="text-xs font-semibold text-red-500 hover:underline">Clear all</button>
+                            )}
+                          </div>
                         </div>
-                        <div className="max-h-80 overflow-y-auto divide-y" style={{ borderColor: '#F6F9FC' }}>
+                        <div className="overflow-y-auto divide-y" style={{ maxHeight: '60vh', borderColor: '#F6F9FC' }}>
                           {notifications.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 text-center">
                               <Bell className="h-8 w-8 text-stripe-muted opacity-30 mb-2" />
@@ -320,24 +339,28 @@ export default function Navbar() {
                               <p className="text-xs text-stripe-muted mt-1">Order updates & reviews appear here</p>
                             </div>
                           ) : (
-                            notifications.map(n => (
-                              <button
-                                key={n.id}
-                                onClick={() => handleNotifClick(n)}
-                                className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-stripe-bg"
-                                style={{ background: n.is_read ? '#fff' : '#635BFF08' }}
-                              >
-                                <span className="text-lg shrink-0 mt-0.5">{notifIcon(n.type)}</span>
-                                <div className="flex-1 min-w-0">
-                                  <div className={`text-sm leading-snug ${n.is_read ? 'text-stripe-steel font-medium' : 'text-stripe-slate font-bold'}`}>
-                                    {n.title}
+                            notifications.map(n => {
+                              const NotifWrapper = n.link ? Link : 'button';
+                              return (
+                                <NotifWrapper
+                                  key={n.id}
+                                  to={n.link || undefined}
+                                  onClick={() => handleNotifClick(n)}
+                                  className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-stripe-bg"
+                                  style={{ background: n.is_read ? '#fff' : '#635BFF08', textDecoration: 'none' }}
+                                >
+                                  <span className="text-lg shrink-0 mt-0.5">{notifIcon(n.type)}</span>
+                                  <div className="flex-1 min-w-0">
+                                    <div className={`text-sm leading-snug ${n.is_read ? 'text-stripe-steel font-medium' : 'text-stripe-slate font-bold'}`}>
+                                      {n.title}
+                                    </div>
+                                    <div className="text-xs text-stripe-muted mt-0.5 line-clamp-2">{n.body}</div>
+                                    <div className="text-[10px] text-stripe-muted mt-1">{timeAgo(n.created_at)}</div>
                                   </div>
-                                  <div className="text-xs text-stripe-muted mt-0.5 line-clamp-2">{n.body}</div>
-                                  <div className="text-[10px] text-stripe-muted mt-1">{timeAgo(n.created_at)}</div>
-                                </div>
-                                {!n.is_read && <span className="w-2 h-2 rounded-full bg-stripe-purple shrink-0 mt-1.5" />}
-                              </button>
-                            ))
+                                  {!n.is_read && <span className="w-2 h-2 rounded-full bg-stripe-purple shrink-0 mt-1.5" />}
+                                </NotifWrapper>
+                              );
+                            })
                           )}
                         </div>
                       </div>
@@ -606,12 +629,17 @@ export default function Navbar() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: '#E6EBF1' }}>
               <span className="font-bold text-stripe-slate text-base">Notifications</span>
-              {unreadNotifs > 0 && (
-                <button onClick={markAllRead} className="text-sm font-semibold text-stripe-purple">Mark all read</button>
-              )}
+              <div className="flex gap-4">
+                {unreadNotifs > 0 && (
+                  <button onClick={markAllRead} className="text-sm font-semibold text-stripe-purple">Mark all read</button>
+                )}
+                {notifications.length > 0 && (
+                  <button onClick={clearAllNotifs} className="text-sm font-semibold text-red-500">Clear all</button>
+                )}
+              </div>
             </div>
             {/* List */}
-            <div className="overflow-y-auto divide-y" style={{ maxHeight: 'calc(70vh - 100px)', borderColor: '#F6F9FC' }}>
+            <div className="overflow-y-auto divide-y" style={{ maxHeight: '60vh', borderColor: '#F6F9FC' }}>
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-14 text-center">
                   <Bell className="h-10 w-10 text-stripe-muted opacity-25 mb-3" />
@@ -619,24 +647,28 @@ export default function Navbar() {
                   <p className="text-xs text-stripe-muted mt-1">Order updates & reviews appear here</p>
                 </div>
               ) : (
-                notifications.map(n => (
-                  <button
-                    key={n.id}
-                    onClick={() => handleNotifClick(n)}
-                    className="w-full flex items-start gap-3 px-5 py-4 text-left"
-                    style={{ background: n.is_read ? '#fff' : '#635BFF08' }}
-                  >
-                    <span className="text-xl shrink-0 mt-0.5">{notifIcon(n.type)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-sm leading-snug ${n.is_read ? 'text-stripe-steel font-medium' : 'text-stripe-slate font-bold'}`}>
-                        {n.title}
+                notifications.map(n => {
+                  const NotifWrapper = n.link ? Link : 'button';
+                  return (
+                    <NotifWrapper
+                      key={n.id}
+                      to={n.link || undefined}
+                      onClick={() => handleNotifClick(n)}
+                      className="w-full flex items-start gap-3 px-5 py-4 text-left"
+                      style={{ background: n.is_read ? '#fff' : '#635BFF08', textDecoration: 'none' }}
+                    >
+                      <span className="text-xl shrink-0 mt-0.5">{notifIcon(n.type)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-sm leading-snug ${n.is_read ? 'text-stripe-steel font-medium' : 'text-stripe-slate font-bold'}`}>
+                          {n.title}
+                        </div>
+                        <div className="text-xs text-stripe-muted mt-0.5 line-clamp-2">{n.body}</div>
+                        <div className="text-[10px] text-stripe-muted mt-1">{timeAgo(n.created_at)}</div>
                       </div>
-                      <div className="text-xs text-stripe-muted mt-0.5 line-clamp-2">{n.body}</div>
-                      <div className="text-[10px] text-stripe-muted mt-1">{timeAgo(n.created_at)}</div>
-                    </div>
-                    {!n.is_read && <span className="w-2 h-2 rounded-full bg-stripe-purple shrink-0 mt-1.5" />}
-                  </button>
-                ))
+                      {!n.is_read && <span className="w-2 h-2 rounded-full bg-stripe-purple shrink-0 mt-1.5" />}
+                    </NotifWrapper>
+                  );
+                })
               )}
             </div>
           </div>
