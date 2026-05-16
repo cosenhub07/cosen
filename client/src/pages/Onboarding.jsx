@@ -287,7 +287,7 @@ export default function Onboarding() {
               <div>
                 <Label>Mobile Number *</Label>
                 <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                  We'll send a 6-digit OTP to verify your number. Indian numbers only (+91).
+                  We'll send a 6-digit WhatsApp OTP to verify your number. Indian numbers only (+91).
                 </p>
 
                 {phoneVerified ? (
@@ -342,7 +342,7 @@ export default function Onboarding() {
                     {otpSent && (
                       <div className="flex flex-col gap-2 mt-1">
                         <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                          Enter the 6-digit OTP sent to your phone:
+                          Enter the 6-digit OTP sent to your WhatsApp (valid for 5 mins):
                         </p>
                         <div className="flex gap-2">
                           <div className="relative flex-1">

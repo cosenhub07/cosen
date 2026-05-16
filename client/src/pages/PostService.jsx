@@ -38,6 +38,8 @@ export default function PostService() {
     title: '',
     description: '',
     category: '',
+    subCategory: '',
+    isNegotiable: false,
     price: '',
     deliveryDays: '',
     tags: [],
@@ -62,6 +64,8 @@ export default function PostService() {
           title: s.title || '',
           description: s.description || '',
           category: s.category || '',
+          subCategory: s.subCategory || '',
+          isNegotiable: !!s.isNegotiable,
           price: s.price?.toString() || '',
           deliveryDays: s.deliveryDays?.toString() || '',
           tags: s.tags || [],
@@ -126,6 +130,8 @@ export default function PostService() {
       e.description = 'Description must be at least 30 characters.';
     if (!form.category)
       e.category = 'Please select a category.';
+    if (form.category === 'Study Helper' && !form.subCategory)
+      e.subCategory = 'Please select a help type.';
     if (!form.price || isNaN(form.price) || Number(form.price) < 50)
       e.price = 'Price must be at least ₹50.';
     if (!form.deliveryDays)
@@ -162,6 +168,8 @@ export default function PostService() {
         title: form.title.trim(),
         description: form.description.trim(),
         category: form.category,
+        subCategory: form.subCategory,
+        isNegotiable: form.isNegotiable,
         price: Number(form.price),
         deliveryDays: Number(form.deliveryDays),
         tags: form.tags,
@@ -285,6 +293,30 @@ export default function PostService() {
             </div>
             {errors.category && <p className="mt-2 text-xs text-red-500 font-medium">{errors.category}</p>}
           </div>
+
+          {/* ── Sub-Category for Study Helper ── */}
+          {form.category === 'Study Helper' && (
+            <div className="stripe-card bg-white p-6 mt-6">
+              <label className="form-label flex items-center gap-2 mb-3">
+                <BookOpen className="h-4 w-4 text-stripe-purple" />
+                <span>Help Type <span className="text-red-500">*</span></span>
+              </label>
+              <select
+                className="stripe-input cursor-pointer"
+                value={form.subCategory}
+                onChange={e => {
+                  setForm(f => ({ ...f, subCategory: e.target.value }));
+                  setErrors(er => ({ ...er, subCategory: undefined }));
+                }}
+              >
+                <option value="">Select help type…</option>
+                {['Assignment Help', 'Tutorial Help', 'Manual Help', 'Custom Help'].map(sub => (
+                  <option key={sub} value={sub}>{sub}</option>
+                ))}
+              </select>
+              {errors.subCategory && <p className="mt-2 text-xs text-red-500 font-medium">{errors.subCategory}</p>}
+            </div>
+          )}
 
           {/* ── Cover Image Upload ── */}
           <div className="stripe-card bg-white p-6">
@@ -418,6 +450,21 @@ export default function PostService() {
                 {errors.price
                   ? <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.price}</p>
                   : <p className="mt-1.5 text-xs text-stripe-muted">Minimum ₹50. Escrow-protected payment.</p>}
+                  
+                <label className="flex items-center gap-2 mt-4 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded accent-stripe-purple"
+                    checked={form.isNegotiable}
+                    onChange={e => setForm(f => ({ ...f, isNegotiable: e.target.checked }))}
+                  />
+                  <span className="text-sm font-medium text-stripe-slate group-hover:text-stripe-purple transition-colors">
+                    Negotiable Price
+                  </span>
+                </label>
+                <p className="text-xs text-stripe-muted mt-1 ml-6">
+                  Allow buyers to request a custom price in the order chat.
+                </p>
               </div>
 
               {/* Delivery */}

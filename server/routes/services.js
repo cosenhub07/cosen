@@ -25,6 +25,8 @@ const mapService = (row) => {
     _id: svc.id,
     sellerId: svc.seller_id,
     deliveryDays: svc.delivery_days,
+    subCategory: svc.sub_category || '',
+    isNegotiable: !!svc.is_negotiable,
     isActive: svc.is_active,
     reviewCount: svc.review_count,
     coverImageUrl: svc.cover_image_url || '',
@@ -123,10 +125,10 @@ router.post('/', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'You must complete your profile onboarding before posting a service.' });
     }
 
-    const { title, description, category, price, deliveryDays, tags, coverImageUrl } = req.body;
+    const { title, description, category, subCategory, isNegotiable, price, deliveryDays, tags, coverImageUrl } = req.body;
 
-    if (!title || !description || !category || !price || !deliveryDays) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+    if (!title || !description || !category || price == null || !deliveryDays) {
+      return res.status(400).json({ success: false, message: 'All required fields must be provided' });
     }
 
     const validCategories = ['Study Helper','Tech & Coding','Art & Design','Writing & CV','Research & Data','Other Talents'];
@@ -141,6 +143,8 @@ router.post('/', protect, async (req, res) => {
         title: title.trim(),
         description,
         category,
+        sub_category: subCategory || null,
+        is_negotiable: !!isNegotiable,
         price: Number(price),
         delivery_days: Number(deliveryDays),
         tags: tags || [],
@@ -175,6 +179,7 @@ router.put('/:id', protect, async (req, res) => {
 
     const fieldMap = {
       title: 'title', description: 'description', category: 'category',
+      subCategory: 'sub_category', isNegotiable: 'is_negotiable',
       price: 'price', deliveryDays: 'delivery_days', tags: 'tags', isActive: 'is_active',
       coverImageUrl: 'cover_image_url',
     };

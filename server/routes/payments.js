@@ -154,6 +154,99 @@ router.post('/verify', protect, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// POST /api/payments/create-order-for-pending
+// ─────────────────────────────────────────────────────────────
+router.post('/create-order-for-pending', protect, async (req, res) => {
+  try {
+    const { orderId } = req.body;
+
+    const { data: order, error: fetchErr } = await supabase
+      .from('orders')
+      .select('id, seller_id, buyer_id, price, status, service:services(title)')
+      .eq('id', orderId)
+      .maybeSingle();
+
+    if (fetchErr || !order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (order.buyer_id !== req.user._id) return res.status(403).json({ success: false, message: 'Unauthorized' });
+    if (order.status !== 'pending_negotiation' && order.status !== 'pending') return res.status(400).json({ success: false, message: 'Order is not pending payment' });
+
+    const amountPaise = Math.round(order.price * 100);
+
+    const razorpayOrder = await razorpay.orders.create({
+      amount:   amountPaise,
+      currency: 'INR',
+      receipt:  `cosen_${order.id.slice(0,8)}_${Date.now().toString().slice(-8)}`,
+      notes: {
+        orderId:      order.id,
+        buyerId:      order.buyer_id,
+        sellerId:     order.seller_id,
+      },
+    });
+
+    res.status(200).json({
+      success:         true,
+      razorpayOrderId: razorpayOrder.id,
+      amount:          razorpayOrder.amount,
+      amountINR:       order.price,
+      currency:        razorpayOrder.currency,
+      keyId:           process.env.RAZORPAY_KEY_ID,
+    });
+  } catch (error) {
+    console.error('Create Razorpay pending order error:', error);
+    const razorMsg = error?.error?.description || error?.message || 'Payment initiation failed.';
+    res.status(500).json({ success: false, message: razorMsg });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/payments/verify-pending
+// ─────────────────────────────────────────────────────────────
+router.post('/verify-pending', protect, async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      orderId,
+    } = req.body;
+
+    // 1. Verify HMAC-SHA256 signature
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' });
+    }
+
+    // 2. Update existing Order in Supabase
+    const { data: order, error } = await supabase
+      .from('orders')
+      .update({
+        status:               'inProgress',
+        razorpay_order_id:    razorpay_order_id,
+        razorpay_payment_id:  razorpay_payment_id,
+      })
+      .eq('id', orderId)
+      .select(`
+        *,
+        service:services!service_id(id, title, price, delivery_days),
+        buyer:users!buyer_id(id, name, email, avatar_url, avatar_public_id, phone, is_phone_verified),
+        seller:users!seller_id(id, name, email, avatar_url, avatar_public_id, phone, is_phone_verified)
+      `)
+      .single();
+
+    if (error) throw error;
+    res.status(200).json({ success: true, order: mapOrder(order) });
+  } catch (error) {
+    console.error('Verify pending payment error:', error);
+    res.status(500).json({ success: false, message: 'Could not confirm payment. Contact support.' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
 // POST /api/payments/webhook
 // ─────────────────────────────────────────────────────────────
 router.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {

@@ -135,6 +135,7 @@ const mapOrder = (row) => {
     deliveryNote: order.delivery_note,
     disputeReason: order.dispute_reason,
     isReviewed: order.is_reviewed,
+    isNegotiable: !!order.is_negotiable,
     deliveredAt: order.delivered_at,
     completedAt: order.completed_at,
     createdAt: order.created_at,
@@ -181,7 +182,7 @@ router.post('/', protect, async (req, res) => {
 
     const { data: service, error: svcErr } = await supabase
       .from('services')
-      .select('id, seller_id, price, is_active')
+      .select('id, seller_id, price, is_active, is_negotiable')
       .eq('id', serviceId)
       .maybeSingle();
 
@@ -205,7 +206,8 @@ router.post('/', protect, async (req, res) => {
         platform_fee: platformFee,
         seller_earnings: sellerEarnings,
         requirements: requirements || '',
-        status: 'pending',
+        status: service.is_negotiable ? 'pending_negotiation' : 'pending',
+        is_negotiable: !!service.is_negotiable,
       })
       .select(`
         *,
@@ -241,6 +243,53 @@ router.post('/', protect, async (req, res) => {
   } catch (error) {
     console.error('Create order error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/orders/:id/set-price — seller sets negotiated price
+// ─────────────────────────────────────────────────────────────
+router.put('/:id/set-price', protect, async (req, res) => {
+  try {
+    const { price } = req.body;
+    if (!price || price < 50) return res.status(400).json({ success: false, message: 'Invalid price amount. Minimum ₹50.' });
+
+    const { data: order, error: fetchErr } = await supabase
+      .from('orders')
+      .select('id, seller_id, status, is_negotiable')
+      .eq('id', req.params.id)
+      .maybeSingle();
+
+    if (fetchErr || !order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (order.seller_id !== req.user._id) return res.status(403).json({ success: false, message: 'Only the seller can set the price' });
+    if (order.status !== 'pending_negotiation' && order.status !== 'pending') return res.status(400).json({ success: false, message: 'Order is no longer pending' });
+    if (!order.is_negotiable) return res.status(400).json({ success: false, message: 'This order is not negotiable' });
+
+    const newPrice = Number(price);
+    const platformFee = Math.round(newPrice * COMMISSION);
+    const sellerEarnings = newPrice - platformFee;
+
+    const { data: updated, error } = await supabase
+      .from('orders')
+      .update({
+        price: newPrice,
+        platform_fee: platformFee,
+        seller_earnings: sellerEarnings
+      })
+      .eq('id', req.params.id)
+      .select(`
+        *,
+        service:services!service_id(id, title, price, delivery_days),
+        buyer:users!buyer_id(id, name, email, avatar_url, avatar_public_id, phone, is_phone_verified),
+        seller:users!seller_id(id, name, email, avatar_url, avatar_public_id, phone, is_phone_verified)
+      `)
+      .single();
+
+    if (error) throw error;
+    res.status(200).json({ success: true, order: mapOrder(updated) });
+  } catch (error) {
+    console.error('Set price error:', error);
+    res.status(500).json({ success: false, message: 'Server error setting price' });
   }
 });
 

@@ -532,7 +532,7 @@ router.post('/send-phone-otp', protect, async (req, res) => {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = crypto.createHash('sha256').update(otp).digest('hex');
-    const expire = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+    const expire = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes exactly
 
     // Update DB
     await supabase
@@ -544,9 +544,9 @@ router.post('/send-phone-otp', protect, async (req, res) => {
       })
       .eq('id', req.user._id);
 
-    // Send SMS via Fast2SMS
-    const sendSms = require('../utils/sendSms');
-    await sendSms(phone, otp);
+    // Send WhatsApp OTP via Meta API
+    const sendWhatsAppOtp = require('../utils/sendWhatsAppOtp');
+    await sendWhatsAppOtp(phone, otp);
 
     res.status(200).json({ success: true, message: 'OTP sent successfully!' });
   } catch (error) {

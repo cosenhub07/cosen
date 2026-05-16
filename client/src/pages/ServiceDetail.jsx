@@ -68,6 +68,33 @@ export default function ServiceDetail() {
     );
   }
 
+  // ── Negotiation handler ─────────────────────────────────
+  const handleRequestNegotiation = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    setPayLoading(true);
+    setPayError('');
+
+    try {
+      const { data } = await api.post('/orders', {
+        serviceId: service._id || service.id,
+        requirements: requirements.trim(),
+      });
+
+      if (data.success) {
+        navigate(`/orders/${data.order._id || data.order.id}`);
+      } else {
+        setPayError(data.message || 'Could not request service.');
+      }
+    } catch (err) {
+      setPayError(err.response?.data?.message || 'Failed to request service.');
+    } finally {
+      setPayLoading(false);
+    }
+  };
+
   // ── Payment handler ─────────────────────────────────────
   const handleOrderNow = async () => {
     if (!user) {
@@ -173,6 +200,11 @@ export default function ServiceDetail() {
               <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-stripe-purple/10 text-stripe-purple">
                 {service.category}
               </span>
+              {service.subCategory && (
+                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                  {service.subCategory}
+                </span>
+              )}
               {service.rating > 0 && (
                 <div className="flex items-center gap-1 text-sm">
                   {[...Array(Math.round(service.rating))].map((_, i) => (
@@ -259,9 +291,16 @@ export default function ServiceDetail() {
                 </span>
                 <span className="text-stripe-muted">/ session</span>
               </div>
-              <p className="text-stripe-muted text-sm mb-5">
-                {service.deliveryDays}-day delivery · 3 revisions included
-              </p>
+              <div className="flex items-center justify-between mb-5">
+                <p className="text-stripe-muted text-sm">
+                  {service.deliveryDays}-day delivery · 3 revisions included
+                </p>
+                {service.isNegotiable && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200">
+                    Negotiable
+                  </span>
+                )}
+              </div>
 
               {/* Own service warning */}
               {user && (user._id === service.sellerId || user.id === service.sellerId) && (
@@ -295,17 +334,28 @@ export default function ServiceDetail() {
               )}
 
               {/* CTA Button */}
-              <button
-                id="service-order-now"
-                onClick={handleOrderNow}
-                disabled={payLoading || (user && (user._id === service.sellerId || user.id === service.sellerId))}
-                className="btn-primary w-full justify-center py-3.5 mb-3 disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {payLoading
-                  ? <><Loader className="h-4 w-4 animate-spin" /> Processing...</>
-                  : <>Pay ₹{Number(service.price).toLocaleString('en-IN')} with Razorpay <ChevronRight className="h-4 w-4" /></>
-                }
-              </button>
+              {service.isNegotiable ? (
+                <button
+                  id="service-negotiate"
+                  onClick={handleRequestNegotiation}
+                  disabled={payLoading || (user && (user._id === service.sellerId || user.id === service.sellerId))}
+                  className="btn-primary w-full justify-center py-3.5 mb-3 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {payLoading ? <><Loader className="h-4 w-4 animate-spin" /> Processing...</> : 'Request Service & Negotiate'}
+                </button>
+              ) : (
+                <button
+                  id="service-order-now"
+                  onClick={handleOrderNow}
+                  disabled={payLoading || (user && (user._id === service.sellerId || user.id === service.sellerId))}
+                  className="btn-primary w-full justify-center py-3.5 mb-3 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {payLoading
+                    ? <><Loader className="h-4 w-4 animate-spin" /> Processing...</>
+                    : <>Pay ₹{Number(service.price).toLocaleString('en-IN')} with Razorpay <ChevronRight className="h-4 w-4" /></>
+                  }
+                </button>
+              )}
 
               <button
                 id="service-contact"

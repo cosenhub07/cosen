@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
   Send, Loader, Clock, CheckCircle, AlertTriangle,
   Shield, Check, Info, MessageCircle, Star
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import useRazorpay from '../hooks/useRazorpay';
 import api from '../lib/api';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
@@ -15,6 +16,7 @@ const WA_GREEN = '#25D366';
 
 export default function OrderDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const chatBottomRef = useRef(null);
   const socketRef    = useRef(null);
@@ -33,6 +35,13 @@ export default function OrderDetail() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Negotiation & Payment State
+  const [negotiationPrice, setNegotiationPrice] = useState('');
+  const [updatingPrice, setUpdatingPrice] = useState(false);
+  const [priceSuccessMsg, setPriceSuccessMsg] = useState('');
+  const [payLoading, setPayLoading] = useState(false);
+  const openCheckout = useRazorpay();
 
   /* ── Fetch order + messages ─────────────────────────── */
   useEffect(() => {
@@ -146,6 +155,81 @@ export default function OrderDetail() {
     }
   };
 
+  /* ── Negotiation: Set Final Price (Seller) ──────────── */
+  const handleSetPrice = async () => {
+    if (!negotiationPrice || Number(negotiationPrice) < 50) {
+      alert('Price must be at least ₹50');
+      return;
+    }
+    setUpdatingPrice(true);
+    try {
+      const { data } = await api.put(`/orders/${id}/set-price`, { price: negotiationPrice });
+      if (data.success) {
+        setOrder(data.order);
+        setNegotiationPrice('');
+        setPriceSuccessMsg('Price locked successfully!');
+        setTimeout(() => setPriceSuccessMsg(''), 4000);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update price');
+    } finally {
+      setUpdatingPrice(false);
+    }
+  };
+
+  /* ── Pay Pending Order (Buyer) ──────────────────────── */
+  const handlePayPendingOrder = async () => {
+    setPayLoading(true);
+    try {
+      const { data } = await api.post('/payments/create-order-for-pending', { orderId: id });
+      if (!data.success) {
+        alert(data.message || 'Could not initiate payment.');
+        setPayLoading(false);
+        return;
+      }
+      
+      setPayLoading(false);
+      openCheckout({
+        options: {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          order_id: data.razorpayOrderId,
+          name: 'Cosen Marketplace',
+          description: `Payment for Order #${String(id).slice(-8)}`,
+          prefill: { name: user.name, email: user.email },
+          notes: { orderId: id }
+        },
+        onSuccess: async (response) => {
+          setPayLoading(true);
+          try {
+            const verifyRes = await api.post('/payments/verify-pending', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: id
+            });
+            if (verifyRes.data.success) {
+              navigate('/payment-success', {
+                state: { order: verifyRes.data.order, paymentId: response.razorpay_payment_id },
+              });
+            }
+          } catch {
+            alert('Verification failed. Contact support.');
+          } finally {
+            setPayLoading(false);
+          }
+        },
+        onDismiss: () => {
+          setPayLoading(false);
+        }
+      });
+    } catch (err) {
+      setPayLoading(false);
+      alert(err.response?.data?.message || 'Payment initiation failed.');
+    }
+  };
+
   /* ── WhatsApp link builder ──────────────────────────── */
   /* Only the SELLER's phone needs to be verified. Buyer's is optional. */
   const buildWhatsApp = () => {
@@ -181,11 +265,12 @@ export default function OrderDetail() {
 
   // Status badge
   const statusConfig = {
-    pending:    { bg: 'bg-slate-100', text: 'text-slate-600',  icon: Clock },
-    inProgress: { bg: 'bg-amber-50',  text: 'text-amber-600',  icon: Loader },
-    delivered:  { bg: 'bg-blue-50',   text: 'text-blue-600',   icon: Check },
-    completed:  { bg: 'bg-green-50',  text: 'text-green-600',  icon: CheckCircle },
-    disputed:   { bg: 'bg-red-50',    text: 'text-red-600',    icon: AlertTriangle },
+    pending:             { bg: 'bg-slate-100', text: 'text-slate-600',  icon: Clock },
+    pending_negotiation: { bg: 'bg-amber-100', text: 'text-amber-700',  icon: AlertTriangle },
+    inProgress:          { bg: 'bg-amber-50',  text: 'text-amber-600',  icon: Loader },
+    delivered:           { bg: 'bg-blue-50',   text: 'text-blue-600',   icon: Check },
+    completed:           { bg: 'bg-green-50',  text: 'text-green-600',  icon: CheckCircle },
+    disputed:            { bg: 'bg-red-50',    text: 'text-red-600',    icon: AlertTriangle },
   };
   const st  = statusConfig[order.status] || statusConfig.pending;
   const StIcon = st.icon;
@@ -207,7 +292,7 @@ export default function OrderDetail() {
           </div>
           <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${st.bg} ${st.text}`}>
             <StIcon className="h-3.5 w-3.5" />
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            {order.status === 'pending_negotiation' ? 'Pending Negotiation' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
           </div>
         </div>
 
@@ -344,6 +429,56 @@ export default function OrderDetail() {
                   <span>₹{(isBuyer ? order.price : order.sellerEarnings)?.toLocaleString()}</span>
                 </div>
               </div>
+
+              {order.status === 'pending_negotiation' && (
+                <div className="mb-6 p-4 rounded-xl border-2 border-amber-200 bg-amber-50">
+                  <h4 className="font-bold text-amber-800 mb-2 flex items-center gap-1.5">
+                    <AlertTriangle className="h-4 w-4" /> Negotiation Phase
+                  </h4>
+                  {isBuyer ? (
+                    <div className="text-sm text-amber-700">
+                      <p className="mb-4">Discuss the requirements in the chat. The seller will set the final price here.</p>
+                      <button 
+                        onClick={handlePayPendingOrder}
+                        disabled={payLoading}
+                        className="w-full btn-primary !bg-amber-600 hover:!bg-amber-700 disabled:opacity-60"
+                      >
+                        {payLoading ? <Loader className="h-4 w-4 animate-spin mx-auto" /> : `Pay Agreed Amount (₹${order.price})`}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-amber-700">
+                      <p className="mb-3">Once you agree on the requirements, set the final price below for the buyer to pay.</p>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold">₹</span>
+                          <input 
+                            type="number"
+                            min={50}
+                            className="stripe-input pl-7 !bg-white !border-amber-300"
+                            placeholder="Enter amount"
+                            value={negotiationPrice}
+                            onChange={(e) => setNegotiationPrice(e.target.value)}
+                          />
+                        </div>
+                        <button 
+                          onClick={handleSetPrice}
+                          disabled={updatingPrice || !negotiationPrice}
+                          className="btn-primary shrink-0 !bg-amber-600 hover:!bg-amber-700 disabled:opacity-60 px-4 py-2 text-sm"
+                        >
+                          {updatingPrice ? <Loader className="h-4 w-4 animate-spin" /> : 'Lock Price'}
+                        </button>
+                      </div>
+                      {priceSuccessMsg && (
+                        <div className="mt-3 flex items-start gap-1.5 bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2 text-xs font-medium">
+                          <CheckCircle className="h-4 w-4 shrink-0" />
+                          {priceSuccessMsg}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {order.requirements && (
                 <div className="mb-6">
