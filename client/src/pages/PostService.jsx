@@ -9,52 +9,52 @@ import useAuthStore from '../store/authStore';
 import api from '../lib/api';
 
 const CATEGORIES = [
-  { value: 'Study Helper',    label: 'Study Helper',    icon: BookOpen, color: '#00D4AA' },
-  { value: 'Tech & Coding',  label: 'Tech & Coding',   icon: Code,     color: '#635BFF' },
-  { value: 'Art & Design',   label: 'Art & Design',    icon: Palette,  color: '#FF6B9D' },
+  { value: 'Study Helper', label: 'Study Helper', icon: BookOpen, color: '#00D4AA' },
+  { value: 'Tech & Coding', label: 'Tech & Coding', icon: Code, color: '#635BFF' },
+  { value: 'Art & Design', label: 'Art & Design', icon: Palette, color: '#FF6B9D' },
   { value: 'Food Friendship', label: 'Food Friendship', icon: UtensilsCrossed, color: '#FF6348' },
-  { value: 'Research & Data',label: 'Research & Data', icon: Database, color: '#FF9F43' },
-  { value: 'Other Talents',  label: 'Other Talents',   icon: Music,    color: '#A855F7' },
+  { value: 'Research & Data', label: 'Research & Data', icon: Database, color: '#FF9F43' },
+  { value: 'Other Talents', label: 'Other Talents', icon: Music, color: '#A855F7' },
 ];
 
 // Art & Design subcategory types with descriptions
 const ART_DESIGN_SUBTYPES = [
-  { value: 'Poster & Banner',       label: '🎨 Poster & Banner Help',      desc: 'Event posters, promotional banners, flyers' },
-  { value: 'Presentation Help',     label: '📊 Presentation Help',          desc: 'PowerPoint, Canva, Google Slides design' },
-  { value: 'Resume Help',           label: '📄 Resume Help',                desc: 'Professional resume & CV design' },
-  { value: 'Instagram Post',        label: '📸 Instagram Posts & Thumbnails', desc: 'Feed posts, reels covers, stories' },
-  { value: 'YouTube Thumbnail',     label: '▶️ YouTube Thumbnails',         desc: 'Eye-catching video thumbnails' },
-  { value: 'Website UI',            label: '🖥️ Website UI Design',           desc: 'Figma mockups, wireframes, landing pages' },
-  { value: 'Custom Service',        label: '✨ Custom Service',              desc: 'Describe your unique design need' },
+  { value: 'Poster & Banner', label: '🎨 Poster & Banner Help', desc: 'Event posters, promotional banners, flyers' },
+  { value: 'Presentation Help', label: '📊 Presentation Help', desc: 'PowerPoint, Canva, Google Slides design' },
+  { value: 'Resume Help', label: '📄 Resume Help', desc: 'Professional resume & CV design' },
+  { value: 'Instagram Post', label: '📸 Instagram Posts & Thumbnails', desc: 'Feed posts, reels covers, stories' },
+  { value: 'YouTube Thumbnail', label: '▶️ YouTube Thumbnails', desc: 'Eye-catching video thumbnails' },
+  { value: 'Website UI', label: '🖥️ Website UI Design', desc: 'Figma mockups, wireframes, landing pages' },
+  { value: 'Custom Service', label: '✨ Custom Service', desc: 'Describe your unique design need' },
 ];
 
 // Auto-description templates per subtype
 const ART_DESC_TEMPLATES = {
-  'Poster & Banner':   'I design eye-catching posters and banners for events, promotions, and personal use. Using professional tools like Canva, Photoshop, or Figma, I will create a high-resolution design tailored to your needs. I provide up to 2 revisions and deliver in PNG/PDF format.',
+  'Poster & Banner': 'I design eye-catching posters and banners for events, promotions, and personal use. Using professional tools like Canva, Photoshop, or Figma, I will create a high-resolution design tailored to your needs. I provide up to 2 revisions and deliver in PNG/PDF format.',
   'Presentation Help': 'I will design a professional and visually engaging presentation for you. Whether it\'s a college project, pitch deck, or business presentation, I will ensure your slides look polished and communicate your ideas clearly. Delivered as PowerPoint or PDF.',
-  'Resume Help':       'I will create a modern, ATS-friendly resume design that stands out to recruiters. Clean layout, professional typography, and tailored to your field. Delivered as PDF and editable format.',
-  'Instagram Post':    'I design scroll-stopping Instagram content — feed posts, carousel slides, story templates, and reel covers. Consistent with your brand aesthetic. Delivered as high-res PNG files, ready to post.',
+  'Resume Help': 'I will create a modern, ATS-friendly resume design that stands out to recruiters. Clean layout, professional typography, and tailored to your field. Delivered as PDF and editable format.',
+  'Instagram Post': 'I design scroll-stopping Instagram content — feed posts, carousel slides, story templates, and reel covers. Consistent with your brand aesthetic. Delivered as high-res PNG files, ready to post.',
   'YouTube Thumbnail': 'I create bold, click-worthy YouTube thumbnails that increase your video CTR. Bright colors, readable text, and compelling visuals that match your channel brand. Delivered in 1280x720 PNG.',
-  'Website UI':        'I design clean and modern website UI/UX mockups using Figma or Adobe XD. From landing pages to full app designs, I create responsive layouts with attention to usability and aesthetics.',
-  'Custom Service':    '',
+  'Website UI': 'I design clean and modern website UI/UX mockups using Figma or Adobe XD. From landing pages to full app designs, I create responsive layouts with attention to usability and aesthetics.',
+  'Custom Service': '',
 };
 
 // Food Friendship subtypes
 const FOOD_SUBTYPES = [
-  { value: 'Veg',     label: '🥬 Vegetarian',     desc: 'Pure veg home-cooked meals, snacks & tiffin', emoji: '🥬' },
-  { value: 'Non-Veg', label: '🍗 Non-Vegetarian',  desc: 'Chicken, egg, fish & meat-based dishes', emoji: '🍗' },
-  { value: 'Both',    label: '🍱 Both (Veg + Non-Veg)', desc: 'Mixed menu with veg and non-veg options', emoji: '🍱' },
+  { value: 'Veg', label: '🥬 Vegetarian', desc: 'Pure veg home-cooked meals, snacks & tiffin', emoji: '🥬' },
+  { value: 'Non-Veg', label: '🍗 Non-Vegetarian', desc: 'Chicken, egg, fish & meat-based dishes', emoji: '🍗' },
+  { value: 'Both', label: '🍱 Both (Veg + Non-Veg)', desc: 'Mixed menu with veg and non-veg options', emoji: '🍱' },
 ];
 
-const DELIVERY_OPTIONS = [1,2,3,5,7,10,14,21,30];
+const DELIVERY_OPTIONS = [1, 2, 3, 5, 7, 10, 14, 21, 30];
 
 const catBg = {
-  'Study Helper':      'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
-  'Tech & Coding':     'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
-  'Art & Design':      'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
-  'Food Friendship':   'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
-  'Research & Data':   'linear-gradient(135deg,#FFF8EE,#FFE8CC)',
-  'Other Talents':     'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
+  'Study Helper': 'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
+  'Tech & Coding': 'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
+  'Art & Design': 'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
+  'Food Friendship': 'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
+  'Research & Data': 'linear-gradient(135deg,#FFF8EE,#FFE8CC)',
+  'Other Talents': 'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
 
 export default function PostService() {
@@ -571,13 +571,27 @@ export default function PostService() {
           <div className="stripe-card bg-white p-6">
             <label htmlFor="svc-title" className="form-label flex items-center gap-2 mb-3">
               <FileText className="h-4 w-4 text-stripe-purple" />
-              <span>Service Title <span className="text-red-500">*</span></span>
+              <span>{
+                form.category === 'Food Friendship' ? 'Food Item Name'
+                  : form.category === 'Art & Design' ? 'Design Service Title'
+                    : form.category === 'Study Helper' ? 'Tutoring / Help Title'
+                      : form.category === 'Tech & Coding' ? 'Tech Service Title'
+                        : form.category === 'Research & Data' ? 'Research Service Title'
+                          : 'Service Title'
+              } <span className="text-red-500">*</span></span>
             </label>
             <input
               id="svc-title"
               type="text"
               className="stripe-input"
-              placeholder="e.g. Python tutoring & debugging help — CS assignments"
+              placeholder={
+                form.category === 'Food Friendship' ? 'e.g. Homemade Biryani, Pasta, Momos, Tiffin Box…'
+                  : form.category === 'Art & Design' ? 'e.g. Professional Logo Design & Brand Identity'
+                    : form.category === 'Study Helper' ? 'e.g. Calculus II Tutoring & assingment help'
+                      : form.category === 'Tech & Coding' ? 'e.g. Full-Stack Web App Development with React'
+                        : form.category === 'Research & Data' ? 'e.g. Data Analysis with Python, R & Excel'
+                          : 'e.g. Describe your service in a few words'
+              }
               maxLength={120}
               value={form.title}
               onChange={e => {
@@ -597,13 +611,27 @@ export default function PostService() {
           <div className="stripe-card bg-white p-6">
             <label htmlFor="svc-desc" className="form-label flex items-center gap-2 mb-3">
               <FileText className="h-4 w-4 text-stripe-purple" />
-              <span>Description <span className="text-red-500">*</span></span>
+              <span>{
+                form.category === 'Food Friendship' ? 'Food Description'
+                  : form.category === 'Art & Design' ? 'Design Description'
+                    : form.category === 'Study Helper' ? 'Help Description'
+                      : form.category === 'Tech & Coding' ? 'Technical Description'
+                        : form.category === 'Research & Data' ? 'Research Description'
+                          : 'Description'
+              } <span className="text-red-500">*</span></span>
             </label>
             <textarea
               id="svc-desc"
               rows={6}
               className="stripe-input resize-none"
-              placeholder="Describe your service in detail — what you'll deliver, your experience, tools/methods you use, and any requirements from the buyer..."
+              placeholder={
+                form.category === 'Food Friendship' ? `Describe your food — ingredients, taste, portion size, how it's prepared, hygiene practices, and pickup/delivery options…`
+                  : form.category === 'Art & Design' ? `Describe your design service — tools you use (Canva, Figma, Photoshop), revisions included, file formats delivered…`
+                    : form.category === 'Study Helper' ? `Describe what you teach — subjects, topics, your experience, teaching style, session format (online/offline)…`
+                      : form.category === 'Tech & Coding' ? `Describe your tech service — languages/frameworks, what you'll build, your experience, delivery format…`
+                        : form.category === 'Research & Data' ? `Describe your research service — tools (Excel, SPSS, R, Python), types of analysis, deliverables…`
+                          : `Describe your service in detail — what you'll deliver, your experience, tools/methods you use…`
+              }
               maxLength={2000}
               value={form.description}
               onChange={e => {
@@ -646,7 +674,7 @@ export default function PostService() {
                 {errors.price
                   ? <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.price}</p>
                   : <p className="mt-1.5 text-xs text-stripe-muted">Minimum ₹50. Escrow-protected payment.</p>}
-                  
+
                 <label className="flex items-center gap-2 mt-4 cursor-pointer group">
                   <input
                     type="checkbox"
@@ -793,8 +821,8 @@ export default function PostService() {
               {submitting
                 ? <><Loader className="h-4 w-4 animate-spin" /> {editId ? 'Saving…' : 'Publishing…'}</>
                 : success
-                ? <><CheckCircle className="h-4 w-4" /> {editId ? 'Saved!' : 'Published!'}</>
-                : <><Zap className="h-4 w-4" /> {editId ? 'Save Changes' : 'Post Service'}</>
+                  ? <><CheckCircle className="h-4 w-4" /> {editId ? 'Saved!' : 'Published!'}</>
+                  : <><Zap className="h-4 w-4" /> {editId ? 'Save Changes' : 'Post Service'}</>
               }
             </button>
           </div>
