@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import BrandLogo from '../components/BrandLogo';
-import { ChevronRight, ChevronLeft, Star, Shield, Zap, BookOpen, Code, Palette, PenTool, Database, Music, Search, Loader, ShieldCheck, BadgeCheck, ShoppingBag } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, Shield, Zap, BookOpen, Code, Palette, UtensilsCrossed, Database, Music, Search, Loader, ShieldCheck, BadgeCheck, ShoppingBag } from 'lucide-react';
 import heroBgVideo from '../assets/landing_page_back_video.mp4';
 import person1 from '../assets/person1.jpg';
 import person2 from '../assets/person2.jpg';
@@ -15,21 +15,21 @@ const categories = [
   { name: 'Study Helper', icon: BookOpen, color: '#0EA878', bg: '#E8FFF8', count: 120, desc: 'Tutoring & exam prep' },
   { name: 'Tech & Coding', icon: Code, color: '#4F3EFF', bg: '#EEEEFF', count: 85, desc: 'Websites, apps, scripts' },
   { name: 'Art & Design', icon: Palette, color: '#D63E82', bg: '#FFF0F6', count: 64, desc: 'Logos, UI & illustrations' },
-  { name: 'Writing & CV', icon: PenTool, color: '#1A8FC1', bg: '#EAF5FF', count: 92, desc: 'Proofreading & CVs' },
+  { name: 'Food Friendship', icon: UtensilsCrossed, color: '#FF6348', bg: '#FFF5F0', count: 56, desc: 'Home-cooked meals & snacks' },
   { name: 'Research & Data', icon: Database, color: '#D4820A', bg: '#FFF8EC', count: 41, desc: 'Data analysis & Excel' },
   { name: 'Other Talents', icon: Music, color: '#8B3FC9', bg: '#F6EFFF', count: 112, desc: 'Music, fitness, languages' },
 ];
 
 const catColor = {
   'Tech & Coding': '#635BFF', 'Art & Design': '#FF6B9D', 'Study Helper': '#00D4AA',
-  'Writing & CV': '#4FC3F7', 'Research & Data': '#FF9F43', 'Other Talents': '#A855F7',
+  'Food Friendship': '#FF6348', 'Research & Data': '#FF9F43', 'Other Talents': '#A855F7',
 };
 
 const catBg = {
   'Tech & Coding': 'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
   'Art & Design': 'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
   'Study Helper': 'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
-  'Writing & CV': 'linear-gradient(135deg,#F0F8FF,#DDEEFF)',
+  'Food Friendship': 'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
   'Research & Data': 'linear-gradient(135deg,#FFF8EE,#FFE8CC)',
   'Other Talents': 'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
@@ -71,13 +71,13 @@ const MOCK_FEATURED = [
   },
   {
     _id: '4',
-    title: 'Professional SOP & Resume Writing',
-    description: 'Ex-placement committee member. I craft ATS-friendly resumes, cover letters, and SOPs that get shortlisted. 85%+ placement success rate among my clients.',
-    seller: { name: 'Anjali Gupta', department: "MBA '25", avatar: person4 },
-    rating: 4.9, reviewCount: 41, price: 349,
-    category: 'Writing & CV',
-    tags: ['Resume', 'SOP', 'Cover Letter'],
-    deliveryDays: 2,
+    title: 'Homemade Rajma Chawal & Tiffin Service',
+    description: 'Tired of mess food? I cook authentic home-style North Indian meals — Rajma Chawal, Dal Makhani, Paneer. Fresh, hygienic, and delivered to your hostel. Veg only.',
+    seller: { name: 'Anjali Gupta', department: "Home Science '25", avatar: person4 },
+    rating: 4.9, reviewCount: 41, price: 80,
+    category: 'Food Friendship',
+    tags: ['Tiffin', 'Veg', 'Home-cooked'],
+    deliveryDays: 1,
     ordersCompleted: 78,
   },
   {
@@ -748,7 +748,7 @@ export default function Landing() {
                 { name: 'UI/UX Design', icon: Palette },
                 { name: 'Calculus Tutoring', icon: BookOpen },
                 { name: 'Data Analysis', icon: Database },
-                { name: 'Resume Review', icon: PenTool },
+                { name: 'Homemade Tiffin', icon: UtensilsCrossed },
                 { name: 'Video Editing', icon: Zap },
                 { name: 'Web Scraping', icon: Code },
                 { name: 'Logo Animation', icon: Palette },

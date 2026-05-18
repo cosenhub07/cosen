@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  ChevronRight, Menu, X, BookOpen, Code, Palette, PenTool,
+  ChevronRight, Menu, X, BookOpen, Code, Palette, UtensilsCrossed,
   Database, Music, LayoutDashboard, Search, LogIn, LogOut, User as UserIcon,
   MessageCircle, PlusSquare, Bell
 } from 'lucide-react';
@@ -18,7 +18,7 @@ const categories = [
   { name: 'Study Helper',    icon: BookOpen, color: '#00D4AA', desc: 'Tutoring & exam prep' },
   { name: 'Tech & Coding',   icon: Code,     color: '#635BFF', desc: 'Websites, apps, scripts' },
   { name: 'Art & Design',    icon: Palette,  color: '#FF6B9D', desc: 'Logos, UI & illustrations' },
-  { name: 'Writing & CV',    icon: PenTool,  color: '#4FC3F7', desc: 'Proofreading & CVs' },
+  { name: 'Food Friendship',  icon: UtensilsCrossed, color: '#FF6348', desc: 'Home-cooked meals & snacks' },
   { name: 'Research & Data', icon: Database, color: '#FF9F43', desc: 'Data analysis & Excel' },
   { name: 'Other Talents',   icon: Music,    color: '#A855F7', desc: 'Music, fitness, languages' },
 ];

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
-  BookOpen, Code, Palette, PenTool, Database, Music,
+  BookOpen, Code, Palette, UtensilsCrossed, Database, Music,
   Plus, X, ChevronRight, Loader, CheckCircle, AlertCircle,
   Briefcase, Clock, DollarSign, Tag, FileText, Zap, LogIn, Camera, ImageIcon
 } from 'lucide-react';
@@ -12,7 +12,7 @@ const CATEGORIES = [
   { value: 'Study Helper',    label: 'Study Helper',    icon: BookOpen, color: '#00D4AA' },
   { value: 'Tech & Coding',  label: 'Tech & Coding',   icon: Code,     color: '#635BFF' },
   { value: 'Art & Design',   label: 'Art & Design',    icon: Palette,  color: '#FF6B9D' },
-  { value: 'Writing & CV',   label: 'Writing & CV',    icon: PenTool,  color: '#4FC3F7' },
+  { value: 'Food Friendship', label: 'Food Friendship', icon: UtensilsCrossed, color: '#FF6348' },
   { value: 'Research & Data',label: 'Research & Data', icon: Database, color: '#FF9F43' },
   { value: 'Other Talents',  label: 'Other Talents',   icon: Music,    color: '#A855F7' },
 ];
@@ -39,15 +39,22 @@ const ART_DESC_TEMPLATES = {
   'Custom Service':    '',
 };
 
+// Food Friendship subtypes
+const FOOD_SUBTYPES = [
+  { value: 'Veg',     label: '🥬 Vegetarian',     desc: 'Pure veg home-cooked meals, snacks & tiffin', emoji: '🥬' },
+  { value: 'Non-Veg', label: '🍗 Non-Vegetarian',  desc: 'Chicken, egg, fish & meat-based dishes', emoji: '🍗' },
+  { value: 'Both',    label: '🍱 Both (Veg + Non-Veg)', desc: 'Mixed menu with veg and non-veg options', emoji: '🍱' },
+];
+
 const DELIVERY_OPTIONS = [1,2,3,5,7,10,14,21,30];
 
 const catBg = {
-  'Study Helper':    'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
-  'Tech & Coding':   'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
-  'Art & Design':    'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
-  'Writing & CV':    'linear-gradient(135deg,#F0F8FF,#DDEEFF)',
-  'Research & Data': 'linear-gradient(135deg,#FFF8EE,#FFE8CC)',
-  'Other Talents':   'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
+  'Study Helper':      'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
+  'Tech & Coding':     'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
+  'Art & Design':      'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
+  'Food Friendship':   'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
+  'Research & Data':   'linear-gradient(135deg,#FFF8EE,#FFE8CC)',
+  'Other Talents':     'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
 
 export default function PostService() {
@@ -156,10 +163,10 @@ export default function PostService() {
       e.description = 'Description must be at least 30 characters.';
     if (!form.category)
       e.category = 'Please select a category.';
-    if ((form.category === 'Study Helper' || form.category === 'Art & Design') && !form.subCategory)
+    if ((form.category === 'Study Helper' || form.category === 'Art & Design' || form.category === 'Food Friendship') && !form.subCategory)
       e.subCategory = 'Please select a service type.';
-    if (!form.price || isNaN(form.price) || Number(form.price) < 50)
-      e.price = 'Price must be at least ₹50.';
+    if (!form.price || isNaN(form.price) || Number(form.price) < (form.category === 'Food Friendship' ? 10 : 50))
+      e.price = form.category === 'Food Friendship' ? 'Price must be at least ₹10.' : 'Price must be at least ₹50.';
     if (!form.deliveryDays)
       e.deliveryDays = 'Please select a delivery time.';
     return e;
@@ -465,6 +472,44 @@ export default function PostService() {
                     }} />
                 </label>
               )}
+            </div>
+          )}
+
+          {/* ── Food Friendship: Food Type Selector ── */}
+          {form.category === 'Food Friendship' && (
+            <div className="stripe-card bg-white p-6">
+              <label className="form-label flex items-center gap-2 mb-1">
+                <UtensilsCrossed className="h-4 w-4" style={{ color: '#FF6348' }} />
+                <span>Food Type <span className="text-red-500">*</span></span>
+              </label>
+              <p className="text-xs text-stripe-muted mb-4">What type of food do you offer?</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {FOOD_SUBTYPES.map(sub => {
+                  const isSelected = form.subCategory === sub.value;
+                  return (
+                    <button
+                      key={sub.value}
+                      type="button"
+                      onClick={() => {
+                        setForm(f => ({ ...f, subCategory: sub.value }));
+                        setErrors(er => ({ ...er, subCategory: undefined }));
+                      }}
+                      className="flex flex-col items-center gap-2 p-5 rounded-xl border-2 text-center transition-all duration-200"
+                      style={{
+                        borderColor: isSelected ? '#FF6348' : '#E6EBF1',
+                        background: isSelected ? '#FFF5F0' : '#fff',
+                        boxShadow: isSelected ? '0 0 0 3px #FF634822' : 'none',
+                      }}
+                    >
+                      <span className="text-3xl">{sub.emoji}</span>
+                      <div className="text-sm font-bold text-stripe-slate">{sub.label.split(' ').slice(1).join(' ')}</div>
+                      <div className="text-xs text-stripe-muted">{sub.desc}</div>
+                      {isSelected && <CheckCircle className="h-5 w-5" style={{ color: '#FF6348' }} />}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.subCategory && <p className="mt-3 text-xs text-red-500 font-medium">{errors.subCategory}</p>}
             </div>
           )}
 

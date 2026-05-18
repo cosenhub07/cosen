@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, CheckCircle, AlertCircle, Loader,
-  User, BookOpen, GraduationCap, Code, Palette, PenTool,
+  User, BookOpen, GraduationCap, Code, Palette, UtensilsCrossed,
   Database, Music, ArrowLeft, Shield, X, Eye, EyeOff, Mail, Lock, UserCircle,
 } from 'lucide-react';
 
@@ -44,7 +44,7 @@ const ROLES = [
 const SKILL_OPTIONS = [
   { label: 'Coding & Dev',   icon: Code,     id: 'coding' },
   { label: 'Art & Design',   icon: Palette,  id: 'design' },
-  { label: 'Writing & CV',   icon: PenTool,  id: 'writing' },
+  { label: 'Food & Cooking', icon: UtensilsCrossed, id: 'food' },
   { label: 'Study Help',     icon: BookOpen, id: 'study' },
   { label: 'Data & Research',icon: Database, id: 'data' },
   { label: 'Music & More',   icon: Music,    id: 'music' },
