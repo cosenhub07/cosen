@@ -30,6 +30,7 @@ const mapService = (row) => {
     isActive: svc.is_active,
     reviewCount: svc.review_count,
     coverImageUrl: svc.cover_image_url || '',
+    portfolioImages: svc.portfolio_images || [],
     createdAt: svc.created_at,
     updatedAt: svc.updated_at,
     seller: mapSeller(seller),
@@ -50,12 +51,12 @@ router.get('/', async (req, res) => {
       .eq('is_active', true);
 
     if (category) query = query.eq('category', category);
-    if (search)   query = query.textSearch('fts', search, { type: 'websearch' });
+    if (search) query = query.textSearch('fts', search, { type: 'websearch' });
 
-    if (sort === 'price_asc')  query = query.order('price', { ascending: true });
+    if (sort === 'price_asc') query = query.order('price', { ascending: true });
     else if (sort === 'price_desc') query = query.order('price', { ascending: false });
-    else if (sort === 'rating')     query = query.order('rating', { ascending: false });
-    else                            query = query.order('created_at', { ascending: false });
+    else if (sort === 'rating') query = query.order('rating', { ascending: false });
+    else query = query.order('created_at', { ascending: false });
 
     query = query.range(skip, skip + Number(limit) - 1);
 
@@ -125,13 +126,13 @@ router.post('/', protect, async (req, res) => {
       return res.status(403).json({ success: false, message: 'You must complete your profile onboarding before posting a service.' });
     }
 
-    const { title, description, category, subCategory, isNegotiable, price, deliveryDays, tags, coverImageUrl } = req.body;
+    const { title, description, category, subCategory, isNegotiable, price, deliveryDays, tags, coverImageUrl, portfolioImages } = req.body;
 
     if (!title || !description || !category || price == null || !deliveryDays) {
       return res.status(400).json({ success: false, message: 'All required fields must be provided' });
     }
 
-    const validCategories = ['Study Helper','Tech & Coding','Art & Design','Writing & CV','Research & Data','Other Talents'];
+    const validCategories = ['Study Helper', 'Tech & Coding', 'Art & Design', 'Writing & CV', 'Research & Data', 'Other Talents'];
     if (!validCategories.includes(category)) {
       return res.status(400).json({ success: false, message: 'Invalid category' });
     }
@@ -149,6 +150,7 @@ router.post('/', protect, async (req, res) => {
         delivery_days: Number(deliveryDays),
         tags: tags || [],
         cover_image_url: coverImageUrl || '',
+        portfolio_images: Array.isArray(portfolioImages) ? portfolioImages : [],
       })
       .select('*, seller:users!seller_id(id, name, avatar_url, avatar_public_id, department, rating)')
       .single();
@@ -181,7 +183,7 @@ router.put('/:id', protect, async (req, res) => {
       title: 'title', description: 'description', category: 'category',
       subCategory: 'sub_category', isNegotiable: 'is_negotiable',
       price: 'price', deliveryDays: 'delivery_days', tags: 'tags', isActive: 'is_active',
-      coverImageUrl: 'cover_image_url',
+      coverImageUrl: 'cover_image_url', portfolioImages: 'portfolio_images',
     };
 
     const updates = {};

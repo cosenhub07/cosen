@@ -17,6 +17,28 @@ const CATEGORIES = [
   { value: 'Other Talents',  label: 'Other Talents',   icon: Music,    color: '#A855F7' },
 ];
 
+// Art & Design subcategory types with descriptions
+const ART_DESIGN_SUBTYPES = [
+  { value: 'Poster & Banner',       label: '🎨 Poster & Banner Help',      desc: 'Event posters, promotional banners, flyers' },
+  { value: 'Presentation Help',     label: '📊 Presentation Help',          desc: 'PowerPoint, Canva, Google Slides design' },
+  { value: 'Resume Help',           label: '📄 Resume Help',                desc: 'Professional resume & CV design' },
+  { value: 'Instagram Post',        label: '📸 Instagram Posts & Thumbnails', desc: 'Feed posts, reels covers, stories' },
+  { value: 'YouTube Thumbnail',     label: '▶️ YouTube Thumbnails',         desc: 'Eye-catching video thumbnails' },
+  { value: 'Website UI',            label: '🖥️ Website UI Design',           desc: 'Figma mockups, wireframes, landing pages' },
+  { value: 'Custom Service',        label: '✨ Custom Service',              desc: 'Describe your unique design need' },
+];
+
+// Auto-description templates per subtype
+const ART_DESC_TEMPLATES = {
+  'Poster & Banner':   'I design eye-catching posters and banners for events, promotions, and personal use. Using professional tools like Canva, Photoshop, or Figma, I will create a high-resolution design tailored to your needs. I provide up to 2 revisions and deliver in PNG/PDF format.',
+  'Presentation Help': 'I will design a professional and visually engaging presentation for you. Whether it\'s a college project, pitch deck, or business presentation, I will ensure your slides look polished and communicate your ideas clearly. Delivered as PowerPoint or PDF.',
+  'Resume Help':       'I will create a modern, ATS-friendly resume design that stands out to recruiters. Clean layout, professional typography, and tailored to your field. Delivered as PDF and editable format.',
+  'Instagram Post':    'I design scroll-stopping Instagram content — feed posts, carousel slides, story templates, and reel covers. Consistent with your brand aesthetic. Delivered as high-res PNG files, ready to post.',
+  'YouTube Thumbnail': 'I create bold, click-worthy YouTube thumbnails that increase your video CTR. Bright colors, readable text, and compelling visuals that match your channel brand. Delivered in 1280x720 PNG.',
+  'Website UI':        'I design clean and modern website UI/UX mockups using Figma or Adobe XD. From landing pages to full app designs, I create responsive layouts with attention to usability and aesthetics.',
+  'Custom Service':    '',
+};
+
 const DELIVERY_OPTIONS = [1,2,3,5,7,10,14,21,30];
 
 const catBg = {
@@ -44,14 +66,17 @@ export default function PostService() {
     deliveryDays: '',
     tags: [],
     coverImageUrl: '',
+    portfolioImages: [],
   });
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
   const [success, setSuccess] = useState(false);
   const [apiError, setApiError] = useState('');
-  const [uploadingCover, setUploadingCover] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
+
 
   // ── Load existing service for editing ──────────────
   useEffect(() => {
@@ -70,6 +95,7 @@ export default function PostService() {
           deliveryDays: s.deliveryDays?.toString() || '',
           tags: s.tags || [],
           coverImageUrl: s.images?.[0] || s.coverImageUrl || '',
+          portfolioImages: s.portfolioImages || [],
         });
       } catch (err) {
         setApiError('Could not load service. Please go back and try again.');
@@ -130,13 +156,21 @@ export default function PostService() {
       e.description = 'Description must be at least 30 characters.';
     if (!form.category)
       e.category = 'Please select a category.';
-    if (form.category === 'Study Helper' && !form.subCategory)
-      e.subCategory = 'Please select a help type.';
+    if ((form.category === 'Study Helper' || form.category === 'Art & Design') && !form.subCategory)
+      e.subCategory = 'Please select a service type.';
     if (!form.price || isNaN(form.price) || Number(form.price) < 50)
       e.price = 'Price must be at least ₹50.';
     if (!form.deliveryDays)
       e.deliveryDays = 'Please select a delivery time.';
     return e;
+  };
+
+  // ── Portfolio image upload helper ──────────────────
+  const uploadPortfolioImage = async (file) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return res.data.url;
   };
 
   // ── Tag helpers ──────────────────────────────────
@@ -174,6 +208,7 @@ export default function PostService() {
         deliveryDays: Number(form.deliveryDays),
         tags: form.tags,
         coverImageUrl: form.coverImageUrl,
+        portfolioImages: form.portfolioImages,
       };
 
       let serviceId;
@@ -317,6 +352,122 @@ export default function PostService() {
               {errors.subCategory && <p className="mt-2 text-xs text-red-500 font-medium">{errors.subCategory}</p>}
             </div>
           )}
+
+          {/* ── Art & Design: Service Type Tiles ── */}
+          {form.category === 'Art & Design' && (
+            <div className="stripe-card bg-white p-6">
+              <label className="form-label flex items-center gap-2 mb-1">
+                <Palette className="h-4 w-4 text-stripe-purple" />
+                <span>Service Type <span className="text-red-500">*</span></span>
+              </label>
+              <p className="text-xs text-stripe-muted mb-4">Select the type of design service you offer</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {ART_DESIGN_SUBTYPES.map(sub => {
+                  const isSelected = form.subCategory === sub.value;
+                  return (
+                    <button
+                      key={sub.value}
+                      type="button"
+                      onClick={() => {
+                        const template = ART_DESC_TEMPLATES[sub.value] || '';
+                        setForm(f => ({
+                          ...f,
+                          subCategory: sub.value,
+                          // Auto-fill description only if empty or was a previous template
+                          description: (!f.description || Object.values(ART_DESC_TEMPLATES).includes(f.description)) ? template : f.description,
+                        }));
+                        setErrors(er => ({ ...er, subCategory: undefined }));
+                      }}
+                      className="flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all duration-200"
+                      style={{
+                        borderColor: isSelected ? '#FF6B9D' : '#E6EBF1',
+                        background: isSelected ? '#FFF0F6' : '#fff',
+                        boxShadow: isSelected ? '0 0 0 3px #FF6B9D22' : 'none',
+                      }}
+                    >
+                      <span className="text-2xl leading-none mt-0.5">{sub.label.split(' ')[0]}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-stripe-slate">{sub.label.split(' ').slice(1).join(' ')}</div>
+                        <div className="text-xs text-stripe-muted mt-0.5">{sub.desc}</div>
+                      </div>
+                      {isSelected && (
+                        <CheckCircle className="h-5 w-5 shrink-0 mt-0.5" style={{ color: '#FF6B9D' }} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.subCategory && <p className="mt-3 text-xs text-red-500 font-medium">{errors.subCategory}</p>}
+            </div>
+          )}
+
+          {/* ── Art & Design: Portfolio / Past Work Samples ── */}
+          {form.category === 'Art & Design' && (
+            <div className="stripe-card bg-white p-6">
+              <label className="form-label flex items-center gap-2 mb-1">
+                <ImageIcon className="h-4 w-4 text-stripe-purple" />
+                <span>Past Work Samples <span className="text-stripe-muted font-normal">(optional, up to 5)</span></span>
+              </label>
+              <p className="text-xs text-stripe-muted mb-4">
+                Upload examples of your previous design work. This greatly increases buyer trust and conversions.
+              </p>
+
+              {/* Portfolio image grid */}
+              {form.portfolioImages.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                  {form.portfolioImages.map((url, idx) => (
+                    <div key={idx} className="relative group rounded-xl overflow-hidden border border-stripe-border aspect-video">
+                      <img src={url} alt={`Work sample ${idx + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, portfolioImages: f.portfolioImages.filter((_, i) => i !== idx) }))}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                      <div className="absolute bottom-1 left-2 text-white text-xs font-bold opacity-70">#{idx + 1}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {form.portfolioImages.length < 5 && (
+                <label className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-6 cursor-pointer transition-all hover:border-stripe-purple"
+                  style={{ borderColor: uploadingPortfolio ? '#635BFF' : '#E6EBF1' }}>
+                  {uploadingPortfolio ? (
+                    <><Loader className="h-7 w-7 animate-spin text-stripe-purple" /><span className="text-sm text-stripe-muted">Uploading…</span></>
+                  ) : (
+                    <>
+                      <div className="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center">
+                        <Plus className="h-6 w-6 text-pink-500" />
+                      </div>
+                      <span className="text-sm font-semibold text-stripe-muted">Add work sample image</span>
+                      <span className="text-xs text-stripe-muted">{5 - form.portfolioImages.length} remaining · JPG, PNG up to 5MB</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" multiple className="hidden"
+                    disabled={uploadingPortfolio}
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files);
+                      if (!files.length) return;
+                      const allowed = 5 - form.portfolioImages.length;
+                      const toUpload = files.slice(0, allowed);
+                      setUploadingPortfolio(true);
+                      try {
+                        const urls = await Promise.all(toUpload.map(uploadPortfolioImage));
+                        setForm(f => ({ ...f, portfolioImages: [...f.portfolioImages, ...urls] }));
+                      } catch {
+                        setApiError('Failed to upload one or more images. Please try again.');
+                      } finally {
+                        setUploadingPortfolio(false);
+                        e.target.value = '';
+                      }
+                    }} />
+                </label>
+              )}
+            </div>
+          )}
+
 
           {/* ── Cover Image Upload ── */}
           <div className="stripe-card bg-white p-6">
