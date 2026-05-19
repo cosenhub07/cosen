@@ -378,6 +378,11 @@ The `sendSms.js` utility is also kept for future use once DLT registration is co
 - **Double-Escrow Razorpay Checkout**: 
   - Once the challenger (buyer) purchases the service, their entry fee is locked in the platform escrow vault.
   - The match host (seller) is then prompted to match the entry fee. A dedicated `Pay Entry Fee` action triggers Razorpay payment which sets `seller_paid: true` in the orders database, shifting the match status to `inProgress`.
+- **In-App Challenge Notifications**: Integrated automatic, real-time in-app notification triggers:
+  - When a buyer pays, the seller instantly receives an in-app notification to match the entry fee (*"🏆 Match Entry Fee Challenge! [Buyer] paid their entry fee... Match the fee now to activate the game!"*).
+  - When the host pays, the buyer instantly receives a notification confirming the match is active (*"🎮 Match Challenge Accepted! The host matched the entry fee. Your challenge is active!"*).
+- **Outcome Visibility Guard**: Enforced double-payment checking. The outcome verdict voting dashboard is completely hidden from both players until both have successfully completed their entry fee payments.
+- **Dynamic Revision Filtering**: Restricted the delivery "3 revisions" pill and description tags to display ONLY for the **Study Helper** category. The revisions section has been completely removed across all other categories (Tech, Art, Food, Photography, and Playground) for cleaner UX.
 - **Match Verdict Outcome Voting**: 
   - Once active, both users see a high-fidelity Outcome Voting Dashboard inside the order screen asking "What is the match result?" with `🏆 I Won` and `💀 I Lost` options.
   - **Verdict Clash Resolution**: If both users claim the same result (e.g. both claim they won), the app displays the warning: *"please select the right option, do not select the same option"* and automatically resets both votes to allow corrected input.
