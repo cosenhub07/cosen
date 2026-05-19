@@ -13,18 +13,19 @@ const MOCK = [
   { _id: '6', title: 'Portraits & Campus Event Shoots',             seller: { name: 'Meera S.', department: "Fine Arts '26" },         rating: 4.8, reviewCount: 9,  price: 999, category: 'Photography', avatarBg: '#00B2FF', initials: 'MS' },
 ];
 
-const CATS = ['All', 'Tech & Coding', 'Art & Design', 'Study Helper', 'Food Friendship', 'Photography', 'Other Talents'];
+const CATS = ['All', 'Tech & Coding', 'Art & Design', 'Study Helper', 'Food Friendship', 'Photography', 'Playground', 'Other Talents'];
 const catBg = {
   'Tech & Coding':   'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
   'Art & Design':    'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
   'Study Helper':    'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
   'Food Friendship': 'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
   'Photography':     'linear-gradient(135deg,#EAF8FF,#CBEFFF)',
+  'Playground':      'linear-gradient(135deg,#FEF3C7,#FDE68A)',
   'Other Talents':   'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
 const catColor = {
   'Tech & Coding': '#635BFF', 'Art & Design': '#FF6B9D', 'Study Helper': '#00D4AA',
-  'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Other Talents': '#A855F7',
+  'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Playground': '#F59E0B', 'Other Talents': '#A855F7',
 };
 
 export default function Browse() {
@@ -320,12 +321,26 @@ export default function Browse() {
                 {/* Card body */}
                 <div className="px-4 pt-4 pb-4">
                   {/* Seller name + verified badge */}
-                  <div className="flex items-center gap-1.5 mb-1">
+                  <div className="flex items-center gap-1.5 mb-1.5">
                     <h3 className="font-bold text-stripe-slate text-[15px] truncate">
                       {s.seller?.name || 'Student'}
                     </h3>
                     <BadgeCheck className="h-4.5 w-4.5 shrink-0" style={{ color: '#22c55e' }} />
                   </div>
+
+                  {s.category === 'Playground' && (
+                    <div className="mb-2.5">
+                      {(s.description && s.description.match(/🏟️ \*\*Campus Ground Booked:\*\* Yes/i)) ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                          🏟️ Campus Ground Booked
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+                          🏟️ Booking Pending
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Service title as description */}
                   <p className="text-sm text-stripe-muted leading-snug line-clamp-2 mb-4" style={{ minHeight: '2.5rem' }}>

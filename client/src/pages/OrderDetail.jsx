@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import {
   Send, Loader, Clock, CheckCircle, AlertTriangle,
-  Shield, Check, Info, MessageCircle, Star
+  Shield, Check, Info, MessageCircle, Star, Trophy
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import useRazorpay from '../hooks/useRazorpay';
@@ -248,6 +248,83 @@ export default function OrderDetail() {
     }
   };
 
+  /* ── Seller Entry Fee Escrow Payment (Playground) ──── */
+  const [sellerPayLoading, setSellerPayLoading] = useState(false);
+  const handleSellerPayEscrow = async () => {
+    setSellerPayLoading(true);
+    try {
+      const { data } = await api.post('/payments/create-order-seller', { orderId: id });
+      if (!data.success) {
+        alert(data.message || 'Could not initiate host payment.');
+        setSellerPayLoading(false);
+        return;
+      }
+
+      setSellerPayLoading(false);
+      openCheckout({
+        options: {
+          key: data.keyId,
+          amount: data.amount,
+          currency: data.currency,
+          order_id: data.razorpayOrderId,
+          name: 'Cosen Playground Escrow',
+          description: `Entry Fee Escrow Match #${String(id).slice(-8)}`,
+          prefill: { name: user.name, email: user.email },
+          notes: { orderId: id }
+        },
+        onSuccess: async (response) => {
+          setSellerPayLoading(true);
+          try {
+            const verifyRes = await api.post('/payments/verify-seller', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: id
+            });
+            if (verifyRes.data.success) {
+              const orderRes = await api.get(`/orders/${id}`);
+              setOrder(orderRes.data.order);
+              alert('Entry fee payment verified successfully! Match is now Active! 🏆');
+            }
+          } catch {
+            alert('Host payment verification failed. Please contact support.');
+          } finally {
+            setSellerPayLoading(false);
+          }
+        },
+        onDismiss: () => {
+          setSellerPayLoading(false);
+        }
+      });
+    } catch (err) {
+      setSellerPayLoading(false);
+      alert(err.response?.data?.message || 'Host payment initiation failed.');
+    }
+  };
+
+  /* ── Match Outcome & Verdict Submission (Playground) ── */
+  const [votingOutcome, setVotingOutcome] = useState(false);
+  const [voteConflictError, setVoteConflictError] = useState('');
+  const voteMatchResult = async (choice) => {
+    setVotingOutcome(true);
+    setVoteConflictError('');
+    try {
+      const { data } = await api.put(`/orders/${id}/vote-result`, { choice });
+      if (data.success) {
+        setOrder(data.order);
+        if (data.message && data.message.includes('please select the right option')) {
+          setVoteConflictError('please select the right option, do not select the same option');
+        } else {
+          setVoteConflictError('');
+        }
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit match result.');
+    } finally {
+      setVotingOutcome(false);
+    }
+  };
+
   /* ── WhatsApp link builder ──────────────────────────── */
   /* Only the SELLER's phone needs to be verified. Buyer's is optional. */
   const buildWhatsApp = () => {
@@ -280,6 +357,12 @@ export default function OrderDetail() {
   const isBuyer    = order.buyer._id === user._id;
   const otherParty = isBuyer ? order.seller : order.buyer;
   const waLink     = buildWhatsApp();
+
+  const isPlayground = order.service?.category === 'Playground';
+  const myVote = isBuyer ? order.buyerResult : order.sellerResult;
+  const hasVoted = !!myVote;
+  const otherVote = isBuyer ? order.sellerResult : order.buyerResult;
+  const hasOtherVoted = !!otherVote;
 
   // Status badge
   const statusConfig = {
@@ -508,7 +591,94 @@ export default function OrderDetail() {
               )}
 
               <div className="space-y-3">
-                {['pending', 'inProgress'].includes(order.status) && (
+                {/* ── Host / Seller Entry Fee checkout module ── */}
+                {isPlayground && order.status === 'pending' && order.buyerPaid && !order.sellerPaid && (
+                  <div>
+                    {isBuyer ? (
+                      <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-center space-y-3">
+                        <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-xl animate-pulse">⏳</div>
+                        <h4 className="font-bold text-amber-800 text-xs">Waiting for Host</h4>
+                        <p className="text-[11px] text-amber-700 leading-relaxed">
+                          You have paid the entry fee. The seller must match the fee to start the match.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-center space-y-3">
+                        <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-xl">🏆</div>
+                        <h4 className="font-bold text-amber-800 text-xs font-display">Match Fee Required</h4>
+                        <p className="text-[11px] text-amber-700 leading-relaxed">
+                          Match the buyer's ₹{order.price} entry fee to accept this challenge. Winnings payout is 1.8x pool!
+                        </p>
+                        <button
+                          onClick={handleSellerPayEscrow}
+                          disabled={sellerPayLoading}
+                          className="btn-primary w-full justify-center !bg-amber-600 hover:!bg-amber-700 disabled:opacity-60 text-xs py-2.5"
+                        >
+                          {sellerPayLoading ? <Loader className="h-4 w-4 animate-spin mx-auto" /> : `Pay Entry Fee (₹${order.price})`}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Match Outcome Selection & Voting Dashboard ── */}
+                {isPlayground && order.status === 'inProgress' && (
+                  <div className="bg-stripe-purple/5 border border-stripe-purple/20 p-4 rounded-xl space-y-3">
+                    <div className="flex items-center gap-1.5 border-b border-stripe-purple/10 pb-2">
+                      <Trophy className="h-4 w-4 text-stripe-purple" />
+                      <h4 className="font-display font-bold text-stripe-slate text-xs">Match Outcome</h4>
+                    </div>
+
+                    <p className="text-[10px] text-stripe-muted leading-relaxed">
+                      Declare your result below. If your choices match (e.g. both claim they won), the votes will reset.
+                    </p>
+
+                    {voteConflictError && (
+                      <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-2.5 text-[10px] font-semibold leading-relaxed animate-pulse">
+                        ⚠️ {voteConflictError}
+                      </div>
+                    )}
+
+                    {hasVoted ? (
+                      <div className="bg-white p-3 rounded-lg border border-stripe-border space-y-1.5 text-center">
+                        <div className="text-xs font-bold text-stripe-slate">
+                          You declared: <span className={myVote === 'win' ? 'text-emerald-600' : 'text-slate-600'}>{myVote === 'win' ? '🏆 You Win' : '💀 You Lose'}</span>
+                        </div>
+                        <p className="text-[10px] text-stripe-muted">
+                          {hasOtherVoted ? 'Resolving match results...' : "Waiting for opponent's vote..."}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <h5 className="text-[10px] font-bold text-stripe-slate text-center uppercase tracking-wider">What is the match result?</h5>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => voteMatchResult('win')}
+                            disabled={votingOutcome}
+                            className="flex-1 py-2 px-3 rounded-lg border font-bold text-xs bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 transition-all text-center flex items-center justify-center gap-1 shadow-sm"
+                          >
+                            I Won
+                          </button>
+                          <button
+                            onClick={() => voteMatchResult('lose')}
+                            disabled={votingOutcome}
+                            className="flex-1 py-2 px-3 rounded-lg border font-bold text-xs bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 transition-all text-center flex items-center justify-center gap-1 shadow-sm"
+                          >
+                            I Lost
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-[9px] text-stripe-muted pt-2 border-t border-stripe-purple/10">
+                      <span>Opponent: <strong>{hasOtherVoted ? 'Voted ✓' : 'Voting...'}</strong></span>
+                      <span>Prize pool: <strong>₹{2 * order.price}</strong></span>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Standard Escrow Protection Notice ── */}
+                {!isPlayground && ['pending', 'inProgress'].includes(order.status) && (
                   <div className="flex items-start gap-2 bg-stripe-purple/10 text-stripe-purple p-3 rounded-lg text-xs leading-relaxed">
                     <Shield className="h-4 w-4 shrink-0 mt-0.5" />
                     {isBuyer
@@ -517,13 +687,37 @@ export default function OrderDetail() {
                   </div>
                 )}
 
-                {!isBuyer && order.status === 'inProgress' && (
+                {/* ── Playground Match Completed Banner ── */}
+                {isPlayground && order.status === 'completed' && (
+                  <div>
+                    {order.winnerId === user._id ? (
+                      <div className="flex flex-col items-center p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center space-y-2">
+                        <div className="text-2xl animate-bounce">🏆</div>
+                        <span className="font-bold text-emerald-800 text-xs">Victory! You Won!</span>
+                        <span className="text-[10px] text-emerald-700 leading-relaxed">
+                          The prize pool of <strong>₹{2 * order.price}</strong> (net payout ₹{(order.winnerEarnings || order.price * 1.8).toLocaleString()}) has been successfully credited to your account!
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-2">
+                        <div className="text-2xl">🤝</div>
+                        <span className="font-bold text-stripe-slate text-xs font-display">Match Concluded</span>
+                        <span className="text-[10px] text-stripe-steel leading-relaxed">
+                          The match has completed. The prize pool has been awarded to the winner ({order.winnerId === order.buyer._id ? 'Buyer' : 'Seller'}). Better luck next time!
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Standard (Non-Playground) Workflow ── */}
+                {!isPlayground && !isBuyer && order.status === 'inProgress' && (
                   <button onClick={() => updateStatus('deliver')} className="btn-primary w-full justify-center">
                     Deliver Work Now
                   </button>
                 )}
 
-                {isBuyer && order.status === 'delivered' && (
+                {!isPlayground && isBuyer && order.status === 'delivered' && (
                   <div className="space-y-2 border border-green-200 bg-green-50 rounded-xl p-4 text-center">
                     <p className="text-sm font-semibold text-green-800 mb-2">Seller marked this delivered.</p>
                     <button
@@ -535,7 +729,7 @@ export default function OrderDetail() {
                   </div>
                 )}
 
-                {order.status === 'completed' && !order.isReviewed && isBuyer && (
+                {!isPlayground && order.status === 'completed' && !order.isReviewed && isBuyer && (
                   <div className="space-y-2 border border-blue-200 bg-blue-50 rounded-xl p-4 text-center">
                     <p className="text-sm font-semibold text-blue-800 mb-2">How was your experience?</p>
                     <button
@@ -547,7 +741,7 @@ export default function OrderDetail() {
                   </div>
                 )}
 
-                {order.status === 'completed' && (!isBuyer || order.isReviewed) && (
+                {!isPlayground && order.status === 'completed' && (!isBuyer || order.isReviewed) && (
                   <div className="flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
                     <CheckCircle className="h-6 w-6 text-green-500 mb-2" />
                     <span className="font-semibold text-stripe-slate text-sm">Order Completed</span>

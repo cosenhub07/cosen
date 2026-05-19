@@ -173,13 +173,46 @@ export default function Dashboard() {
   }
 
   const totalEarnings = orders
-    .filter(o => o.status === 'completed' && (typeof o.seller === 'object' ? o.seller?._id : o.seller) === user._id)
-    .reduce((sum, o) => sum + (o.sellerEarnings || o.price || 0), 0);
+    .filter(o => o.status === 'completed')
+    .reduce((sum, o) => {
+      const isPlayground = o.service?.category === 'Playground';
+      if (isPlayground) {
+        const isWinner = o.winnerId === user._id;
+        if (isWinner) {
+          return sum + (o.winnerEarnings || o.price * 1.8 || 0);
+        }
+        return sum;
+      } else {
+        const sellerId = typeof o.seller === 'object' ? o.seller?._id : o.seller;
+        if (sellerId === user._id) {
+          return sum + (o.sellerEarnings || o.price || 0);
+        }
+        return sum;
+      }
+    }, 0);
   const activeOrders = orders.filter(o => o.status === 'inProgress').length;
   const completedOrders = orders.filter(o => o.status === 'completed').length;
   const totalSpent = orders
-    .filter(o => o.status === 'completed' && (typeof o.buyer === 'object' ? o.buyer?._id : o.buyer) === user._id)
-    .reduce((sum, o) => sum + (o.price || 0), 0);
+    .filter(o => o.status === 'completed')
+    .reduce((sum, o) => {
+      const isPlayground = o.service?.category === 'Playground';
+      const isBuyerUser = (typeof o.buyer === 'object' ? o.buyer?._id : o.buyer) === user._id;
+      const isSellerUser = (typeof o.seller === 'object' ? o.seller?._id : o.seller) === user._id;
+
+      if (isPlayground) {
+        if (isBuyerUser && o.buyerPaid) {
+          sum += (o.price || 0);
+        }
+        if (isSellerUser && o.sellerPaid) {
+          sum += (o.price || 0);
+        }
+      } else {
+        if (isBuyerUser) {
+          sum += (o.price || 0);
+        }
+      }
+      return sum;
+    }, 0);
 
   const statsCards = [
     {

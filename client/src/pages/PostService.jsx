@@ -3,7 +3,7 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   BookOpen, Code, Palette, UtensilsCrossed, Database, Music,
   Plus, X, ChevronRight, Loader, CheckCircle, AlertCircle,
-  Briefcase, Clock, DollarSign, Tag, FileText, Zap, LogIn, Camera, ImageIcon
+  Briefcase, Clock, DollarSign, Tag, FileText, Zap, LogIn, Camera, ImageIcon, Trophy
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import api from '../lib/api';
@@ -14,6 +14,7 @@ const CATEGORIES = [
   { value: 'Art & Design', label: 'Art & Design', icon: Palette, color: '#FF6B9D' },
   { value: 'Food Friendship', label: 'Food Friendship', icon: UtensilsCrossed, color: '#FF6348' },
   { value: 'Photography', label: 'Photography', icon: Camera, color: '#00B2FF' },
+  { value: 'Playground', label: 'Playground', icon: Trophy, color: '#F59E0B' },
   { value: 'Other Talents', label: 'Other Talents', icon: Music, color: '#A855F7' },
 ];
 
@@ -63,6 +64,7 @@ const catBg = {
   'Art & Design': 'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
   'Food Friendship': 'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
   'Photography': 'linear-gradient(135deg,#EAF8FF,#CBEFFF)',
+  'Playground': 'linear-gradient(135deg,#FEF3C7,#FDE68A)',
   'Other Talents': 'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
 
@@ -84,6 +86,10 @@ export default function PostService() {
     coverImageUrl: '',
     portfolioImages: [],
     cameraModel: '',
+    gameName: '',
+    location: '',
+    bookedCampus: 'no',
+    playerCount: '',
   });
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
@@ -109,6 +115,31 @@ export default function PostService() {
           camModel = match[1];
           desc = desc.replace(/\n\n📷 \*\*Camera Model:\*\* (.*)$/, '');
         }
+
+        let gameName = '';
+        let locationVal = '';
+        let bookedCampusVal = 'no';
+        let playerCountVal = '';
+
+        if (s.category === 'Playground') {
+          const gameMatch = desc.match(/\n🎮 \*\*Game Name:\*\* (.*)/);
+          const bookedMatch = desc.match(/\n🏟️ \*\*Campus Ground Booked:\*\* (Yes|No|yes|no)/i);
+          const locMatch = desc.match(/\n📍 \*\*Location:\*\* (.*)/);
+          const countMatch = desc.match(/\n👥 \*\*Team Size:\*\* (\d+) members/);
+
+          if (gameMatch) gameName = gameMatch[1];
+          if (bookedMatch) bookedCampusVal = bookedMatch[1].toLowerCase();
+          if (locMatch) locationVal = locMatch[1];
+          if (countMatch) playerCountVal = countMatch[1];
+
+          desc = desc
+            .replace(/\n🎮 \*\*Game Name:\*\* .*/, '')
+            .replace(/\n🏟️ \*\*Campus Ground Booked:\*\* .*/, '')
+            .replace(/\n📍 \*\*Location:\*\* .*/, '')
+            .replace(/\n👥 \*\*Team Size:\*\* .*/, '')
+            .trim();
+        }
+
         setForm({
           title: s.title || '',
           description: desc,
@@ -121,6 +152,10 @@ export default function PostService() {
           coverImageUrl: s.images?.[0] || s.coverImageUrl || '',
           portfolioImages: s.portfolioImages || [],
           cameraModel: camModel,
+          gameName,
+          location: locationVal,
+          bookedCampus: bookedCampusVal,
+          playerCount: playerCountVal,
         });
       } catch (err) {
         setApiError('Could not load service. Please go back and try again.');
@@ -185,6 +220,11 @@ export default function PostService() {
       e.subCategory = 'Please select a service type.';
     if (form.category === 'Photography' && (!form.cameraModel || !form.cameraModel.trim()))
       e.cameraModel = 'Please write your camera model.';
+    if (form.category === 'Playground') {
+      if (!form.gameName || !form.gameName.trim()) e.gameName = 'Please enter the game name.';
+      if (!form.location || !form.location.trim()) e.location = 'Please enter play location.';
+      if (!form.playerCount || isNaN(form.playerCount) || Number(form.playerCount) <= 0) e.playerCount = 'Please enter playing member count.';
+    }
     if (!form.price || isNaN(form.price) || Number(form.price) < (form.category === 'Food Friendship' ? 10 : 50))
       e.price = form.category === 'Food Friendship' ? 'Price must be at least ₹10.' : 'Price must be at least ₹50.';
     if (!form.deliveryDays)
@@ -225,11 +265,17 @@ export default function PostService() {
 
     setSubmitting(true);
     try {
+      let finalDescription = form.description.trim();
+      if (form.category === 'Photography' && form.cameraModel) {
+        finalDescription += `\n\n📷 **Camera Model:** ${form.cameraModel.trim()}`;
+      } else if (form.category === 'Playground') {
+        const campusStatus = form.bookedCampus === 'yes' ? 'Yes' : 'No';
+        finalDescription += `\n\n🎮 **Game Name:** ${form.gameName.trim()}\n🏟️ **Campus Ground Booked:** ${campusStatus}\n📍 **Location:** ${form.location.trim()}\n👥 **Team Size:** ${Number(form.playerCount)} members`;
+      }
+
       const payload = {
         title: form.title.trim(),
-        description: form.category === 'Photography' && form.cameraModel
-          ? `${form.description.trim()}\n\n📷 **Camera Model:** ${form.cameraModel.trim()}`
-          : form.description.trim(),
+        description: finalDescription,
         category: form.category,
         subCategory: form.subCategory,
         isNegotiable: form.isNegotiable,
@@ -497,6 +543,110 @@ export default function PostService() {
               </div>
             </div>
           )}
+          {/* ── Playground Match Fields ── */}
+          {form.category === 'Playground' && (
+            <div className="stripe-card bg-white p-6 space-y-6">
+              <div className="border-b border-stripe-border pb-4">
+                <h3 className="font-display font-bold text-stripe-slate text-lg flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-stripe-purple" />
+                  <span>Playground Match Details</span>
+                </h3>
+                <p className="text-xs text-stripe-muted mt-1">Configure your game details, player counts, and booking status.</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="svc-game-name" className="form-label flex items-center gap-2 mb-2">
+                    <span>Game/Sport Name <span className="text-red-500">*</span></span>
+                  </label>
+                  <input
+                    type="text"
+                    id="svc-game-name"
+                    className="stripe-input"
+                    placeholder="e.g. Cricket, Football, Valorant, BGMI..."
+                    value={form.gameName || ''}
+                    onChange={e => {
+                      setForm(f => ({ ...f, gameName: e.target.value }));
+                      setErrors(er => ({ ...er, gameName: undefined }));
+                    }}
+                  />
+                  {errors.gameName && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.gameName}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="svc-player-count" className="form-label flex items-center gap-2 mb-2">
+                    <span>Number of Players <span className="text-red-500">*</span></span>
+                  </label>
+                  <input
+                    type="number"
+                    id="svc-player-count"
+                    min="1"
+                    className="stripe-input"
+                    placeholder="e.g. 5 (members in team)"
+                    value={form.playerCount || ''}
+                    onChange={e => {
+                      setForm(f => ({ ...f, playerCount: e.target.value }));
+                      setErrors(er => ({ ...er, playerCount: undefined }));
+                    }}
+                  />
+                  {errors.playerCount && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.playerCount}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="svc-location" className="form-label flex items-center gap-2 mb-2">
+                  <span>Match Location / Court <span className="text-red-500">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  id="svc-location"
+                  className="stripe-input"
+                  placeholder="e.g. Main Playground Campus, Sports Complex Court A..."
+                  value={form.location || ''}
+                  onChange={e => {
+                    setForm(f => ({ ...f, location: e.target.value }));
+                    setErrors(er => ({ ...er, location: undefined }));
+                  }}
+                />
+                {errors.location && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.location}</p>}
+              </div>
+
+              <div>
+                <label className="form-label flex items-center gap-2 mb-2">
+                  <span>Did you book the playground/court on campus? <span className="text-red-500">*</span></span>
+                </label>
+                <p className="text-xs text-stripe-muted mb-3">Whether you have already confirmed the ground booking on campus.</p>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, bookedCampus: 'yes' }))}
+                    className="flex-1 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-center"
+                    style={{
+                      borderColor: form.bookedCampus === 'yes' ? '#F59E0B' : '#E6EBF1',
+                      background: form.bookedCampus === 'yes' ? '#FEF3C7' : '#fff',
+                      color: form.bookedCampus === 'yes' ? '#D97706' : '#4F5B66',
+                      boxShadow: form.bookedCampus === 'yes' ? '0 0 0 3px #F59E0B22' : 'none',
+                    }}
+                  >
+                    🏟️ Yes, Booked
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, bookedCampus: 'no' }))}
+                    className="flex-1 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-center"
+                    style={{
+                      borderColor: form.bookedCampus === 'no' ? '#94A3B8' : '#E6EBF1',
+                      background: form.bookedCampus === 'no' ? '#F1F5F9' : '#fff',
+                      color: form.bookedCampus === 'no' ? '#475569' : '#4F5B66',
+                      boxShadow: form.bookedCampus === 'no' ? '0 0 0 3px #94A3B822' : 'none',
+                    }}
+                  >
+                    ⏳ Booking Pending / No
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ── Portfolio / Past Work Samples ── */}
           {(form.category === 'Art & Design' || form.category === 'Photography') && (
@@ -680,7 +830,8 @@ export default function PostService() {
                     : form.category === 'Study Helper' ? 'Tutoring / Help Title'
                       : form.category === 'Tech & Coding' ? 'Tech Service Title'
                         : form.category === 'Photography' ? 'Photography Service Title'
-                          : 'Service Title'
+                          : form.category === 'Playground' ? 'Match Title'
+                            : 'Service Title'
               } <span className="text-red-500">*</span></span>
             </label>
             <input
@@ -693,7 +844,8 @@ export default function PostService() {
                     : form.category === 'Study Helper' ? 'e.g. Calculus II Tutoring & assignment help'
                       : form.category === 'Tech & Coding' ? 'e.g. Full-Stack Web App Development with React'
                         : form.category === 'Photography' ? 'e.g. Campus Portraits, Event Photography, Graduation Shoot…'
-                          : 'e.g. Describe your service in a few words'
+                          : form.category === 'Playground' ? 'e.g. 5v5 Valorant Custom Match, Friendly Football Match 11v11…'
+                            : 'e.g. Describe your service in a few words'
               }
               maxLength={120}
               value={form.title}
@@ -720,7 +872,8 @@ export default function PostService() {
                     : form.category === 'Study Helper' ? 'Help Description'
                       : form.category === 'Tech & Coding' ? 'Technical Description'
                         : form.category === 'Photography' ? 'Photography Description'
-                          : 'Description'
+                          : form.category === 'Playground' ? 'Match Rules & Regulations'
+                            : 'Description'
               } <span className="text-red-500">*</span></span>
             </label>
             <textarea
@@ -733,7 +886,8 @@ export default function PostService() {
                     : form.category === 'Study Helper' ? `Describe what you teach — subjects, topics, your experience, teaching style, session format (online/offline)…`
                       : form.category === 'Tech & Coding' ? `Describe your tech service — languages/frameworks, what you'll build, your experience, delivery format…`
                         : form.category === 'Photography' ? `Describe your photography service — camera gear/lenses, editing software, photo/video deliverables, style, and duration of the shoot…`
-                          : `Describe your service in detail — what you'll deliver, your experience, tools/methods you use…`
+                          : form.category === 'Playground' ? `Describe the match rules and regulations — entry requirements, game mode, map settings, banned weapons/abilities, and prize structures…`
+                            : `Describe your service in detail — what you'll deliver, your experience, tools/methods you use…`
               }
               maxLength={2000}
               value={form.description}

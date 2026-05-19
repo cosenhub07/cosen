@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Star, Clock, RefreshCw, Shield, ChevronRight, MessageCircle, Loader, AlertCircle } from 'lucide-react';
+import { Star, Clock, RefreshCw, Shield, ChevronRight, MessageCircle, Loader, AlertCircle, Trophy } from 'lucide-react';
 import useRazorpay from '../hooks/useRazorpay';
 import useAuthStore from '../store/authStore';
 import api from '../lib/api';
@@ -177,6 +177,32 @@ export default function ServiceDetail() {
   const sellerInitials = service.seller?.name
     ?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '??';
 
+  const isPlayground = service?.category === 'Playground';
+  let gameName = '';
+  let bookedCampus = 'No';
+  let locationVal = '';
+  let playerCountVal = '';
+  let cleanDesc = service?.description || '';
+
+  if (isPlayground && cleanDesc) {
+    const gameMatch = cleanDesc.match(/🎮 \*\*Game Name:\*\* (.*)/);
+    const bookedMatch = cleanDesc.match(/🏟️ \*\*Campus Ground Booked:\*\* (Yes|No)/i);
+    const locMatch = cleanDesc.match(/📍 \*\*Location:\*\* (.*)/);
+    const countMatch = cleanDesc.match(/👥 \*\*Team Size:\*\* (\d+) members/);
+
+    if (gameMatch) gameName = gameMatch[1];
+    if (bookedMatch) bookedCampus = bookedMatch[1];
+    if (locMatch) locationVal = locMatch[1];
+    if (countMatch) playerCountVal = countMatch[1];
+
+    cleanDesc = cleanDesc
+      .replace(/🎮 \*\*Game Name:\*\* .*/, '')
+      .replace(/🏟️ \*\*Campus Ground Booked:\*\* .*/, '')
+      .replace(/📍 \*\*Location:\*\* .*/, '')
+      .replace(/👥 \*\*Team Size:\*\* .*/, '')
+      .trim();
+  }
+
   return (
     <div className="min-h-screen bg-white pt-20">
       {/* Breadcrumb */}
@@ -249,9 +275,55 @@ export default function ServiceDetail() {
               </Link>
             </div>
 
+            {/* Playground Match Info Card */}
+            {isPlayground && (
+              <div className="bg-amber-50/50 border border-amber-200/60 p-6 rounded-2xl mb-8">
+                <h3 className="font-display font-bold text-amber-800 text-lg flex items-center gap-2 mb-4">
+                  <Trophy className="h-5 w-5 text-amber-600" />
+                  <span>Playground Match Details</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-100 flex items-center gap-3">
+                    <span className="text-2xl">🎮</span>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-stripe-muted tracking-wider">Game / Sport</div>
+                      <div className="text-sm font-bold text-stripe-slate">{gameName || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-100 flex items-center gap-3">
+                    <span className="text-2xl">👥</span>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-stripe-muted tracking-wider">Team Size</div>
+                      <div className="text-sm font-bold text-stripe-slate">{playerCountVal ? `${playerCountVal} Players` : 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-100 flex items-center gap-3">
+                    <span className="text-2xl">📍</span>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-stripe-muted tracking-wider">Location / Venue</div>
+                      <div className="text-sm font-bold text-stripe-slate">{locationVal || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-3.5 rounded-xl border border-amber-100 flex items-center gap-3">
+                    <span className="text-2xl">🏟️</span>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-stripe-muted tracking-wider">Campus Booking</div>
+                      <div className="text-sm font-bold text-stripe-slate flex items-center gap-1">
+                        {bookedCampus.toLowerCase() === 'yes' ? (
+                          <span className="text-emerald-600 flex items-center gap-1 font-bold">✓ Campus Booked</span>
+                        ) : (
+                          <span className="text-slate-500 font-medium">Booking Pending / No</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Description */}
-            <h2 className="font-bold text-stripe-slate text-xl mb-3">About This Service</h2>
-            <p className="text-stripe-steel leading-relaxed mb-10 whitespace-pre-wrap">{service.description}</p>
+            <h2 className="font-bold text-stripe-slate text-xl mb-3">About This Match / Service</h2>
+            <p className="text-stripe-steel leading-relaxed mb-10 whitespace-pre-wrap">{cleanDesc}</p>
 
             {/* Portfolio / Past Work Samples (Art & Design) */}
             {service.portfolioImages?.length > 0 && (

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import BrandLogo from '../components/BrandLogo';
-import { ChevronRight, ChevronLeft, Star, Shield, Zap, BookOpen, Code, Palette, UtensilsCrossed, Camera, Music, Search, Loader, ShieldCheck, BadgeCheck, ShoppingBag } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, Shield, Zap, BookOpen, Code, Palette, UtensilsCrossed, Camera, Music, Search, Loader, ShieldCheck, BadgeCheck, ShoppingBag, Trophy } from 'lucide-react';
 import heroBgVideo from '../assets/landing_page_back_video.mp4';
 import person1 from '../assets/person1.jpg';
 import person2 from '../assets/person2.jpg';
@@ -17,12 +17,13 @@ const categories = [
   { name: 'Art & Design', icon: Palette, color: '#D63E82', bg: '#FFF0F6', count: 64, desc: 'Logos, UI & illustrations' },
   { name: 'Food Friendship', icon: UtensilsCrossed, color: '#FF6348', bg: '#FFF5F0', count: 56, desc: 'Home-cooked meals & snacks' },
   { name: 'Photography', icon: Camera, color: '#00B2FF', bg: '#EAF8FF', count: 41, desc: 'Portraits, events & camera rental' },
+  { name: 'Playground', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7', count: 32, desc: 'Team matches & esports pool' },
   { name: 'Other Talents', icon: Music, color: '#8B3FC9', bg: '#F6EFFF', count: 112, desc: 'Music, fitness, languages' },
 ];
 
 const catColor = {
   'Tech & Coding': '#635BFF', 'Art & Design': '#FF6B9D', 'Study Helper': '#00D4AA',
-  'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Other Talents': '#A855F7',
+  'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Playground': '#F59E0B', 'Other Talents': '#A855F7',
 };
 
 const catBg = {
@@ -31,6 +32,7 @@ const catBg = {
   'Study Helper': 'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
   'Food Friendship': 'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
   'Photography': 'linear-gradient(135deg,#EAF8FF,#CBEFFF)',
+  'Playground': 'linear-gradient(135deg,#FEF3C7,#FDE68A)',
   'Other Talents': 'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
 

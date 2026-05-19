@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, CheckCircle, AlertCircle, Loader,
   User, BookOpen, GraduationCap, Code, Palette, UtensilsCrossed,
-  Camera, Music, ArrowLeft, Shield, X, Eye, EyeOff, Mail, Lock, UserCircle,
+  Camera, Music, ArrowLeft, Shield, X, Eye, EyeOff, Mail, Lock, UserCircle, Trophy,
 } from 'lucide-react';
 
 const EDU_REGEX = /^[^\s@]+@[^\s@]+\.(edu|ac\.in)$/i;
@@ -47,6 +47,7 @@ const SKILL_OPTIONS = [
   { label: 'Food & Cooking', icon: UtensilsCrossed, id: 'food' },
   { label: 'Study Help',     icon: BookOpen, id: 'study' },
   { label: 'Photography',    icon: Camera,   id: 'photography' },
+  { label: 'Playground & Esports', icon: Trophy, id: 'playground' },
   { label: 'Music & More',   icon: Music,    id: 'music' },
 ];
 

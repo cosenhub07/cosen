@@ -136,6 +136,14 @@ const mapOrder = (row) => {
     disputeReason: order.dispute_reason,
     isReviewed: order.is_reviewed,
     isNegotiable: !!order.is_negotiable,
+    buyerPaid: !!order.buyer_paid,
+    sellerPaid: !!order.seller_paid,
+    buyerResult: order.buyer_result || null,
+    sellerResult: order.seller_result || null,
+    winnerId: order.winner_id || null,
+    winnerEarnings: order.winner_earnings || 0,
+    sellerRazorpayOrderId: order.seller_razorpay_order_id || '',
+    sellerRazorpayPaymentId: order.seller_razorpay_payment_id || '',
     deliveredAt: order.delivered_at,
     completedAt: order.completed_at,
     createdAt: order.created_at,
@@ -516,6 +524,161 @@ router.put('/:id/dispute', protect, async (req, res) => {
     res.status(200).json({ success: true, order: mapOrder(updated) });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// PUT /api/orders/:id/vote-result — vote match result (protected)
+// ─────────────────────────────────────────────────────────────
+router.put('/:id/vote-result', protect, async (req, res) => {
+  try {
+    const { result } = req.body; // 'win' or 'lose'
+    if (result !== 'win' && result !== 'lose') {
+      return res.status(400).json({ success: false, message: 'Invalid result. Must be "win" or "lose"' });
+    }
+
+    // 1. Fetch current order with service and users details
+    const { data: order, error: fetchErr } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        service:services!service_id(id, title, price, delivery_days, category),
+        buyer:users!buyer_id(id, name, email),
+        seller:users!seller_id(id, name, email)
+      `)
+      .eq('id', req.params.id)
+      .maybeSingle();
+
+    if (fetchErr || !order) return res.status(404).json({ success: false, message: 'Order not found' });
+    if (order.service?.category !== 'Playground') {
+      return res.status(400).json({ success: false, message: 'This operation is only valid for Playground services.' });
+    }
+    if (order.status !== 'inProgress') {
+      return res.status(400).json({ success: false, message: 'Match result can only be voted when the match is in progress.' });
+    }
+
+    const isBuyer = order.buyer_id === req.user._id;
+    const isSeller = order.seller_id === req.user._id;
+
+    if (!isBuyer && !isSeller) {
+      return res.status(403).json({ success: false, message: 'You are not a participant in this match.' });
+    }
+
+    // 2. Set the vote for the respective party
+    const updates = {};
+    if (isBuyer) updates.buyer_result = result;
+    if (isSeller) updates.seller_result = result;
+
+    // Apply immediate update
+    const { data: updatedOrder, error: updateErr } = await supabase
+      .from('orders')
+      .update(updates)
+      .eq('id', req.params.id)
+      .select(`
+        *,
+        service:services!service_id(id, title, price, delivery_days, category),
+        buyer:users!buyer_id(id, name, email),
+        seller:users!seller_id(id, name, email)
+      `)
+      .single();
+
+    if (updateErr) throw updateErr;
+
+    const bRes = updatedOrder.buyer_result;
+    const sRes = updatedOrder.seller_result;
+
+    // 3. Resolve conflict / agreement if both voted
+    if (bRes && sRes) {
+      if (bRes === sRes) {
+        // Conflict! Reset votes to null
+        const { data: resetOrder, error: resetErr } = await supabase
+          .from('orders')
+          .update({ buyer_result: null, seller_result: null })
+          .eq('id', req.params.id)
+          .select(`
+            *,
+            service:services!service_id(id, title, price, delivery_days, category),
+            buyer:users!buyer_id(id, name, email),
+            seller:users!seller_id(id, name, email)
+          `)
+          .single();
+
+        if (resetErr) throw resetErr;
+
+        // Notify both parties about conflict
+        createNotification({
+          userId: order.buyer_id,
+          type: 'order_disputed',
+          title: '⚠️ Match Result Conflict!',
+          body: 'Conflict detected! You both selected the same match result. Please select the correct result.',
+          link: `/orders/${order.id}`,
+        });
+        createNotification({
+          userId: order.seller_id,
+          type: 'order_disputed',
+          title: '⚠️ Match Result Conflict!',
+          body: 'Conflict detected! You both selected the same match result. Please select the correct result.',
+          link: `/orders/${order.id}`,
+        });
+
+        return res.status(200).json({
+          success: true,
+          conflict: true,
+          message: 'please select the right option, do not select the same option',
+          order: mapOrder(resetOrder)
+        });
+      } else {
+        // Agreement! One is 'win', one is 'lose'
+        const winnerId = bRes === 'win' ? order.buyer_id : order.seller_id;
+        const loserId = bRes === 'lose' ? order.buyer_id : order.seller_id;
+
+        const { data: finalOrder, error: finalErr } = await supabase
+          .from('orders')
+          .update({
+            status: 'completed',
+            winner_id: winnerId,
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', req.params.id)
+          .select(`
+            *,
+            service:services!service_id(id, title, price, delivery_days, category),
+            buyer:users!buyer_id(id, name, email),
+            seller:users!seller_id(id, name, email)
+          `)
+          .single();
+
+        if (finalErr) throw finalErr;
+
+        // Notify both parties about match outcome
+        createNotification({
+          userId: winnerId,
+          type: 'order_completed',
+          title: '🏆 Match Won! 🎉',
+          body: `Congratulations! Match verified and ₹${finalOrder.winner_earnings} prize pool credited to your dashboard.`,
+          link: `/orders/${order.id}`,
+        });
+        createNotification({
+          userId: loserId,
+          type: 'order_completed',
+          title: '🔴 Match Lost',
+          body: 'Match verified. Better luck next time!',
+          link: `/orders/${order.id}`,
+        });
+
+        return res.status(200).json({
+          success: true,
+          conflict: false,
+          order: mapOrder(finalOrder)
+        });
+      }
+    }
+
+    // If only one voted, just return current state
+    res.status(200).json({ success: true, conflict: false, order: mapOrder(updatedOrder) });
+  } catch (error) {
+    console.error('Vote match result error:', error);
+    res.status(500).json({ success: false, message: 'Server error voting result' });
   }
 });
 
