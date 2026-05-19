@@ -4,6 +4,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const { protect } = require('../middleware/auth');
 const { supabase } = require('../config/db');
+const createNotification = require('../utils/createNotification');
 
 // Initialise Razorpay instance
 const razorpay = new Razorpay({
@@ -163,7 +164,27 @@ router.post('/verify', protect, async (req, res) => {
       .single();
 
     if (error) throw error;
-    res.status(201).json({ success: true, order: mapOrder(order) });
+
+    const mapped = mapOrder(order);
+    if (isPlayground) {
+      createNotification({
+        userId: service.seller_id,
+        type: 'match_fee_required',
+        title: '🏆 Match Entry Fee Challenge!',
+        body: `${req.user.name || 'A player'} paid their entry fee for "${order.service?.title || 'your match'}". Match the fee now to activate the game!`,
+        link: `/orders/${mapped.id}`,
+      }).catch(err => console.error('[Playground Notification] error:', err));
+    } else {
+      createNotification({
+        userId: service.seller_id,
+        type: 'order_placed',
+        title: '🛒 New Order Received!',
+        body: `${req.user.name || 'A buyer'} placed an order for "${order.service?.title || 'your service'}".`,
+        link: `/orders/${mapped.id}`,
+      }).catch(err => console.error('[Standard Order Notification] error:', err));
+    }
+
+    res.status(201).json({ success: true, order: mapped });
   } catch (error) {
     console.error('Verify payment error:', error);
     res.status(500).json({ success: false, message: 'Could not confirm payment. Contact support.' });
@@ -351,7 +372,17 @@ router.post('/verify-seller', protect, async (req, res) => {
       .single();
 
     if (error) throw error;
-    res.status(200).json({ success: true, order: mapOrder(order) });
+
+    const mapped = mapOrder(order);
+    createNotification({
+      userId: mapped.buyerId,
+      type: 'match_active',
+      title: '🎮 Match Challenge Accepted!',
+      body: `${mapped.seller?.name || 'The host'} matched the entry fee. Your challenge for "${mapped.service?.title || 'the match'}" is now active!`,
+      link: `/orders/${mapped.id}`,
+    }).catch(err => console.error('[Verify Seller Notification] error:', err));
+
+    res.status(200).json({ success: true, order: mapped });
   } catch (error) {
     console.error('Verify seller payment error:', error);
     res.status(500).json({ success: false, message: 'Could not confirm payment. Contact support.' });

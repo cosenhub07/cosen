@@ -366,18 +366,23 @@ export default function ServiceDetail() {
 
 
             {/* Feature pills */}
-            <div className="grid grid-cols-3 gap-4 mb-10">
-              {[
+            {(() => {
+              const pills = [
                 { icon: Clock,     label: `${service.deliveryDays}-day delivery` },
-                { icon: RefreshCw, label: '3 revisions' },
+                ...(service.category === 'Study Helper' ? [{ icon: RefreshCw, label: '3 revisions' }] : []),
                 { icon: Shield,    label: 'Escrow protected' },
-              ].map(({ icon: Icon, label }, i) => (
-                <div key={i} className="stripe-card p-4 flex flex-col items-center text-center gap-2">
-                  <Icon className="h-5 w-5 text-stripe-purple" />
-                  <span className="text-sm font-medium text-stripe-steel">{label}</span>
+              ];
+              return (
+                <div className={`grid ${pills.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-4 mb-10`}>
+                  {pills.map(({ icon: Icon, label }, i) => (
+                    <div key={i} className="stripe-card p-4 flex flex-col items-center text-center gap-2">
+                      <Icon className="h-5 w-5 text-stripe-purple" />
+                      <span className="text-sm font-medium text-stripe-steel">{label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              );
+            })()}
           </div>
 
           {/* ── Right: Order Sidebar ── */}
@@ -392,7 +397,7 @@ export default function ServiceDetail() {
               </div>
               <div className="flex items-center justify-between mb-5">
                 <p className="text-stripe-muted text-sm">
-                  {service.deliveryDays}-day delivery · 3 revisions included
+                  {service.deliveryDays}-day delivery{service.category === 'Study Helper' && ' · 3 revisions included'}
                 </p>
                 {service.isNegotiable && (
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200">
