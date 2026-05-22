@@ -11,21 +11,44 @@ connectDB();
 const app = express();
 
 // ── Allowed Origins ──────────────────────────────────────────
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5000'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5000',
+  // Production frontend
+  'https://cosen.online',
+  'https://www.cosen.online',
+];
+
+// Support a comma-separated CLIENT_URL env variable for extra origins
 if (process.env.CLIENT_URL) {
-  const url = process.env.CLIENT_URL.trim();
-  allowedOrigins.push(url);
-  if (!url.startsWith('http')) {
-    allowedOrigins.push(`https://${url}`);
-    allowedOrigins.push(`http://${url}`);
-  }
+  process.env.CLIENT_URL.split(',').forEach((raw) => {
+    const url = raw.trim();
+    if (!url) return;
+    if (url.startsWith('http')) {
+      allowedOrigins.push(url);
+    } else {
+      allowedOrigins.push(`https://${url}`);
+      allowedOrigins.push(`http://${url}`);
+    }
+  });
 }
 
 // ── Middleware ──────────────────────────────────────────────
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    console.warn(`CORS blocked origin: ${origin}`);
+    callback(new Error(`CORS policy does not allow origin: ${origin}`));
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
