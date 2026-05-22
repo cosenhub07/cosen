@@ -19,3 +19,7 @@ ALTER TABLE services ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ DEFAULT NUL
 -- 4. Add profile reveal columns to orders
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS buyer_revealed BOOLEAN DEFAULT FALSE;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS seller_revealed BOOLEAN DEFAULT FALSE;
+
+-- 5. Update price check constraint to allow free (0) SendiYou connections
+ALTER TABLE services DROP CONSTRAINT IF EXISTS services_price_check;
+ALTER TABLE services ADD CONSTRAINT services_price_check CHECK (price >= 0);
