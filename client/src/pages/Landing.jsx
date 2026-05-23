@@ -107,9 +107,9 @@ const MOCK_FEATURED = [
 ];
 
 const steps = [
-  { number: '01', title: 'Sign up with your .edu email', desc: 'Instant campus verification — no strangers, only real peers from your university.' },
-  { number: '02', title: 'Browse or post a service', desc: 'Find the help you need, or list your skills and start accepting orders from classmates.' },
-  { number: '03', title: 'Pay safely via escrow', desc: 'Money is held securely until you confirm delivery. Stripe-powered and fully protected.' },
+  { number: '01', title: 'Sign up with your campus email', desc: 'Instant verification — only real students from your university. No outsiders, ever.' },
+  { number: '02', title: 'Share what you need or offer', desc: 'Post a request, offer a skill, or send an anonymous connection. Every need has a match.' },
+  { number: '03', title: 'Connect, chat & transact safely', desc: 'Message your match directly. Pay via escrow — money releases only when you're satisfied.' },
 ];
 
 const getInitials = (s) =>
@@ -266,11 +266,11 @@ export default function Landing() {
                      xl:px-20"
           style={{ maxWidth: '680px' }}
         >
-          {/* Verification Badge — Technical, Developer-Built Aesthetic */}
+          {/* Verification Badge */}
           <div className="hero-verified-badge mb-4 sm:mb-5">
             <div className="status-dot shrink-0" />
             <ShieldCheck className="w-3 h-3 text-[#34D399] shrink-0" />
-            <span>Verified Peer Network • Secure</span>
+            <span>100% Verified Students • Your Campus Only</span>
           </div>
 
           {/* Headline */}
@@ -278,12 +278,12 @@ export default function Landing() {
             className="hero-headline font-extrabold leading-[1.08] tracking-tight text-white mb-2 sm:mb-3"
             style={{ fontSize: 'clamp(2.2rem, 6.5vw, 4.4rem)', fontFamily: 'Inter, sans-serif' }}
           >
-            <span className="hero-word block">The campus</span>
+            <span className="hero-word block">Every student</span>
             <span className="hero-word block">
-              marketplace&nbsp;<span className="hero-highlight">built</span>
+              has a&nbsp;<span className="hero-highlight">need.</span>
             </span>
             <span className="hero-word block">
-              <span className="hero-highlight">for students.</span>
+              <span className="hero-highlight">We find the match.</span>
             </span>
           </h1>
 
@@ -296,8 +296,8 @@ export default function Landing() {
               maxWidth: '520px',
             }}
           >
-            Hire verified campus peers for tutoring, coding, design &amp; more.
-            Pay safely via escrow — released only on delivery.
+            Cosen connects you to the right student — not just a service.
+            Skills, connections, group chats, anonymous matches — all in one campus network.
           </p>
 
           {/* Search pill — full width on mobile, capped on larger screens */}
@@ -358,7 +358,7 @@ export default function Landing() {
                 textDecoration: 'none',
               }}
             >
-              Start for free <ChevronRight className="w-3.5 h-3.5" />
+              Find your match <ChevronRight className="w-3.5 h-3.5" />
             </Link>
             <Link
               to="/browse"
@@ -370,26 +370,125 @@ export default function Landing() {
                 textDecoration: 'none',
               }}
             >
-              Browse services <ChevronRight className="w-3 h-3" />
+              Explore campus <ChevronRight className="w-3 h-3" />
             </Link>
 
             {/* Trust badges — only md+ */}
             <div className="hidden md:flex items-center gap-3 ml-1">
               <span className="flex items-center gap-1 text-[10px]" style={{ color: 'rgba(255,255,255,0.50)' }}>
                 <Shield className="w-2.5 h-2.5" style={{ color: '#A78BFA' }} />
-                Stripe escrow
+                Escrow protected
               </span>
               <span className="flex items-center gap-1 text-[10px]" style={{ color: 'rgba(255,255,255,0.50)' }}>
                 <Star className="w-2.5 h-2.5" style={{ color: '#FBBF24', fill: '#FBBF24' }} />
-                4.9 rating
+                4.9 rated
               </span>
-              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>500+ students</span>
+              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>500+ students connected</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* === HOW IT WORKS — Premium Razorpay-inspired Section === */}
+      {/* === VISION SECTION — New identity: student ↔ student connection platform === */}
+      {!user && (
+        <section className="py-20 bg-white px-6 overflow-hidden">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16 fade-up">
+              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Our Vision</p>
+              <h2 className="font-extrabold text-stripe-slate text-4xl md:text-5xl lg:text-[3.5rem] tracking-tight mb-5 leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>
+                We don't just sell services.<br />
+                <span style={{ background: 'linear-gradient(90deg,#635BFF,#EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  We connect the right students.
+                </span>
+              </h2>
+              <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
+                Cosen is a living campus network. Every student has something to offer and something they need —
+                we make sure they find each other.
+              </p>
+            </div>
+
+            {/* 3-column vision pillars */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 fade-up">
+              {/* Pillar 1 */}
+              <div className="group relative rounded-3xl p-8 border border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg text-white text-2xl">
+                  🎓
+                </div>
+                <h3 className="font-bold text-slate-800 text-xl mb-3">Skills meet needs</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">
+                  A student who codes connects with one who needs a website. One who cooks connects with a hosteller who needs food.
+                  Real value, real exchange — no middlemen.
+                </p>
+                <div className="mt-6 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  <span className="text-xs font-semibold text-purple-600">Skill-based matching</span>
+                </div>
+              </div>
+
+              {/* Pillar 2 */}
+              <div className="group relative rounded-3xl p-8 border border-pink-50 bg-gradient-to-br from-pink-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-6 shadow-lg text-white text-2xl">
+                  💌
+                </div>
+                <h3 className="font-bold text-slate-800 text-xl mb-3">Anonymous connections</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">
+                  Not every connection has to be professional. With <strong className="text-pink-600">SendiYou</strong>, you can anonymously
+                  reach out to a fellow student — for a study partner, campus friend, or something more.
+                </p>
+                <div className="mt-6 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-pink-500" />
+                  <span className="text-xs font-semibold text-pink-600">Identity revealed on mutual consent</span>
+                </div>
+              </div>
+
+              {/* Pillar 3 */}
+              <div className="group relative rounded-3xl p-8 border border-amber-50 bg-gradient-to-br from-amber-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-6 shadow-lg text-white text-2xl">
+                  👥
+                </div>
+                <h3 className="font-bold text-slate-800 text-xl mb-3">Group connections</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">
+                  Planning a campus cricket tournament? A group study session? Post a connection request and
+                  let multiple students join a single shared chat — all together.
+                </p>
+                <div className="mt-6 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="text-xs font-semibold text-amber-600">Up to 50 students per group</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Full-width banner quote */}
+            <div className="mt-16 rounded-3xl overflow-hidden relative fade-up" style={{ background: 'linear-gradient(135deg, #0A0E27 0%, #1a1060 50%, #0A0E27 100%)' }}>
+              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(ellipse at 30% 50%, #635BFF, transparent 60%), radial-gradient(ellipse at 70% 50%, #EC4899, transparent 60%)' }} />
+              <div className="relative z-10 px-10 py-14 md:py-16 text-center">
+                <p className="text-white/60 font-semibold text-sm uppercase tracking-widest mb-4">The Cosen Difference</p>
+                <h3 className="text-white font-extrabold text-2xl md:text-4xl max-w-3xl mx-auto leading-tight mb-6">
+                  "Not just a marketplace — a campus operating system
+                  <span style={{ color: '#A78BFA' }}> where every student is both a provider and a seeker."
+                  </span>
+                </h3>
+                <div className="flex flex-wrap justify-center gap-6 text-sm">
+                  {[
+                    { icon: '🔒', label: 'Private & Secure' },
+                    { icon: '🎯', label: 'Need-based Matching' },
+                    { icon: '⚡', label: 'Real-time Chat' },
+                    { icon: '🏦', label: 'Escrow Payments' },
+                    { icon: '🌐', label: 'Campus-only Network' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-2 text-white/70">
+                      <span>{item.icon}</span>
+                      <span className="font-medium">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* === HOW IT WORKS === */}
       {!user && (
         <section id="how" className="py-28 relative overflow-hidden bg-[#0A0E27]" style={{ scrollMarginTop: '80px' }}>
           {/* Abstract Background Accents */}
@@ -401,13 +500,13 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto px-6 relative z-10">
             <div className="text-center md:text-left mb-16 fade-up">
               <p className="text-[#00D4FF] font-black text-sm uppercase tracking-[0.2em] mb-4 flex items-center justify-center md:justify-start gap-2">
-                <Zap className="h-4 w-4" /> Seamless Experience
+                <Zap className="h-4 w-4" /> Simple as 1-2-3
               </p>
               <h2 className="font-extrabold text-white text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 max-w-2xl" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Powering peer-to-peer campus services.
+                From need to connection — in minutes.
               </h2>
               <p className="text-[#8F9BB3] text-lg max-w-xl leading-relaxed">
-                Experience a frictionless marketplace designed specifically for university ecosystems.
+                Whether you're looking for a tutor, a campus friend, or a group for your next tournament — Cosen finds your match.
               </p>
             </div>
 
@@ -564,13 +663,14 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 fade-up">
             <div>
-              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">All Skills Welcome</p>
+              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Every Kind of Need, Covered</p>
               <h2 className="font-bold text-stripe-slate text-4xl lg:text-5xl" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                Explore by category
+                Find your kind of student
               </h2>
+              <p className="text-slate-500 mt-3 text-base max-w-lg">From study sessions to sports matches to anonymous campus connections — there's a category for every need.</p>
             </div>
             <Link to="/browse" id="categories-browse-all" className="btn-ghost font-semibold text-stripe-purple shrink-0">
-              View all services <ChevronRight className="h-4 w-4" />
+              Browse connections <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
@@ -607,15 +707,88 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* === SENDIYOU SPOTLIGHT — Connection types showcase === */}
+      {!user && (
+        <section className="py-24 px-6 bg-gradient-to-br from-[#0A0E27] to-[#180C3A] overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="max-w-7xl mx-auto relative z-10">
+            <div className="text-center mb-16 fade-up">
+              <p className="text-pink-400 font-semibold text-sm uppercase tracking-widest mb-3">💌 Beyond a Marketplace</p>
+              <h2 className="font-extrabold text-white text-4xl md:text-5xl tracking-tight mb-4">
+                Connections that go beyond transactions
+              </h2>
+              <p className="text-white/50 text-lg max-w-xl mx-auto">
+                Cosen understands that students don't just need services — they need the right person at the right time.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Card 1: Skill Connection */}
+              <div className="rounded-3xl p-8 border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all hover:-translate-y-1">
+                <div className="text-4xl mb-5">🎯</div>
+                <h3 className="text-white font-bold text-xl mb-3">Skill Connections</h3>
+                <p className="text-white/50 text-sm leading-relaxed mb-6">
+                  Need help with Python? Find a CS senior. Want a logo for your club? A design student is waiting.
+                  Post what you need — someone on campus can do it.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {['📚 Tutoring', '💻 Coding', '🎨 Design', '📸 Photography'].map(tag => (
+                    <span key={tag} className="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/10 text-white/70">{tag}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Card 2: SendiYou */}
+              <div className="rounded-3xl p-8 border border-pink-500/30 bg-gradient-to-br from-pink-500/10 to-purple-500/10 backdrop-blur-md hover:from-pink-500/20 hover:to-purple-500/20 transition-all hover:-translate-y-1 relative overflow-hidden">
+                <div className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">✨ Unique Feature</div>
+                <div className="text-4xl mb-5">💌</div>
+                <h3 className="text-white font-bold text-xl mb-3">SendiYou — Anonymous Matches</h3>
+                <p className="text-white/50 text-sm leading-relaxed mb-6">
+                  Post a connection anonymously. Choose your preferred match. Both students reveal identities
+                  only when they both agree — a safe, consent-based campus connection.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {['🔒 Anonymous', '⚧ Gender filter', '⏱ 7-day chat', '🤝 Mutual reveal'].map(tag => (
+                    <span key={tag} className="text-[11px] font-semibold px-3 py-1 rounded-full bg-pink-500/20 text-pink-300">{tag}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Card 3: Group Connections */}
+              <div className="rounded-3xl p-8 border border-amber-500/20 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all hover:-translate-y-1">
+                <div className="text-4xl mb-5">👥</div>
+                <h3 className="text-white font-bold text-xl mb-3">Group Connections</h3>
+                <p className="text-white/50 text-sm leading-relaxed mb-6">
+                  Organizing a campus cricket tournament? Planning a group study? Post one connection request
+                  and let up to 50 students join a shared group chat — all in one place.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {['🏏 Sports teams', '📖 Study groups', '🎭 Club events', '🎮 Gaming squads'].map(tag => (
+                    <span key={tag} className="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/10 text-white/70">{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mt-12 fade-up">
+              <Link to="/signup" id="sendiyou-cta" className="inline-flex items-center gap-2 font-bold text-white px-8 py-4 rounded-full transition-all hover:-translate-y-0.5" style={{ background: 'linear-gradient(135deg,#EC4899,#A855F7)', boxShadow: '0 4px 20px rgba(236,72,153,0.4)' }}>
+                Start connecting on campus <ChevronRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* === FEATURED SERVICES (dummy data only) === */}
       <section className="bg-stripe-bg py-24 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Header row with arrows */}
           <div className="flex items-end justify-between mb-10 fade-up">
             <div className="text-center flex-1">
-              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Top Rated</p>
-              <h2 className="font-display font-bold text-stripe-slate text-4xl lg:text-5xl mb-3">Featured services</h2>
-              <p className="text-stripe-steel text-lg">Hand-picked, highest-rated services from your campus.</p>
+              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Real Students, Real Skills</p>
+              <h2 className="font-display font-bold text-stripe-slate text-4xl lg:text-5xl mb-3">Top student connections</h2>
+              <p className="text-stripe-steel text-lg">Verified peers offering genuine skills — chosen by your campus community.</p>
             </div>
             {/* Arrow buttons */}
             <div className="flex gap-2 shrink-0 ml-4">
@@ -739,7 +912,7 @@ export default function Landing() {
 
         <div className="text-center mb-8 fade-up">
           <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-2">Explore the possibilities</p>
-          <h3 className="font-display font-bold text-stripe-slate text-2xl">Trending Services on Cosen</h3>
+          <h3 className="font-display font-bold text-stripe-slate text-2xl">What students are connecting on</h3>
         </div>
 
         <div className="flex w-[200%] animate-marquee hover:[animation-play-state:paused]">
@@ -751,10 +924,11 @@ export default function Landing() {
                 { name: 'Calculus Tutoring', icon: BookOpen },
                 { name: 'Portrait Shoot', icon: Camera },
                 { name: 'Homemade Tiffin', icon: UtensilsCrossed },
-                { name: 'Video Editing', icon: Zap },
-                { name: 'Web Scraping', icon: Code },
+                { name: 'Anonymous Match 💌', icon: Zap },
+                { name: 'Cricket Group 🏏', icon: Trophy },
                 { name: 'Logo Animation', icon: Palette },
                 { name: 'Guitar Lessons', icon: Music },
+                { name: 'Study Partner 📚', icon: BookOpen },
               ].map((service, j) => (
                 <div key={j} className="flex items-center gap-3 bg-stripe-bg border border-stripe-border rounded-full py-3 px-6 shadow-sm hover:border-stripe-purple hover:shadow-md transition-all cursor-pointer group whitespace-nowrap">
                   <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:text-stripe-purple transition-colors">
@@ -775,19 +949,26 @@ export default function Landing() {
           backgroundImage: 'radial-gradient(ellipse at 20% 50%, #635BFF 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, #00D4FF 0%, transparent 50%)'
         }} />
         <div className="relative z-10 max-w-3xl mx-auto text-center fade-up">
+          <p className="text-white/50 font-semibold text-sm uppercase tracking-widest mb-4">Join your campus network</p>
           <h2 className="font-bold text-white text-4xl lg:text-5xl mb-6" style={{ fontFamily: 'Rubik, sans-serif' }}>
-            Ready to earn or hire on campus?
+            Your next connection is already on campus.
           </h2>
-          <p className="text-white/70 text-lg mb-10">
-            Join hundreds of verified students already earning money and getting help on Cosen.
+          <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
+            Hundreds of students are sharing skills, finding matches, and building campus connections on Cosen — right now.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/signup" id="cta-banner-join" className="bg-white text-stripe-purple hover:bg-stripe-bg font-bold px-8 py-4 rounded-md shadow-stripe-btn transition-all hover:-translate-y-0.5 inline-flex items-center gap-2">
-              Join with your .edu email <ChevronRight className="h-5 w-5" />
+            <Link to="/signup" id="cta-banner-join" className="bg-white text-stripe-purple hover:bg-stripe-bg font-bold px-8 py-4 rounded-xl shadow-stripe-btn transition-all hover:-translate-y-0.5 inline-flex items-center gap-2">
+              Join free with .edu email <ChevronRight className="h-5 w-5" />
             </Link>
-            <Link to="/browse" id="cta-banner-browse" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-8 py-4 rounded-md transition-all">
-              Browse first
+            <Link to="/browse" id="cta-banner-browse" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-all">
+              Explore connections
             </Link>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-white/40">
+            <span>✓ 100% student-verified</span>
+            <span>✓ Anonymous connections</span>
+            <span>✓ Group & 1-on-1 chats</span>
+            <span>✓ Escrow-protected payments</span>
           </div>
         </div>
       </section>
