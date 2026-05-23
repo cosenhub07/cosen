@@ -392,6 +392,27 @@ The `sendSms.js` utility is also kept for future use once DLT registration is co
 
 ---
 
+### May 22, 2026 — SendiYou Category Launch (Anonymous Campus Connections)
+**Objective**: Introduce a new networking/dating category called **SendiYou** where users can post anonymous or public connection requests targeted at specific genders, with secure, mutually revealed chat mechanics.
+
+**Features Implemented:**
+- **"SendiYou" Category Integration**: Deployed the SendiYou category across the platform with a dedicated UI theme, removing standard delivery/revision concepts.
+- **Specialized Posting Wizard**:
+  - Added custom fields for SendiYou posts: **Display Name** (pseudonym), **Preferred Gender** (Male, Female, Any), and an **Identity Hidden** toggle.
+  - Posts with hidden identity show the poster's profile as 🔒 Secret until mutual reveal.
+- **Gender-Gated Acceptance**: 
+  - Validates the acceptor's profile gender against the poster's `preferred_gender`.
+  - Blocks users who haven't set their gender or don't match the required preference.
+- **Match Lifecycle & Expiration**: 
+  - Once accepted, a free order is generated, linking the users. The post is instantly deactivated.
+  - Matches feature a strict **7-day expiration** timer (`expires_at`), after which the chat becomes read-only.
+- **Mutual Reveal System**: 
+  - Built a dual-opt-in reveal mechanic. Both users start anonymous (seeing "Secret" avatars and names).
+  - Users can click "Reveal Identity" in the chat. Only when **both** parties have clicked reveal (`buyer_revealed=true` & `seller_revealed=true`) do the actual profiles, avatars, and phone numbers unmask.
+- **Supabase Enum Migration**: Created [migrate_sendiyou.sql](file:///c:/Users/HP/OneDrive/Desktop/copy_try/server/supabase/migrate_sendiyou.sql) containing the DDL command to alter the `service_category` type with `'SendiYou'` and added the required columns for mutual reveal to the database.
+
+---
+
 ### May 23, 2026 — Real-time Hybrid Chat Architecture & SendiYou Group Connections
 **Objective**: Overhaul the chat delivery system to ensure absolute reliability across all deployment environments (bypassing CORS/Cookie limits) and expand the **SendiYou** category to support multi-user group chats for campus activities.
 
