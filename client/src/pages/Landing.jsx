@@ -715,7 +715,7 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto relative z-10">
             <div className="text-center mb-16 fade-up">
               <p className="text-pink-400 font-semibold text-sm uppercase tracking-widest mb-3">💌 Beyond a Marketplace</p>
-              <h2 className="font-extrabold text-white text-4xl md:text-5xl tracking-tight mb-4">
+              <h2 className="font-extrabold text-white text-4xl md:text-5xl tracking-tight mb-4" style={{ fontFamily: "'Playwrite MX Guides', cursive" }}>
                 Connections that go beyond transactions
               </h2>
               <p className="text-white/50 text-lg max-w-xl mx-auto">
