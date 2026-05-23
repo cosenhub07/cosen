@@ -33,6 +33,9 @@ const buildUserPayload = (u) => ({
   dob: u.dob,
   gender: u.gender || null,
   idCardImageUrl: u.id_card_image_url,
+  idCardStatus: u.id_card_status || 'unsubmitted',
+  idCardRejectionReason: u.id_card_rejection_reason || null,
+  isSuspended: u.is_suspended || false,
   instagramUrl: u.instagram_url,
   facebookUrl: u.facebook_url,
   youtubeUrl: u.youtube_url,
@@ -163,6 +166,11 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // Block suspended users from logging in
+    if (user.is_suspended) {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended for violating platform guidelines. Please contact support to appeal.' });
     }
 
     sendToken(user, 200, res, 'Logged in successfully');
@@ -362,21 +370,17 @@ router.put('/onboarding', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Date of Birth is required.' });
     }
 
-    // Phone must be verified before completing onboarding
+    // Profile photo is mandatory for sellers and both
     const { data: currentUser } = await supabase
       .from('users')
-      .select('is_phone_verified, role')
+      .select('role')
       .eq('id', req.user._id)
       .single();
 
-    if (!currentUser?.is_phone_verified) {
-      return res.status(400).json({ success: false, message: 'Phone number must be verified before completing your profile.' });
-    }
-
-    // Profile photo is mandatory for sellers and both
-    if ((currentUser.role === 'seller' || currentUser.role === 'both') && !avatarUrl) {
+    if ((currentUser?.role === 'seller' || currentUser?.role === 'both') && !avatarUrl) {
       return res.status(400).json({ success: false, message: 'A profile photo is required for sellers. Please upload one.' });
     }
+
 
     const updateData = {
       dob,
@@ -387,11 +391,16 @@ router.put('/onboarding', protect, async (req, res) => {
       youtube_url: youtubeUrl || '',
       x_url: xUrl || '',
       platform_agreement_accepted: true,
-      is_onboarding_complete: true
+      is_onboarding_complete: true,
+      id_card_status: 'pending',
     };
 
     if (avatarUrl) {
       updateData.avatar_url = avatarUrl;
+    }
+
+    if (idCardImageUrl) {
+      updateData.id_card_image_url = idCardImageUrl;
     }
 
     const { data: updatedUser, error } = await supabase

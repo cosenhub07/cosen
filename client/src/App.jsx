@@ -18,7 +18,14 @@ import ResetPassword from './pages/ResetPassword';
 import Messages from './pages/Messages';
 import SellerProfile from './pages/SellerProfile';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import GenderModal from './components/GenderModal';
+import AdminLayout from './layouts/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminVerifications from './pages/admin/AdminVerifications';
+import AdminDisputes from './pages/admin/AdminDisputes';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminServices from './pages/admin/AdminServices';
 
 function TitleUpdater() {
   const location = useLocation();
@@ -41,6 +48,7 @@ function TitleUpdater() {
     else if (path === '/onboarding') title = 'Complete Profile | Cosen';
     else if (path === '/verify-email') title = 'Verify Email | Cosen';
     else if (path === '/forgot-password' || path.startsWith('/reset-password')) title = 'Reset Password | Cosen';
+    else if (path.startsWith('/admin')) title = 'Admin Panel | Cosen';
 
     document.title = title;
   }, [location]);
@@ -52,30 +60,53 @@ function App() {
   return (
     <Router>
       <TitleUpdater />
-      <GenderModal />
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow pb-16 md:pb-0">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/browse" element={<ProtectedRoute><Browse /></ProtectedRoute>} />
-            <Route path="/services/new" element={<ProtectedRoute><PostService /></ProtectedRoute>} />
-            <Route path="/services/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/profile/:id" element={<ProtectedRoute><SellerProfile /></ProtectedRoute>} />
-            <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
-            <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/verify-email" element={<ProtectedRoute><VerifyEmail /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        {/* ── Admin panel — uses its own full-screen layout (no Navbar) ── */}
+        <Route path="/admin/*" element={
+          <AdminRoute>
+            <AdminLayout>
+              <Routes>
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="verifications" element={<AdminVerifications />} />
+                <Route path="disputes" element={<AdminDisputes />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="services" element={<AdminServices />} />
+              </Routes>
+            </AdminLayout>
+          </AdminRoute>
+        } />
+
+        {/* ── Regular student app — uses the standard Navbar layout ── */}
+        <Route path="/*" element={
+          <>
+            <GenderModal />
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow pb-16 md:pb-0">
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password/:token" element={<ResetPassword />} />
+                  <Route path="/browse" element={<ProtectedRoute><Browse /></ProtectedRoute>} />
+                  <Route path="/services/new" element={<ProtectedRoute><PostService /></ProtectedRoute>} />
+                  <Route path="/services/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
+                  <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/profile/:id" element={<ProtectedRoute><SellerProfile /></ProtectedRoute>} />
+                  <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+                  <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                  <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                  <Route path="/verify-email" element={<ProtectedRoute><VerifyEmail /></ProtectedRoute>} />
+                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                </Routes>
+              </main>
+            </div>
+          </>
+        } />
+      </Routes>
     </Router>
   );
 }
