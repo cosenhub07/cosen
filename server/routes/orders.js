@@ -454,7 +454,19 @@ router.get('/:id', protect, async (req, res) => {
     if (!isParty && req.user.role !== 'admin')
       return res.status(403).json({ success: false, message: 'Access denied' });
 
-    res.status(200).json({ success: true, order: mapOrder(order, req.user._id) });
+    // Fetch associated payout (if any)
+    const { data: payout } = await supabase
+      .from('payouts')
+      .select('id, status, amount, upi_id, paid_at')
+      .eq('order_id', order.id)
+      .maybeSingle();
+
+    const mapped = mapOrder(order, req.user._id);
+    if (mapped) {
+      mapped.payout = payout;
+    }
+
+    res.status(200).json({ success: true, order: mapped });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }
@@ -545,43 +557,43 @@ router.put('/:id/complete', protect, async (req, res) => {
 
     if (error) throw error;
 
-    // ── Auto-create payout record (non-blocking) ──────────────
+    // ── Auto-create payout record (synchronous) ──────────────
     const sellerUpiId = order.seller?.upi_id;
     const payoutAmount = order.seller_earnings || Math.round(order.price * 0.9);
     const shortOrderId = String(req.params.id).slice(-8).toUpperCase();
     const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '25se02ml132@ppsu.ac.in';
 
-    // Insert payout (upsert — safe if order already had a payout somehow)
-    supabase
-      .from('payouts')
-      .upsert({
-        order_id: req.params.id,
-        seller_id: order.seller_id,
-        amount: payoutAmount,
-        upi_id: sellerUpiId || 'NOT SET',
-        status: 'pending',
-      }, { onConflict: 'order_id' })
-      .then(({ error: payErr }) => {
-        if (payErr) console.error('[Orders] Payout insert error:', payErr.message);
-      });
+    // Insert payout and select it back
+    let payout = null;
+    try {
+      const { data: payData, error: payErr } = await supabase
+        .from('payouts')
+        .upsert({
+          order_id: req.params.id,
+          seller_id: order.seller_id,
+          amount: payoutAmount,
+          upi_id: sellerUpiId || 'NOT SET',
+          status: 'pending',
+        }, { onConflict: 'order_id' })
+        .select('id, status, amount, upi_id, paid_at')
+        .maybeSingle();
 
-    // Notify seller that payment is released (non-blocking)
+      if (payErr) throw payErr;
+      payout = payData;
+    } catch (payErr) {
+      console.error('[Orders] Payout insert error:', payErr.message);
+    }
+
+    // Notify seller that order is completed (generic notification, NO payment/payout mention)
     if (order.seller?.email) {
-      sendOrderEmail('completed', {
-        buyerName: req.user.name,
-        buyerEmail: req.user.email,
-        sellerName: order.seller.name,
-        sellerEmail: order.seller.email,
-        serviceTitle: order.service?.title || 'Service',
-        orderId: req.params.id,
-        price: order.price,
-      });
-      // In-app notification for seller
+      // We do NOT send sendOrderEmail('completed', ...) anymore to prevent sending a payment email prematurely.
+      
+      // Send a generic in-app notification about order completion
       createNotification({
         userId: order.seller.id,
         type: 'order_completed',
-        title: '✅ Order Completed — Payout Queued!',
-        body: `${req.user.name} confirmed delivery of "${order.service?.title || 'your service'}". ₹${payoutAmount.toLocaleString('en-IN')} payout is being processed${sellerUpiId ? ` to ${sellerUpiId}` : '. Add your UPI ID in Profile to receive payment'}.`,
+        title: '✅ Order Completed!',
+        body: `"${order.service?.title || 'Your service'}" has been successfully completed. Buyer confirmed delivery.`,
         link: `/orders/${req.params.id}`,
       });
     }
@@ -607,7 +619,12 @@ router.put('/:id/complete', protect, async (req, res) => {
         </div>`,
     }).catch(e => console.error('[Orders] Admin payout email error:', e.message));
 
-    res.status(200).json({ success: true, order: mapOrder(updated, req.user._id) });
+    const mapped = mapOrder(updated, req.user._id);
+    if (mapped) {
+      mapped.payout = payout;
+    }
+
+    res.status(200).json({ success: true, order: mapped });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
   }

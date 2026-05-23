@@ -609,6 +609,37 @@ export default function OrderDetail() {
                 </div>
               </div>
 
+              {/* Payment / Payout Status for Completed standard orders */}
+              {!isPlayground && order.status === 'completed' && (
+                <div className="mb-6 p-4 rounded-xl border border-stripe-border bg-slate-50">
+                  <div className="text-xs font-bold text-stripe-slate uppercase tracking-wider mb-2">Payment Status</div>
+                  {order.payout ? (
+                    order.payout.status === 'paid' ? (
+                      <div className="space-y-1.5 text-center">
+                        <span className="inline-flex text-[10px] font-bold px-2.5 py-0.5 rounded-full text-emerald-700 bg-emerald-50 border border-emerald-200">💸 Payment Successfully</span>
+                        <div className="text-[10px] text-stripe-muted leading-tight">
+                          Earnings of <strong>₹{order.payout.amount?.toLocaleString()}</strong> successfully paid to UPI: <span className="font-mono font-semibold text-stripe-slate">{order.payout.upi_id}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 text-center">
+                        <span className="inline-flex text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-700 bg-amber-50 border border-amber-200 animate-pulse">⏳ Processing Payment</span>
+                        <div className="text-[10px] text-stripe-muted leading-tight">
+                          Transfer of <strong>₹{order.payout.amount?.toLocaleString()}</strong> is being processed to UPI: <span className="font-mono font-semibold text-stripe-slate">{order.payout.upi_id || 'NOT SET'}</span>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="space-y-1.5 text-center">
+                      <span className="inline-flex text-[10px] font-bold px-2.5 py-0.5 rounded-full text-amber-700 bg-amber-50 border border-amber-200 animate-pulse">⏳ Processing Payment</span>
+                      <div className="text-[10px] text-stripe-muted leading-tight">
+                        Manual payout is being processed by the admin
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {order.status === 'pending_negotiation' && (
                 <div className="mb-6 p-4 rounded-xl border-2 border-amber-200 bg-amber-50">
                   <h4 className="font-bold text-amber-800 mb-2 flex items-center gap-1.5">
@@ -824,10 +855,34 @@ export default function OrderDetail() {
                 {!isPlayground && order.status === 'completed' && (!isBuyer || order.isReviewed) && (
                   <div className="flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
                     <CheckCircle className="h-6 w-6 text-green-500 mb-2" />
-                    <span className="font-semibold text-stripe-slate text-sm">Order Completed</span>
-                    <span className="text-xs text-stripe-muted mt-1">Payment released.</span>
+                    <span className="font-semibold text-stripe-slate text-sm font-display">Order Completed</span>
+                    
+                    {order.payout ? (
+                      order.payout.status === 'paid' ? (
+                        <>
+                          <div className="mt-3 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span>💸 Payment Successfully</span>
+                          </div>
+                          <span className="text-[11px] text-stripe-muted mt-2">
+                            Earnings of <strong>₹{order.payout.amount?.toLocaleString()}</strong> successfully transferred to your UPI ID: <strong className="font-mono text-stripe-slate">{order.payout.upi_id}</strong>
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="mt-3 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+                            <span>⏳ Processing Payment</span>
+                          </div>
+                          <span className="text-[11px] text-stripe-muted mt-2">
+                            Manual payout transfer of <strong>₹{order.payout.amount?.toLocaleString()}</strong> is being processed to UPI ID: <strong className="font-mono text-stripe-slate">{order.payout.upi_id || 'NOT SET'}</strong>
+                          </span>
+                        </>
+                      )
+                    ) : (
+                      <span className="text-xs text-stripe-muted mt-1">Payment released.</span>
+                    )}
+
                     {order.isReviewed && !order.review && (
-                      <span className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                      <span className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">
                         <Star className="h-3.5 w-3.5 fill-amber-500" /> You reviewed this order
                       </span>
                     )}

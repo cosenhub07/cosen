@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect, adminOnly } = require('../middleware/auth');
 const { supabase } = require('../config/db');
 const sendEmail = require('../utils/sendEmail');
+const createNotification = require('../utils/createNotification');
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '25se02ml132@ppsu.ac.in';
 
@@ -84,7 +85,7 @@ router.patch('/:id/mark-paid', protect, adminOnly, async (req, res) => {
     const { data: payout, error: fetchErr } = await supabase
       .from('payouts')
       .select(`
-        id, amount, upi_id, status, order_id,
+        id, amount, upi_id, status, order_id, seller_id,
         seller:users!seller_id(id, name, email)
       `)
       .eq('id', req.params.id)
@@ -105,9 +106,21 @@ router.patch('/:id/mark-paid', protect, adminOnly, async (req, res) => {
 
     if (updateErr) throw updateErr;
 
+    const shortOrderId = String(payout.order_id).slice(-8).toUpperCase();
+
+    // Send in-app notification to the seller (non-blocking)
+    if (payout.seller_id) {
+      createNotification({
+        userId: payout.seller_id,
+        type: 'order_completed',
+        title: '💸 Payment Successfully!',
+        body: `Your earnings of ₹${Number(payout.amount).toLocaleString('en-IN')} for order #${shortOrderId} have been transferred to your UPI ID: ${payout.upi_id}.`,
+        link: `/orders/${payout.order_id}`,
+      }).catch(e => console.error('[Payouts] Seller in-app notification error:', e.message));
+    }
+
     // Email seller (non-blocking)
     if (payout.seller?.email) {
-      const shortOrderId = String(payout.order_id).slice(-8).toUpperCase();
       sendEmail({
         email: payout.seller.email,
         subject: '💸 Payment Released — Cosen',
@@ -128,7 +141,7 @@ router.patch('/:id/mark-paid', protect, adminOnly, async (req, res) => {
       }).catch(e => console.error('[Payouts] Seller email error:', e.message));
     }
 
-    res.json({ success: true, message: 'Payout marked as paid. Email sent to seller.' });
+    res.json({ success: true, message: 'Payout marked as paid. Email and notification sent to seller.' });
   } catch (err) {
     console.error('[Payouts] Mark paid error:', err);
     res.status(500).json({ success: false, message: 'Failed to mark payout as paid' });
