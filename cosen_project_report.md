@@ -432,6 +432,90 @@ The `sendSms.js` utility is also kept for future use once DLT registration is co
   - Injected a dynamic **👥 Group Members** badge in the chat header, visually mapping the participant count (e.g., `1/10 joined`) alongside stacked avatar pills for each joined member.
 - **Supabase Multi-user Migration**: Authored and deployed [migrate_sendiyou_group.sql](file:///c:/Users/HP/OneDrive/Desktop/copy_try/server/supabase/migrate_sendiyou_group.sql) to execute the DDL schema additions for group scale.
 
+
+---
+
+### May 23, 2026 (Session 2) — Landing Page Vision Overhaul, Critical Group Chat Bug Fixes & SendiYou Reveal System Redesign
+
+**Objective**: Realign the landing page with Cosen's evolved identity as a peer-connection platform (not just a marketplace), fix critical bugs preventing group members from accessing their chats, and redesign the SendiYou reveal system to support independent, per-user identity disclosure.
+
+---
+
+#### 🌐 Landing Page — New Vision & Identity
+
+**Problem**: The landing page still communicated Cosen as a traditional "campus marketplace" (hire/sell framing), which no longer matched the platform's actual direction — connecting students to students based on need, not just selling services.
+
+**Changes Made:**
+- **Hero Headline** rewritten from *"The campus marketplace built for students"* → **"Every student has a need. We find the match."**
+- **Hero subtext** updated from *"Hire verified campus peers..."* → *"Cosen connects you to the right student — not just a service."*
+- **CTA buttons** updated: "Start for free" → **"Find your match"**, "Browse services" → **"Explore campus"**
+- **New Vision Section** added (between hero and how-it-works) with three premium pillar cards:
+  - 🎓 *Skills meet needs* — real value exchange, no middlemen
+  - 💌 *Anonymous connections* — SendiYou explained clearly with consent mechanics
+  - 👥 *Group connections* — cricket tournaments, study groups, clubs
+  - A full-width dark quote banner: *"Not just a marketplace — a campus operating system where every student is both a provider and a seeker."* (set in **Merriweather** serif font for editorial emphasis)
+- **New "Connections Beyond Transactions" Dark Section** added showcasing the 3 core connection types (Skill Connections, SendiYou, Group Connections) with card-based UI featuring tag pills and descriptions
+- **Categories section** header updated: *"Find your kind of student"* with new sub-description
+- **Marquee Slider** updated to include *"Anonymous Match 💌"*, *"Cricket Group 🏏"*, *"Study Partner 📚"*
+- **CTA Banner** rewritten: *"Your next connection is already on campus."* with trust strip (100% student-verified, anonymous connections, group & 1-on-1 chats, escrow-protected)
+- **Typography**: Applied **Playwrite México Guides** (cursive script) to the SendiYou spotlight heading for a distinctive, expressive feel
+- **Build fix**: Escaped unescaped apostrophe in JS string that broke Vite production build (`you're` inside single-quoted string)
+
+---
+
+#### 🐛 Critical Bug — Group Members Could Not Access Order/Chat
+
+**Problem**: When the 2nd (or any subsequent) person joined a SendiYou group and tried to enter the group chat, they received: **"Failed to load order details."**
+
+**Root Cause Analysis (3 bugs):**
+
+| # | File | Bug | Impact |
+|---|------|-----|--------|
+| 1 | `server/routes/messages.js` | `verifyOrderAccess()` only checked `buyer_id` + `seller_id` — not `buyer_ids[]` | Group members got **HTTP 403** on both GET messages and POST message |
+| 2 | `server/routes/orders.js` | `.or()` with `buyer_ids.cs.{uuid}` — invalid PostgREST syntax for UUID arrays with hyphens | Group members' orders **never appeared** in the dashboard order list |
+| 3 | `client/src/pages/OrderDetail.jsx` | `order.buyer._id === user._id` — hard crash for group members not equal to `buyer_id`; `isBuyer`/`otherParty` became undefined | **Client-side crash** on page load for any group member except the first joiner |
+
+**Fixes Applied:**
+- **`messages.js`**: Updated `verifyOrderAccess()` to fetch `buyer_ids` column and check `(order.buyer_ids || []).includes(userId)` as a third access condition
+- **`orders.js` GET `/`**: Replaced broken `.or()` filter with **two separate Supabase queries** (one for `buyer_id`/`seller_id`, one using `.contains('buyer_ids', [userId])`) then merged + deduplicated results by ID in memory
+- **`OrderDetail.jsx`**: Added `isGroupMember = (order.buyerIds || []).includes(user._id)` fallback so all group joiners are treated as buyer-side; used optional chaining (`order.buyer?._id`) throughout to prevent null crashes
+
+---
+
+#### 💌 SendiYou Reveal System — Architecture Overhaul
+
+**Problem (Old Logic):** Both parties had to click "Show my profile" before either could see the other — a strict mutual consent gate. This didn't work well for groups (multiple buyers, but only one `buyer_revealed` boolean) and felt restrictive even for 1-on-1.
+
+**New Logic (Independent Reveal):**
+- Any participant — buyer, seller, or any group member — clicking "Show my profile" **immediately makes their profile visible to everyone else** in that chat
+- No mutual consent required. If Person A reveals → everyone sees Person A. If Person B hasn't revealed → Person B stays hidden
+- Fully works for groups of any size
+
+**Technical Changes:**
+
+| Layer | Change |
+|-------|--------|
+| **Database** | Added `revealed_ids uuid[] DEFAULT '{}'` column to `orders` table (migration SQL: `ALTER TABLE orders ADD COLUMN IF NOT EXISTS revealed_ids uuid[] DEFAULT '{}'::uuid[];`) |
+| **`server/routes/sendiyou.js`** | Reveal route now toggles user's own ID in/out of `revealed_ids[]` array instead of flipping `buyer_revealed`/`seller_revealed` booleans; access check expanded to include all `buyer_ids` group members |
+| **`server/routes/orders.js`** | Added `revealedIds: order.revealed_ids \|\| []` to `mapOrder()` output |
+| **`client/src/pages/OrderDetail.jsx`** | Replaced `isMutualReveal` logic with `revealedOthers = revealedIds.filter(id => id !== user._id)`; profile cards render for **each revealed person** independently; hint text dynamically shows count of revealed members |
+
+---
+
+#### 🔤 Typography Additions
+- **Merriweather** (serif, editorial) — added to Google Fonts import; applied to the vision quote banner
+- **Playwrite México Guides** (cursive script) — added to Google Fonts import; applied to the SendiYou spotlight section heading
+
+---
+
+**Git Commits Today (Session 2):**
+- `19a5120` — feat: redesign landing page to reflect new student-to-student connection vision
+- `634a31b` — fix: escape apostrophe in Landing.jsx step desc to fix Vite build error
+- `446c2b5` — fix: group members can now access orders and chat (buyer_ids check in messages + orders routes)
+- `eeef70a` — feat: apply Merriweather serif font to landing page vision quote
+- `165f1ee` — feat: apply Playwrite MX Guides font to SendiYou section heading
+- `d0492b7` — feat: independent reveal logic — anyone revealing shows instantly to all, no mutual consent needed
+
 ---
 
 *Last updated: May 23, 2026 | GitHub: cosenhub07/cosen | Status: 🟢 Live in Production*
