@@ -76,8 +76,11 @@ export default function OrderDetail() {
   useEffect(() => {
     if (!user || !order) return;
 
-    const isBuyer = order.buyer._id === user._id;
-    const otherPartyId = isBuyer ? order.seller._id : order.buyer._id;
+    // For group members: they may not be order.buyer_id but are in buyerIds
+    const isGroupMember = (order.buyerIds || []).includes(user._id);
+    const isBuyerSide = order.buyer?._id === user._id || isGroupMember;
+    const otherPartyId = isBuyerSide ? order.seller?._id : order.buyer?._id;
+    if (!otherPartyId) return;
 
     const token = localStorage.getItem('cosen_token');
     const socket = io(SOCKET_URL, {
@@ -398,7 +401,9 @@ export default function OrderDetail() {
     </div>
   );
 
-  const isBuyer    = order.buyer._id === user._id;
+  // Group members (in buyerIds but not buyer_id) are treated as buyer-side
+  const isGroupMember = (order.buyerIds || []).includes(user._id);
+  const isBuyer    = order.buyer?._id === user._id || isGroupMember;
   const otherParty = isBuyer ? order.seller : order.buyer;
   const waLink     = buildWhatsApp();
 

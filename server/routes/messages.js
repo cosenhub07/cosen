@@ -22,16 +22,20 @@ const mapMessage = (row) => {
   };
 };
 
-// Helper: verify user is buyer or seller of the order
+// Helper: verify user is buyer, seller, OR group member of the order
 const verifyOrderAccess = async (orderId, userId) => {
   const { data: order } = await supabase
     .from('orders')
-    .select('id, buyer_id, seller_id')
+    .select('id, buyer_id, seller_id, buyer_ids')
     .eq('id', orderId)
     .maybeSingle();
 
   if (!order) return null;
-  return (order.buyer_id === userId || order.seller_id === userId) ? order : false;
+  const isParty =
+    order.buyer_id === userId ||
+    order.seller_id === userId ||
+    (order.buyer_ids || []).includes(userId);
+  return isParty ? order : false;
 };
 
 // ─────────────────────────────────────────────────────────────

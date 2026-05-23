@@ -409,23 +409,45 @@ router.put('/:id/set-price', protect, async (req, res) => {
 router.get('/', protect, async (req, res) => {
   try {
     const userId = req.user._id;
-    const { data: orders, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        service:services!service_id(id, title, price, delivery_days, category, images, expires_at, preferred_gender, identity_hidden, display_name, accepted_by_id, group_size),
-        buyer:users!buyer_id(id, name, avatar_url, avatar_public_id),
-        seller:users!seller_id(id, name, avatar_url, avatar_public_id)
-      `)
-      .or(`buyer_id.eq.${userId},seller_id.eq.${userId},buyer_ids.cs.{${userId}}`)
-      .order('created_at', { ascending: false });
+    const selectFields = `
+      *,
+      service:services!service_id(id, title, price, delivery_days, category, images, expires_at, preferred_gender, identity_hidden, display_name, accepted_by_id, group_size),
+      buyer:users!buyer_id(id, name, avatar_url, avatar_public_id),
+      seller:users!seller_id(id, name, avatar_url, avatar_public_id)
+    `;
 
-    if (error) throw error;
-    res.status(200).json({ success: true, orders: orders.map(o => mapOrder(o, userId)) });
+    // Query 1: orders where user is direct buyer or seller
+    const { data: directOrders, error: e1 } = await supabase
+      .from('orders')
+      .select(selectFields)
+      .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`)
+      .order('created_at', { ascending: false });
+    if (e1) throw e1;
+
+    // Query 2: orders where user joined as a group member (buyer_ids array)
+    const { data: groupOrders, error: e2 } = await supabase
+      .from('orders')
+      .select(selectFields)
+      .contains('buyer_ids', [userId])
+      .order('created_at', { ascending: false });
+    if (e2) throw e2;
+
+    // Merge and deduplicate by id
+    const seen = new Set();
+    const allOrders = [...(directOrders || []), ...(groupOrders || [])].filter(o => {
+      if (seen.has(o.id)) return false;
+      seen.add(o.id);
+      return true;
+    });
+    allOrders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    res.status(200).json({ success: true, orders: allOrders.map(o => mapOrder(o, userId)) });
   } catch (error) {
+    console.error('GET /orders error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 
 // ─────────────────────────────────────────────────────────────
 // GET /api/orders/:id — single order detail
