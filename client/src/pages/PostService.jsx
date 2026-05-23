@@ -96,7 +96,8 @@ export default function PostService() {
     displayName: '',
     preferredGender: 'Any',
     identityHidden: false,
-    groupSize: 2,
+    groupSize: 1,
+    connectionType: 'individual',
   });
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
@@ -163,6 +164,12 @@ export default function PostService() {
           location: locationVal,
           bookedCampus: bookedCampusVal,
           playerCount: playerCountVal,
+          // SendiYou fields
+          displayName: s.displayName || '',
+          preferredGender: s.preferredGender || 'Any',
+          identityHidden: !!s.identityHidden,
+          groupSize: s.groupSize || 1,
+          connectionType: (s.groupSize && s.groupSize > 1) ? 'group' : 'individual',
         });
       } catch (err) {
         setApiError('Could not load service. Please go back and try again.');
@@ -304,7 +311,7 @@ export default function PostService() {
           displayName: form.displayName.trim(),
           preferredGender: form.preferredGender,
           identityHidden: form.identityHidden,
-          groupSize: Number(form.groupSize) || 1,
+          groupSize: form.connectionType === 'individual' ? 1 : (Number(form.groupSize) || 2),
         }),
       };
 
@@ -731,37 +738,83 @@ export default function PostService() {
                 <p className="mt-2 text-xs text-stripe-muted">Only users of the selected gender can accept your connection request.</p>
               </div>
 
-              {/* Group Size */}
+              {/* Connection Type */}
               <div>
-                <label htmlFor="svc-group-size" className="form-label flex items-center gap-2 mb-2">
-                  <span>Group Size <span className="text-red-500">*</span></span>
+                <label className="form-label flex items-center gap-2 mb-3">
+                  <span>Connection Type <span className="text-red-500">*</span></span>
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     type="button"
-                    onClick={() => setForm(f => ({ ...f, groupSize: Math.max(1, (Number(f.groupSize) || 1) - 1) }))}
-                    className="w-10 h-10 rounded-xl border-2 border-stripe-border bg-slate-50 text-stripe-slate font-bold text-lg flex items-center justify-center hover:border-pink-400 hover:bg-pink-50 transition-all"
-                  >−</button>
-                  <input
-                    type="number"
-                    id="svc-group-size"
-                    className="stripe-input text-center w-24 font-bold text-lg"
-                    min={1}
-                    max={50}
-                    value={form.groupSize || 1}
-                    onChange={e => setForm(f => ({ ...f, groupSize: Math.max(1, Math.min(50, parseInt(e.target.value) || 1)) }))}
-                  />
+                    onClick={() => setForm(f => ({ ...f, connectionType: 'individual', groupSize: 1 }))}
+                    className="py-4 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-left flex items-start gap-3"
+                    style={{
+                      borderColor: form.connectionType === 'individual' ? '#EC4899' : '#E6EBF1',
+                      background: form.connectionType === 'individual' ? '#FFF0F8' : '#FAFAFA',
+                      color: form.connectionType === 'individual' ? '#BE185D' : '#64748B',
+                      boxShadow: form.connectionType === 'individual' ? '0 0 0 3px #EC489922' : 'none',
+                    }}
+                  >
+                    <span className="text-2xl mt-0.5">👤</span>
+                    <div>
+                      <div className="font-bold">Individual (1-on-1)</div>
+                      <div className="text-xs font-normal text-slate-500 mt-1">Connect privately with a single person for a one-on-one match.</div>
+                    </div>
+                  </button>
+
                   <button
                     type="button"
-                    onClick={() => setForm(f => ({ ...f, groupSize: Math.min(50, (Number(f.groupSize) || 1) + 1) }))}
-                    className="w-10 h-10 rounded-xl border-2 border-stripe-border bg-slate-50 text-stripe-slate font-bold text-lg flex items-center justify-center hover:border-pink-400 hover:bg-pink-50 transition-all"
-                  >+</button>
-                  <span className="text-sm text-stripe-muted">
-                    {form.groupSize <= 1 ? '1 person only (private)' : `Up to ${form.groupSize} people can join`}
-                  </span>
+                    onClick={() => setForm(f => ({ ...f, connectionType: 'group', groupSize: Math.max(2, form.groupSize || 2) }))}
+                    className="py-4 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-left flex items-start gap-3"
+                    style={{
+                      borderColor: form.connectionType === 'group' ? '#EC4899' : '#E6EBF1',
+                      background: form.connectionType === 'group' ? '#FFF0F8' : '#FAFAFA',
+                      color: form.connectionType === 'group' ? '#BE185D' : '#64748B',
+                      boxShadow: form.connectionType === 'group' ? '0 0 0 3px #EC489922' : 'none',
+                    }}
+                  >
+                    <span className="text-2xl mt-0.5">👥</span>
+                    <div>
+                      <div className="font-bold">Group Connection</div>
+                      <div className="text-xs font-normal text-slate-500 mt-1">Allow multiple students to join a single shared room/chat.</div>
+                    </div>
+                  </button>
                 </div>
-                <p className="mt-1.5 text-xs text-stripe-muted">Set how many students can join this connection. e.g. 10 for a campus cricket team group chat.</p>
               </div>
+
+              {/* Group Size Selector - only visible when connectionType is group */}
+              {form.connectionType === 'group' && (
+                <div className="p-4 rounded-2xl border border-pink-100 bg-pink-50/20 space-y-3 transition-all animate-fadeIn">
+                  <label htmlFor="svc-group-size" className="form-label flex items-center gap-2 mb-1">
+                    <span>Group Size Capacity <span className="text-red-500">*</span></span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, groupSize: Math.max(2, (Number(f.groupSize) || 2) - 1) }))}
+                      className="w-10 h-10 rounded-xl border border-pink-200 bg-white text-pink-600 font-bold text-lg flex items-center justify-center hover:bg-pink-50 transition-all"
+                    >−</button>
+                    <input
+                      type="number"
+                      id="svc-group-size"
+                      className="stripe-input text-center w-24 font-bold text-lg"
+                      min={2}
+                      max={50}
+                      value={form.groupSize || 2}
+                      onChange={e => setForm(f => ({ ...f, groupSize: Math.max(2, Math.min(50, parseInt(e.target.value) || 2)) }))}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, groupSize: Math.min(50, (Number(f.groupSize) || 2) + 1) }))}
+                      className="w-10 h-10 rounded-xl border border-pink-200 bg-white text-pink-600 font-bold text-lg flex items-center justify-center hover:bg-pink-50 transition-all"
+                    >+</button>
+                    <span className="text-sm font-semibold text-pink-700">
+                      Up to {form.groupSize} members
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-stripe-muted">Perfect for group projects, multi-student discussions, or campus team activities (cricket tournaments, etc).</p>
+                </div>
+              )}
 
               {/* Identity Hide Toggle */}
               <div>
