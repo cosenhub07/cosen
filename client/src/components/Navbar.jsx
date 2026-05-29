@@ -182,6 +182,13 @@ export default function Navbar() {
   // Get user initials for avatar
   const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '?';
 
+  const authRoutes = ['/login', '/signup', '/forgot-password'];
+  const isAuthRoute = authRoutes.includes(location.pathname) || location.pathname.startsWith('/reset-password');
+
+  if (isAuthRoute) {
+    return null;
+  }
+
   return (
     <>
       <nav

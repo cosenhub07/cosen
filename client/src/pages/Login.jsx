@@ -61,7 +61,6 @@ export default function Login() {
     if (result.success) {
       navigate('/browse');
     } else {
-      // Make backend messages friendlier
       const raw = result.message || '';
       if (raw.toLowerCase().includes('invalid email or password')) {
         setGlobalError('Incorrect email or password. Please double-check and try again.');
@@ -93,146 +92,160 @@ export default function Login() {
 
   /* ── Field style helper ── */
   const inputStyle = (field) => ({
-    borderColor: fieldErrors[field] ? '#F87171' : undefined,
+    borderColor: fieldErrors[field] ? '#F87171' : '#E2E8F0',
     boxShadow:   fieldErrors[field] ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined,
   });
 
   return (
-    <div className="auth-page">
-      <div className="auth-grid"  aria-hidden="true" />
-      <div className="auth-nodes" aria-hidden="true" />
-      <div className="auth-orb auth-orb-1" aria-hidden="true" />
-      <div className="auth-orb auth-orb-2" aria-hidden="true" />
-      <div className="auth-orb auth-orb-3" aria-hidden="true" />
-      <div className="auth-top-line" aria-hidden="true" />
-
-      {/* Brand + heading */}
-      <div className="auth-heading">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
+      {/* Top Navigation Bar */}
+      <header style={{ padding: '1.5rem 2rem', display: 'flex', justifyContent: 'center' }}>
         <BrandLogo size="lg" />
-        <h1 className="text-2xl font-bold mt-6 mb-1" style={{ color: '#fff' }}>Sign in to Cosen</h1>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>University email required (.edu / .ac.in)</p>
-      </div>
+      </header>
 
-      {/* Card */}
-      <div className="auth-card">
-
-        {/* Global error */}
-        {displayError && (
-          <div className="flex items-start gap-2 bg-red-500/10 border border-red-400/30 text-red-300 rounded-lg px-4 py-3 mb-5 text-sm">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{displayError}</span>
-          </div>
-        )}
-
-        {/* Google login */}
-        <div className="flex justify-center mb-5">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setGlobalError('Google sign-in was cancelled or failed. Please try again.')}
-          />
-        </div>
-
-        <div className="flex items-center text-xs text-gray-400 mb-5 uppercase tracking-wider">
-          <div className="flex-1 border-t border-gray-600" />
-          <span className="mx-4">or continue with email</span>
-          <div className="flex-1 border-t border-gray-600" />
-        </div>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-semibold mb-1.5">University Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                style={{ color: fieldErrors.email ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
-              <input
-                id="login-email"
-                type="email"
-                name="email"
-                placeholder="you@college.ac.in"
-                className="stripe-input pl-9"
-                style={inputStyle('email')}
-                value={form.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                autoComplete="email"
-                autoFocus
-              />
-            </div>
-            {fieldErrors.email
-              ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}>
-                  <AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.email}
-                </p>
-              : <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Must end in .edu or .ac.in</p>
-            }
-          </div>
-
-          {/* Password */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-sm font-semibold">Password</label>
-              <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: '#A5A1FF' }}>
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                style={{ color: fieldErrors.password ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                placeholder="••••••••"
-                className="stripe-input pl-9 pr-10"
-                style={inputStyle('password')}
-                value={form.password}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() => setShowPassword(s => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {fieldErrors.password && (
-              <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}>
-                <AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.password}
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+        <div style={{ width: '100%', maxWidth: '440px' }}>
+          {/* Card */}
+          <div style={{ background: '#fff', borderRadius: '1.25rem', padding: '2.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02)', border: '1px solid #F1F5F9' }}>
+            
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.75rem', fontWeight: 800, color: '#0F172A', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>
+                Welcome back
+              </h1>
+              <p style={{ fontSize: '0.95rem', color: '#64748B', margin: 0 }}>
+                Sign in with your university email
               </p>
+            </div>
+
+            {/* Global error */}
+            {displayError && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1.5rem', fontSize: '0.875rem', lineHeight: 1.5 }}>
+                <AlertCircle style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2 }} />
+                <span>{displayError}</span>
+              </div>
             )}
+
+            {/* Google login */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setGlobalError('Google sign-in was cancelled or failed. Please try again.')}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem', color: '#94A3B8', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              <div style={{ flex: 1, height: '1px', background: '#F1F5F9' }} />
+              <span style={{ margin: '0 1rem' }}>or continue with email</span>
+              <div style={{ flex: 1, height: '1px', background: '#F1F5F9' }} />
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }} noValidate>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="login-email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>
+                  University Email
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: fieldErrors.email ? '#F87171' : '#94A3B8', pointerEvents: 'none' }} />
+                  <input
+                    id="login-email"
+                    type="email"
+                    name="email"
+                    placeholder="you@college.ac.in"
+                    className="stripe-input"
+                    style={{ ...inputStyle('email'), paddingLeft: '2.75rem', background: '#FAFBFF' }}
+                    value={form.email}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    autoComplete="email"
+                    autoFocus
+                  />
+                </div>
+                {fieldErrors.email
+                  ? <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 4, color: '#DC2626', fontWeight: 500 }}>
+                      <AlertCircle style={{ width: 12, height: 12, flexShrink: 0 }} /> {fieldErrors.email}
+                    </p>
+                  : <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#94A3B8' }}>Must end in .edu or .ac.in</p>
+                }
+              </div>
+
+              {/* Password */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <label htmlFor="login-password" style={{ fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>Password</label>
+                  <Link to="/forgot-password" style={{ fontSize: '0.75rem', fontWeight: 600, color: '#635BFF', textDecoration: 'none' }}
+                    onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                    onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <Lock style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: fieldErrors.password ? '#F87171' : '#94A3B8', pointerEvents: 'none' }} />
+                  <input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    placeholder="••••••••"
+                    className="stripe-input"
+                    style={{ ...inputStyle('password'), paddingLeft: '2.75rem', paddingRight: '2.75rem', background: '#FAFBFF' }}
+                    value={form.password}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword(s => !s)}
+                    style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {showPassword ? <EyeOff style={{ width: 18, height: 18 }} /> : <Eye style={{ width: 18, height: 18 }} />}
+                  </button>
+                </div>
+                {fieldErrors.password && (
+                  <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 4, color: '#DC2626', fontWeight: 500 }}>
+                    <AlertCircle style={{ width: 12, height: 12, flexShrink: 0 }} /> {fieldErrors.password}
+                  </p>
+                )}
+              </div>
+
+              <button
+                id="login-submit"
+                type="submit"
+                disabled={loading}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                  background: '#635BFF', color: '#fff', fontWeight: 700, fontSize: '0.95rem',
+                  padding: '0.875rem', borderRadius: '0.5rem', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1, transition: 'all 0.2s', marginTop: '0.5rem',
+                  boxShadow: '0 4px 12px rgba(99,91,255,0.25)'
+                }}
+                onMouseEnter={e => { if(!loading) e.currentTarget.style.background = '#4F3EFF'; }}
+                onMouseLeave={e => { if(!loading) e.currentTarget.style.background = '#635BFF'; }}
+              >
+                {loading
+                  ? <><Loader style={{ width: 18, height: 18 }} className="animate-spin" /> Signing in…</>
+                  : <>Sign in <ChevronRight style={{ width: 18, height: 18 }} /></>}
+              </button>
+            </form>
           </div>
 
-          <button
-            id="login-submit"
-            type="submit"
-            disabled={loading}
-            className="btn-primary justify-center py-3 mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading
-              ? <><Loader className="h-4 w-4 animate-spin" /> Signing in…</>
-              : <>Sign in <ChevronRight className="h-4 w-4" /></>}
-          </button>
-        </form>
+          <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+            <p style={{ fontSize: '0.9rem', color: '#64748B', margin: 0 }}>
+              Don't have an account?{' '}
+              <Link to="/signup" id="login-to-signup" style={{ fontWeight: 700, color: '#635BFF', textDecoration: 'none' }}
+                onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+              >
+                Create one free
+              </Link>
+            </p>
+          </div>
 
-        <div className="mt-6 pt-6 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Don't have an account?{' '}
-            <Link to="/signup" id="login-to-signup" className="font-semibold hover:underline" style={{ color: '#A5A1FF' }}>
-              Create one free
-            </Link>
-          </p>
         </div>
-      </div>
-
-      <p className="relative z-10 text-center text-xs mt-6 leading-relaxed" style={{ color: 'rgba(255,255,255,0.3)' }}>
-        By signing in, you confirm you are a verified student at a participating university.
-      </p>
+      </main>
     </div>
   );
 }

@@ -3,8 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, CheckCircle, AlertCircle, Loader,
   User, BookOpen, GraduationCap, Code, Palette, UtensilsCrossed,
-  Camera, Music, ArrowLeft, Shield, X, Eye, EyeOff, Mail, Lock, UserCircle, Trophy,
+  Camera, Music, ArrowLeft, Shield, Eye, EyeOff, Mail, Lock, UserCircle, Trophy,
 } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
+import useAuthStore from '../store/authStore';
+import BrandLogo from '../components/BrandLogo';
+import PrivacyModal from '../components/PrivacyModal';
 
 const EDU_REGEX = /^[^\s@]+@[^\s@]+\.(edu|ac\.in)$/i;
 
@@ -20,10 +24,6 @@ const getPasswordStrength = (pw) => {
   if (score <= 3) return { score, label: 'Medium', color: '#F59E0B' };
   return               { score, label: 'Strong', color: '#10B981' };
 };
-import { GoogleLogin } from '@react-oauth/google';
-import useAuthStore from '../store/authStore';
-import BrandLogo from '../components/BrandLogo';
-import PrivacyModal from '../components/PrivacyModal';
 
 const DEPARTMENTS = [
   'Computer Science', 'Information Technology', 'Electronics & Communication',
@@ -38,7 +38,7 @@ const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Postgraduate'];
 const ROLES = [
   { id: 'buyer',  label: 'I want to hire', desc: 'Find campus talent for projects & assignments', icon: User, color: '#00D4AA' },
   { id: 'seller', label: 'I want to earn',  desc: 'Offer my skills and services to classmates',    icon: GraduationCap, color: '#635BFF' },
-  { id: 'both',   label: 'Both',            desc: 'Hire and offer services as needed',              icon: CheckCircle, color: '#FF9F43' },
+  { id: 'both',   label: 'Both',            desc: 'Hire and offer services as needed',              icon: CheckCircle, color: '#F59E0B' },
 ];
 
 const SKILL_OPTIONS = [
@@ -47,7 +47,7 @@ const SKILL_OPTIONS = [
   { label: 'Food & Cooking', icon: UtensilsCrossed, id: 'food' },
   { label: 'Study Help',     icon: BookOpen, id: 'study' },
   { label: 'Photography',    icon: Camera,   id: 'photography' },
-  { label: 'Playground & Esports', icon: Trophy, id: 'playground' },
+  { label: 'Playground',     icon: Trophy,   id: 'playground' },
   { label: 'Music & More',   icon: Music,    id: 'music' },
 ];
 
@@ -187,408 +187,456 @@ export default function Signup() {
 
   const displayError = localError || error;
 
-  /* ────────────────────────────────────────────────────────── */
+  /* ── Field style helper ── */
+  const inputStyle = (field) => ({
+    borderColor: fieldErrors[field] ? '#F87171' : '#E2E8F0',
+    boxShadow:   fieldErrors[field] ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined,
+  });
+
   return (
-    <div className="auth-page">
-      <div className="auth-grid" aria-hidden="true" />
-      <div className="auth-nodes" aria-hidden="true" />
-      <div className="auth-orb auth-orb-1" aria-hidden="true" />
-      <div className="auth-orb auth-orb-2" aria-hidden="true" />
-      <div className="auth-orb auth-orb-3" aria-hidden="true" />
-      <div className="auth-top-line" aria-hidden="true" />
-
-      {/* Brand */}
-      <div className="auth-heading">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
+      
+      {/* Top Navigation Bar */}
+      <header style={{ padding: '1.5rem 2rem', display: 'flex', justifyContent: 'center' }}>
         <BrandLogo size="lg" />
-        <h1 className="text-2xl font-bold mt-6 mb-1" style={{ color: '#fff' }}>
-          Create your free account
-        </h1>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Join your campus marketplace · Step {step} of {STEPS.length}
-        </p>
-      </div>
+      </header>
 
-      {/* Step indicator */}
-      <div className="relative z-10 flex justify-center gap-0 mb-6">
-        {STEPS.map((label, i) => {
-          const idx = i + 1;
-          const done    = step > idx;
-          const current = step === idx;
-          return (
-            <div key={label} className="flex items-center">
-              <div className="flex flex-col items-center">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                  style={{
-                    background: done ? '#00D4AA' : current ? '#635BFF' : 'rgba(255,255,255,0.1)',
-                    color: done || current ? '#fff' : 'rgba(255,255,255,0.4)',
-                    boxShadow: current ? '0 0 0 3px rgba(99,91,255,0.35)' : 'none',
-                  }}
-                >
-                  {done ? <CheckCircle className="h-4 w-4" /> : idx}
-                </div>
-                <span className="text-[10px] mt-1 font-semibold"
-                  style={{ color: current ? '#fff' : 'rgba(255,255,255,0.4)' }}>
-                  {label}
-                </span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div className="w-14 h-px mx-1 mb-4 transition-all"
-                  style={{ background: done ? '#00D4AA' : 'rgba(255,255,255,0.15)' }} />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Card */}
-      <div className="auth-card">
-        {/* Success */}
-        {success && (
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-400/30 text-emerald-300 rounded-lg px-4 py-3 mb-5 text-sm">
-            <CheckCircle className="h-4 w-4 shrink-0" /> {success}
-          </div>
-        )}
-        {/* Error */}
-        {displayError && (
-          <div className="flex items-center gap-2 bg-red-500/10 border border-red-400/30 text-red-300 rounded-lg px-4 py-3 mb-5 text-sm">
-            <AlertCircle className="h-4 w-4 shrink-0" /> {displayError}
-          </div>
-        )}
-
-        {/* ══ STEP 1 — Account ══ */}
-        {step === 1 && (
-          <>
-            <div className="flex justify-center mb-5">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setLocalError('Google sign-up was cancelled or failed. Please try again.')}
-              />
-            </div>
-            <div className="flex items-center text-xs text-gray-400 mb-5 uppercase tracking-wider">
-              <div className="flex-1 border-t border-gray-600" />
-              <span className="mx-4">or sign up with email</span>
-              <div className="flex-1 border-t border-gray-600" />
-            </div>
-
-            <div className="flex flex-col gap-4">
-
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">Full Name</label>
-                <div className="relative">
-                  <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                    style={{ color: fieldErrors.name ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
-                  <input
-                    id="signup-name" type="text" name="name"
-                    placeholder="Ankit Rajput"
-                    className="stripe-input pl-9"
-                    style={{ borderColor: fieldErrors.name ? '#F87171' : undefined, boxShadow: fieldErrors.name ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined }}
-                    value={form.name}
-                    onChange={handleChange}
-                    onBlur={handleBlur1}
-                    autoFocus
-                  />
-                </div>
-                {fieldErrors.name
-                  ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}><AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.name}</p>
-                  : <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Your real name (shown on your profile)</p>
-                }
-              </div>
-
-              {/* University Email */}
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">University Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                    style={{ color: fieldErrors.email ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
-                  <input
-                    id="signup-email" type="email" name="email"
-                    placeholder="ankit@university.ac.in"
-                    className="stripe-input pl-9"
-                    style={{ borderColor: fieldErrors.email ? '#F87171' : undefined, boxShadow: fieldErrors.email ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined }}
-                    value={form.email}
-                    onChange={handleChange}
-                    onBlur={handleBlur1}
-                  />
-                </div>
-                {fieldErrors.email
-                  ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}><AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.email}</p>
-                  : <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Must end in .edu or .ac.in</p>
-                }
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-semibold mb-1.5">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                    style={{ color: fieldErrors.password ? '#F87171' : 'rgba(255,255,255,0.3)' }} />
-                  <input
-                    id="signup-password"
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    placeholder="Min. 8 characters"
-                    className="stripe-input pl-9 pr-10"
-                    style={{ borderColor: fieldErrors.password ? '#F87171' : undefined, boxShadow: fieldErrors.password ? '0 0 0 3px rgba(248,113,113,0.15)' : undefined }}
-                    value={form.password}
-                    onChange={handleChange}
-                    onBlur={handleBlur1}
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPassword(s => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-
-                {/* Password strength bar */}
-                {form.password && (() => {
-                  const s = getPasswordStrength(form.password);
-                  return (
-                    <div className="mt-2">
-                      <div className="flex gap-1 mb-1">
-                        {[1,2,3,4,5].map(i => (
-                          <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                            style={{ background: i <= s.score ? s.color : 'rgba(255,255,255,0.1)' }} />
-                        ))}
-                      </div>
-                      <p className="text-xs font-semibold" style={{ color: s.color }}>
-                        {s.label} password
-                        {s.score <= 1 && ' — try adding numbers, capitals, or symbols'}
-                      </p>
-                    </div>
-                  );
-                })()}
-
-                {fieldErrors.password
-                  ? <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#F87171' }}><AlertCircle className="h-3 w-3 shrink-0" /> {fieldErrors.password}</p>
-                  : !form.password && <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Minimum 8 characters</p>
-                }
-              </div>
-
-              <button id="signup-next" type="button" onClick={nextStep}
-                className="btn-primary justify-center py-3 mt-1">
-                Continue <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="mt-6 pt-6 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-              <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                Already have an account?{' '}
-                <Link to="/login" id="signup-to-login" className="font-semibold hover:underline" style={{ color: '#A5A1FF' }}>Sign in</Link>
-              </p>
-            </div>
-          </>
-        )}
-
-
-
-        {/* ══ STEP 2 — Your Profile ══ */}
-        {step === 2 && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              Help classmates know who they're working with. This builds trust and speeds up hirings.
+      <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', paddingBottom: '3rem' }}>
+        <div style={{ width: '100%', maxWidth: '480px' }}>
+          
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+            <h1 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.875rem', fontWeight: 800, color: '#0F172A', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>
+              Create your free account
+            </h1>
+            <p style={{ fontSize: '0.95rem', color: '#64748B', margin: 0 }}>
+              Join your campus marketplace · Step {step} of {STEPS.length}
             </p>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Department / Major</label>
-              <select
-                className="stripe-input"
-                value={profile.department}
-                onChange={e => setProfile(p => ({ ...p, department: e.target.value }))}
-              >
-                <option value="">Select your department…</option>
-                {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Year of Study</label>
-              <div className="flex flex-wrap gap-2">
-                {YEARS.map(y => (
-                  <button key={y} type="button"
-                    onClick={() => setProfile(p => ({ ...p, yearOfStudy: y }))}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all"
-                    style={{
-                      borderColor: profile.yearOfStudy === y ? '#635BFF' : 'rgba(255,255,255,0.2)',
-                      background:  profile.yearOfStudy === y ? '#635BFF' : 'transparent',
-                      color:       profile.yearOfStudy === y ? '#fff' : 'rgba(255,255,255,0.6)',
-                    }}
-                  >{y}</button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Gender</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: 'Male', emoji: '👨', label: 'Male' },
-                  { value: 'Female', emoji: '👩', label: 'Female' },
-                  { value: 'Other', emoji: '🌈', label: 'Other' },
-                  { value: 'Prefer not to say', emoji: '🔒', label: 'Prefer not to say' },
-                ].map(({ value, emoji, label }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => { setProfile(p => ({ ...p, gender: value })); setLocalError(''); }}
-                    className="p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
-                    style={{
-                      borderColor: profile.gender === value ? '#635BFF' : 'rgba(255,255,255,0.15)',
-                      background:  profile.gender === value ? 'rgba(99,91,255,0.18)' : 'rgba(255,255,255,0.04)',
-                      color:       profile.gender === value ? '#A5A1FF' : 'rgba(255,255,255,0.6)',
-                    }}
-                  >
-                    <span className="text-base">{emoji}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold mb-1.5">Short Bio <span style={{ color: 'rgba(255,255,255,0.35)' }}>(optional)</span></label>
-              <textarea
-                rows={2}
-                className="stripe-input resize-none"
-                placeholder="e.g. CSE 3rd year, love solving DSA problems and building projects…"
-                value={profile.bio}
-                onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
-              />
-            </div>
-
-            <div className="flex gap-3 mt-2">
-              <button type="button" onClick={() => setStep(1)}
-                className="btn-ghost flex-1 justify-center py-3 text-sm">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </button>
-              <button type="button" onClick={nextStep}
-                className="btn-primary flex-1 justify-center py-3">
-                Continue <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
           </div>
-        )}
 
-        {/* ══ STEP 3 — Interests ══ */}
-        {step === 3 && (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.55)' }}>
-              How do you plan to use Cosen?
-            </p>
-
-            {/* Role picker */}
-            <div className="grid grid-cols-1 gap-2">
-              {ROLES.map(r => (
-                <button key={r.id} type="button"
-                  onClick={() => setRole(r.id)}
-                  className="flex items-center gap-3 p-3 rounded-xl border text-left transition-all"
-                  style={{
-                    borderColor: role === r.id ? r.color : 'rgba(255,255,255,0.15)',
-                    background:  role === r.id ? `${r.color}18` : 'transparent',
-                  }}
-                >
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: role === r.id ? r.color : 'rgba(255,255,255,0.08)' }}>
-                    <r.icon className="h-4 w-4" style={{ color: role === r.id ? '#fff' : 'rgba(255,255,255,0.5)' }} />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold" style={{ color: role === r.id ? '#fff' : 'rgba(255,255,255,0.8)' }}>{r.label}</div>
-                    <div className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{r.desc}</div>
-                  </div>
-                  {role === r.id && <CheckCircle className="h-4 w-4 ml-auto shrink-0" style={{ color: r.color }} />}
-                </button>
-              ))}
-            </div>
-
-            {/* Skills multi-select */}
-            <div>
-              <label className="block text-sm font-semibold mb-2">
-                Skills you have / need{' '}
-                <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>(pick any)</span>
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {SKILL_OPTIONS.map(s => {
-                  const active = skills.includes(s.id);
-                  return (
-                    <button key={s.id} type="button" onClick={() => toggleSkill(s.id)}
-                      className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-semibold transition-all"
+          {/* Step indicator */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2.5rem' }}>
+            {STEPS.map((label, i) => {
+              const idx = i + 1;
+              const done    = step > idx;
+              const current = step === idx;
+              return (
+                <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div
                       style={{
-                        borderColor: active ? '#635BFF' : 'rgba(255,255,255,0.15)',
-                        background:  active ? 'rgba(99,91,255,0.18)' : 'rgba(255,255,255,0.04)',
-                        color:       active ? '#A5A1FF' : 'rgba(255,255,255,0.5)',
+                        width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.85rem', fontWeight: 700, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        background: done ? '#0F172A' : current ? '#635BFF' : '#F1F5F9',
+                        color: done || current ? '#fff' : '#94A3B8',
+                        boxShadow: current ? '0 0 0 4px rgba(99,91,255,0.15)' : 'none',
                       }}
                     >
-                      <s.icon className="h-5 w-5" style={{ color: active ? '#A5A1FF' : 'rgba(255,255,255,0.3)' }} />
-                      {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      {done ? <CheckCircle style={{ width: 18, height: 18 }} /> : idx}
+                    </div>
+                    <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '0.5rem', fontWeight: 700, color: current ? '#0F172A' : '#94A3B8' }}>
+                      {label}
+                    </span>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div style={{ width: 48, height: 2, margin: '0 12px', marginBottom: '20px', transition: 'all 0.3s', background: done ? '#0F172A' : '#F1F5F9' }} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-            {/* ── Privacy Policy Agreement ── */}
-            <label
-              className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border transition-all"
-              style={{
-                borderColor: agreed ? '#00D4AA' : 'rgba(255,255,255,0.15)',
-                background: agreed ? 'rgba(0,212,170,0.07)' : 'rgba(255,255,255,0.03)',
-              }}
-            >
-              <div className="relative mt-0.5 shrink-0">
-                <input
-                  type="checkbox"
-                  id="signup-agree"
-                  checked={agreed}
-                  onChange={e => { setAgreed(e.target.checked); setLocalError(''); }}
-                  className="sr-only"
-                />
-                <div
-                  className="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all"
-                  style={{
-                    borderColor: agreed ? '#00D4AA' : 'rgba(255,255,255,0.3)',
-                    background: agreed ? '#00D4AA' : 'transparent',
-                  }}
-                >
-                  {agreed && <CheckCircle className="h-3.5 w-3.5 text-white" />}
+          {/* Card */}
+          <div style={{ background: '#fff', borderRadius: '1.5rem', padding: '2.5rem', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02)', border: '1px solid #E2E8F0' }}>
+            
+            {/* Success */}
+            {success && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#059669', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                <CheckCircle style={{ width: 18, height: 18, flexShrink: 0 }} /> {success}
+              </div>
+            )}
+            
+            {/* Error */}
+            {displayError && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: '0.75rem', padding: '1rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                <AlertCircle style={{ width: 18, height: 18, flexShrink: 0 }} /> {displayError}
+              </div>
+            )}
+
+            {/* ══ STEP 1 — Account ══ */}
+            {step === 1 && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setLocalError('Google sign-up was cancelled or failed. Please try again.')}
+                  />
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.75rem', color: '#94A3B8', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                  <div style={{ flex: 1, height: '1px', background: '#F1F5F9' }} />
+                  <span style={{ margin: '0 1rem' }}>or sign up with email</span>
+                  <div style={{ flex: 1, height: '1px', background: '#F1F5F9' }} />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+                  {/* Full Name */}
+                  <div>
+                    <label htmlFor="signup-name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.5rem' }}>Full Name</label>
+                    <div style={{ position: 'relative' }}>
+                      <UserCircle style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: fieldErrors.name ? '#EF4444' : '#94A3B8', pointerEvents: 'none' }} />
+                      <input
+                        id="signup-name" type="text" name="name"
+                        placeholder="Ankit Rajput"
+                        className="stripe-input"
+                        style={{ ...inputStyle('name'), paddingLeft: '2.75rem', background: '#FAFBFF', fontSize: '0.95rem' }}
+                        value={form.name}
+                        onChange={handleChange}
+                        onBlur={handleBlur1}
+                        autoFocus
+                      />
+                    </div>
+                    {fieldErrors.name
+                      ? <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontWeight: 500 }}><AlertCircle style={{ width: 12, height: 12, flexShrink: 0 }} /> {fieldErrors.name}</p>
+                      : <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#94A3B8' }}>Your real name (shown on your profile)</p>
+                    }
+                  </div>
+
+                  {/* University Email */}
+                  <div>
+                    <label htmlFor="signup-email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.5rem' }}>University Email</label>
+                    <div style={{ position: 'relative' }}>
+                      <Mail style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: fieldErrors.email ? '#EF4444' : '#94A3B8', pointerEvents: 'none' }} />
+                      <input
+                        id="signup-email" type="email" name="email"
+                        placeholder="ankit@university.ac.in"
+                        className="stripe-input"
+                        style={{ ...inputStyle('email'), paddingLeft: '2.75rem', background: '#FAFBFF', fontSize: '0.95rem' }}
+                        value={form.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur1}
+                      />
+                    </div>
+                    {fieldErrors.email
+                      ? <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontWeight: 500 }}><AlertCircle style={{ width: 12, height: 12, flexShrink: 0 }} /> {fieldErrors.email}</p>
+                      : <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#94A3B8' }}>Must end in .edu or .ac.in</p>
+                    }
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label htmlFor="signup-password" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#0F172A', marginBottom: '0.5rem' }}>Password</label>
+                    <div style={{ position: 'relative' }}>
+                      <Lock style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: fieldErrors.password ? '#EF4444' : '#94A3B8', pointerEvents: 'none' }} />
+                      <input
+                        id="signup-password"
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        placeholder="Min. 8 characters"
+                        className="stripe-input"
+                        style={{ ...inputStyle('password'), paddingLeft: '2.75rem', paddingRight: '2.75rem', background: '#FAFBFF', fontSize: '0.95rem' }}
+                        value={form.password}
+                        onChange={handleChange}
+                        onBlur={handleBlur1}
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowPassword(s => !s)}
+                        style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        {showPassword ? <EyeOff style={{ width: 18, height: 18 }} /> : <Eye style={{ width: 18, height: 18 }} />}
+                      </button>
+                    </div>
+
+                    {/* Password strength bar */}
+                    {form.password && (() => {
+                      const s = getPasswordStrength(form.password);
+                      return (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+                            {[1,2,3,4,5].map(i => (
+                              <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, transition: 'all 0.3s', background: i <= s.score ? s.color : '#F1F5F9' }} />
+                            ))}
+                          </div>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 600, color: s.color, margin: 0 }}>
+                            {s.label} password
+                            {s.score <= 1 && <span style={{ color: '#94A3B8', fontWeight: 400 }}> — try adding numbers, capitals, or symbols</span>}
+                          </p>
+                        </div>
+                      );
+                    })()}
+
+                    {fieldErrors.password
+                      ? <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontWeight: 500 }}><AlertCircle style={{ width: 12, height: 12, flexShrink: 0 }} /> {fieldErrors.password}</p>
+                      : !form.password && <p style={{ fontSize: '0.75rem', marginTop: '0.5rem', color: '#94A3B8' }}>Minimum 8 characters</p>
+                    }
+                  </div>
+
+                  <button id="signup-next" type="button" onClick={nextStep}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                      background: '#0F172A', color: '#fff', fontWeight: 700, fontSize: '1rem',
+                      padding: '0.875rem', borderRadius: '0.75rem', border: 'none', cursor: 'pointer',
+                      transition: 'all 0.2s', marginTop: '0.5rem',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#0F172A'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    Continue <ChevronRight style={{ width: 18, height: 18 }} />
+                  </button>
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#64748B', margin: 0 }}>
+                    Already have an account?{' '}
+                    <Link to="/login" id="signup-to-login" style={{ fontWeight: 700, color: '#0F172A', textDecoration: 'none' }}
+                      onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+                      onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
+                    >Sign in</Link>
+                  </p>
+                </div>
+              </>
+            )}
+
+
+            {/* ══ STEP 2 — Your Profile ══ */}
+            {step === 2 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '1rem', borderRadius: '0.75rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                    <span style={{ fontWeight: 600, color: '#0F172A' }}>Why we ask:</span> This helps classmates know who they're working with, building trust and speeding up transactions.
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>Department / Major</label>
+                  <div style={{ position: 'relative' }}>
+                    <select
+                      className="stripe-input"
+                      value={profile.department}
+                      onChange={e => setProfile(p => ({ ...p, department: e.target.value }))}
+                      style={{ background: '#fff', cursor: 'pointer', fontSize: '0.95rem', padding: '0.875rem 1rem', appearance: 'none' }}
+                    >
+                      <option value="" disabled>Select your department…</option>
+                      {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                    <ChevronRight style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%) rotate(90deg)', width: 16, height: 16, color: '#94A3B8', pointerEvents: 'none' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>Year of Study</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {YEARS.map(y => (
+                      <button key={y} type="button"
+                        onClick={() => setProfile(p => ({ ...p, yearOfStudy: y }))}
+                        style={{
+                          padding: '0.5rem 1rem', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s',
+                          border: profile.yearOfStudy === y ? '1px solid #0F172A' : '1px solid #E2E8F0',
+                          background: profile.yearOfStudy === y ? '#0F172A' : '#fff',
+                          color: profile.yearOfStudy === y ? '#fff' : '#475569',
+                        }}
+                        onMouseEnter={e => { if (profile.yearOfStudy !== y) { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#CBD5E1'; } }}
+                        onMouseLeave={e => { if (profile.yearOfStudy !== y) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#E2E8F0'; } }}
+                      >{y}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.75rem' }}>Gender</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    {[
+                      { value: 'Male', emoji: '👨', label: 'Male' },
+                      { value: 'Female', emoji: '👩', label: 'Female' },
+                      { value: 'Other', emoji: '🌈', label: 'Other' },
+                      { value: 'Prefer not to say', emoji: '🔒', label: 'Prefer not to say' },
+                    ].map(({ value, emoji, label }) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => { setProfile(p => ({ ...p, gender: value })); setLocalError(''); }}
+                        style={{
+                          padding: '0.75rem', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', fontSize: '0.9rem', fontWeight: 600,
+                          border: profile.gender === value ? '2px solid #0F172A' : '2px solid transparent',
+                          background: profile.gender === value ? '#F8FAFC' : '#F1F5F9',
+                          color: profile.gender === value ? '#0F172A' : '#475569',
+                        }}
+                        onMouseEnter={e => { if (profile.gender !== value) e.currentTarget.style.background = '#E2E8F0'; }}
+                        onMouseLeave={e => { if (profile.gender !== value) e.currentTarget.style.background = '#F1F5F9'; }}
+                      >
+                        <span style={{ fontSize: '1.2rem', filter: profile.gender !== value ? 'grayscale(100%) opacity(70%)' : 'none' }}>{emoji}</span>
+                        <span>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, color: '#0F172A', marginBottom: '0.5rem' }}>
+                    Short Bio <span style={{ color: '#94A3B8', fontWeight: 500 }}>(optional)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    className="stripe-input resize-none"
+                    placeholder="e.g. CSE 3rd year, love solving DSA problems and building web projects…"
+                    value={profile.bio}
+                    onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
+                    style={{ background: '#fff', fontSize: '0.95rem', padding: '0.875rem 1rem' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                  <button type="button" onClick={() => setStep(1)}
+                    style={{ flex: '0 0 auto', padding: '0.875rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #E2E8F0', borderRadius: '0.75rem', color: '#475569', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#0F172A'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#475569'; }}
+                  >
+                    <ArrowLeft style={{ width: 18, height: 18 }} />
+                  </button>
+                  <button type="button" onClick={nextStep}
+                    style={{ flex: 1, padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#0F172A', border: 'none', borderRadius: '0.75rem', color: '#fff', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#0F172A'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    Continue <ChevronRight style={{ width: 18, height: 18 }} />
+                  </button>
                 </div>
               </div>
-              <div className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                I have read and agree to Cosen's{' '}
-                <button
-                  type="button"
-                  onClick={e => { e.preventDefault(); setShowPolicy(true); }}
-                  className="font-semibold underline underline-offset-2"
-                  style={{ color: '#A5A1FF' }}
+            )}
+
+            {/* ══ STEP 3 — Interests ══ */}
+            {step === 3 && (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+                
+                {/* Role picker */}
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: '0 0 1rem 0' }}>How do you plan to use Cosen?</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {ROLES.map(r => (
+                      <button key={r.id} type="button"
+                        onClick={() => setRole(r.id)}
+                        style={{
+                          display: 'flex', alignItems: 'flex-start', gap: '1rem', padding: '1rem', borderRadius: '1rem', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          border: role === r.id ? `2px solid ${r.color}` : '2px solid transparent',
+                          background: role === r.id ? `${r.color}0A` : '#F1F5F9',
+                        }}
+                        onMouseEnter={e => { if (role !== r.id) e.currentTarget.style.background = '#E2E8F0'; }}
+                        onMouseLeave={e => { if (role !== r.id) e.currentTarget.style.background = '#F1F5F9'; }}
+                      >
+                        <div style={{ width: 40, height: 40, borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: role === r.id ? r.color : '#fff', boxShadow: role === r.id ? 'none' : '0 1px 3px rgba(0,0,0,0.1)' }}>
+                          <r.icon style={{ width: 20, height: 20, color: role === r.id ? '#fff' : '#64748B' }} />
+                        </div>
+                        <div style={{ flex: 1, paddingTop: '0.1rem' }}>
+                          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: role === r.id ? '#0F172A' : '#334155' }}>{r.label}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>{r.desc}</div>
+                        </div>
+                        {role === r.id && (
+                          <div style={{ width: 20, height: 20, borderRadius: '50%', background: r.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '0.1rem' }}>
+                            <CheckCircle style={{ width: 12, height: 12, color: '#fff' }} />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Skills multi-select */}
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: '0 0 1rem 0' }}>
+                    What are your interests? <span style={{ color: '#94A3B8', fontWeight: 500, fontSize: '0.9rem' }}>(select any)</span>
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
+                    {SKILL_OPTIONS.map(s => {
+                      const active = skills.includes(s.id);
+                      return (
+                        <button key={s.id} type="button" onClick={() => toggleSkill(s.id)}
+                          style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', padding: '0.875rem 0.5rem', borderRadius: '0.75rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                            border: active ? '2px solid #0F172A' : '2px solid transparent',
+                            background: active ? '#F8FAFC' : '#F1F5F9',
+                            color: active ? '#0F172A' : '#64748B',
+                          }}
+                          onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#E2E8F0'; }}
+                          onMouseLeave={e => { if (!active) e.currentTarget.style.background = '#F1F5F9'; }}
+                        >
+                          <s.icon style={{ width: 20, height: 20, color: active ? '#0F172A' : '#94A3B8' }} />
+                          <span style={{ textAlign: 'center', lineHeight: 1.2 }}>{s.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Privacy Policy Agreement ── */}
+                <label
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '1rem', cursor: 'pointer', padding: '1rem', borderRadius: '1rem', transition: 'all 0.2s',
+                    border: agreed ? '1px solid #10B981' : '1px solid #E2E8F0',
+                    background: agreed ? '#ECFDF5' : '#FAFBFF',
+                  }}
                 >
-                  Privacy Policy &amp; User Agreement
-                </button>
-                . I confirm I am a currently enrolled student and that the information I provide is accurate.
-              </div>
-            </label>
+                  <div style={{ position: 'relative', marginTop: 2, flexShrink: 0 }}>
+                    <input
+                      type="checkbox"
+                      id="signup-agree"
+                      checked={agreed}
+                      onChange={e => { setAgreed(e.target.checked); setLocalError(''); }}
+                      style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
+                    />
+                    <div
+                      style={{
+                        width: 22, height: 22, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
+                        border: agreed ? '2px solid #10B981' : '2px solid #CBD5E1',
+                        background: agreed ? '#10B981' : '#fff',
+                      }}
+                    >
+                      {agreed && <CheckCircle style={{ width: 14, height: 14, color: '#fff' }} />}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', lineHeight: 1.5, color: '#475569' }}>
+                    I have read and agree to Cosen's{' '}
+                    <button
+                      type="button"
+                      onClick={e => { e.preventDefault(); setShowPolicy(true); }}
+                      style={{ fontWeight: 700, color: '#0F172A', textDecoration: 'underline', textUnderlineOffset: 2, background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                    >
+                      Privacy Policy &amp; User Agreement
+                    </button>
+                    . I confirm I am a currently enrolled student and that the information I provide is accurate.
+                  </div>
+                </label>
 
-            <div className="flex gap-3">
-              <button type="button" onClick={() => setStep(2)}
-                className="btn-ghost flex-1 justify-center py-3 text-sm">
-                <ArrowLeft className="h-4 w-4" /> Back
-              </button>
-              <button id="signup-submit" type="submit" disabled={loading || !agreed}
-                className="btn-primary flex-1 justify-center py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                title={!agreed ? 'Please agree to the Privacy Policy first' : ''}>
-                {loading
-                  ? <><Loader className="h-4 w-4 animate-spin" /> Creating…</>
-                  : <>Finish &amp; Enter <ChevronRight className="h-4 w-4" /></>}
-              </button>
-            </div>
-          </form>
-        )}
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button type="button" onClick={() => setStep(2)}
+                    style={{ flex: '0 0 auto', padding: '0.875rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #E2E8F0', borderRadius: '0.75rem', color: '#475569', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = '#0F172A'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#475569'; }}
+                  >
+                    <ArrowLeft style={{ width: 18, height: 18 }} />
+                  </button>
+                  <button id="signup-submit" type="submit" disabled={loading || !agreed}
+                    style={{
+                      flex: 1, padding: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: '#0F172A', border: 'none', borderRadius: '0.75rem', color: '#fff', fontWeight: 700, fontSize: '1rem',
+                      cursor: (loading || !agreed) ? 'not-allowed' : 'pointer', opacity: (loading || !agreed) ? 0.6 : 1, transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { if(!loading && agreed) { e.currentTarget.style.background = '#334155'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+                    onMouseLeave={e => { if(!loading && agreed) { e.currentTarget.style.background = '#0F172A'; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                    title={!agreed ? 'Please agree to the Privacy Policy first' : ''}
+                  >
+                    {loading
+                      ? <><Loader style={{ width: 18, height: 18 }} className="animate-spin" /> Creating account…</>
+                      : <>Finish &amp; Enter <ChevronRight style={{ width: 18, height: 18 }} /></>}
+                  </button>
+                </div>
+              </form>
+            )}
 
-      </div>
+          </div>
+
+        </div>
+      </main>
 
       {/* Privacy Policy Modal */}
       {showPolicy && <PrivacyModal onClose={() => setShowPolicy(false)} />}
