@@ -249,7 +249,7 @@ export default function PostService() {
     }
     if (!form.price || isNaN(form.price) || Number(form.price) < (form.category === 'Food Friendship' ? 10 : 50))
       e.price = form.category === 'Food Friendship' ? 'Price must be at least ₹10.' : 'Price must be at least ₹50.';
-    if (!form.deliveryDays)
+    if (!form.deliveryDays && form.category !== 'Playground')
       e.deliveryDays = 'Please select a delivery time.';
     return e;
   };
@@ -302,7 +302,7 @@ export default function PostService() {
         subCategory: form.subCategory,
         isNegotiable: form.isNegotiable,
         price: form.category === 'SendiYou' ? 0 : Number(form.price),
-        deliveryDays: form.category === 'SendiYou' ? 7 : Number(form.deliveryDays),
+        deliveryDays: (form.category === 'SendiYou' || form.category === 'Playground') ? 7 : Number(form.deliveryDays),
         tags: form.tags,
         coverImageUrl: form.coverImageUrl,
         portfolioImages: form.portfolioImages,
@@ -1160,27 +1160,29 @@ export default function PostService() {
               </div>
 
               {/* Delivery */}
-              <div>
-                <label htmlFor="svc-delivery" className="form-label flex items-center gap-2 mb-3">
-                  <Clock className="h-4 w-4 text-stripe-purple" />
-                  <span>Delivery Time <span className="text-red-500">*</span></span>
-                </label>
-                <select
-                  id="svc-delivery"
-                  className="stripe-input cursor-pointer"
-                  value={form.deliveryDays}
-                  onChange={e => {
-                    setForm(f => ({ ...f, deliveryDays: e.target.value }));
-                    setErrors(er => ({ ...er, deliveryDays: undefined }));
-                  }}
-                >
-                  <option value="">Select days…</option>
-                  {DELIVERY_OPTIONS.map(d => (
-                    <option key={d} value={d}>{d} day{d !== 1 ? 's' : ''}</option>
-                  ))}
-                </select>
-                {errors.deliveryDays && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.deliveryDays}</p>}
-              </div>
+              {form.category !== 'Playground' && (
+                <div>
+                  <label htmlFor="svc-delivery" className="form-label flex items-center gap-2 mb-3">
+                    <Clock className="h-4 w-4 text-stripe-purple" />
+                    <span>Delivery Time <span className="text-red-500">*</span></span>
+                  </label>
+                  <select
+                    id="svc-delivery"
+                    className="stripe-input cursor-pointer"
+                    value={form.deliveryDays}
+                    onChange={e => {
+                      setForm(f => ({ ...f, deliveryDays: e.target.value }));
+                      setErrors(er => ({ ...er, deliveryDays: undefined }));
+                    }}
+                  >
+                    <option value="">Select days…</option>
+                    {DELIVERY_OPTIONS.map(d => (
+                      <option key={d} value={d}>{d} day{d !== 1 ? 's' : ''}</option>
+                    ))}
+                  </select>
+                  {errors.deliveryDays && <p className="mt-1.5 text-xs text-red-500 font-medium">{errors.deliveryDays}</p>}
+                </div>
+              )}
             </div>
           </div>
           )}

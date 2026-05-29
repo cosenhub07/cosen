@@ -187,12 +187,14 @@ export default function Browse() {
                 key={cat}
                 id={`browse-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => handleCategoryChange(cat)}
-                className="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all"
+                className="px-4 py-2 rounded-xl text-[14px] font-semibold border transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
                 style={{
-                  background: category === cat ? '#635BFF' : '#fff',
-                  color: category === cat ? '#fff' : '#425466',
-                  borderColor: category === cat ? '#635BFF' : '#E6EBF1',
+                  background: category === cat ? 'linear-gradient(135deg, #0F172A, #334155)' : '#FAFBFF',
+                  color: category === cat ? '#fff' : '#475569',
+                  borderColor: category === cat ? 'transparent' : '#E2E8F0',
+                  boxShadow: category === cat ? '0 4px 12px rgba(15, 23, 42, 0.15)' : '',
                   fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  letterSpacing: '0.01em',
                 }}
               >
                 {cat}

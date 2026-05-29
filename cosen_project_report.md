@@ -538,6 +538,15 @@ The `sendSms.js` utility is also kept for future use once DLT registration is co
 - Updated `server/routes/auth.js` register endpoint to parse, save, and persist `phone` and `isPhoneVerified` into the Supabase database.
 - Ensured phone number passes cleanly through the frontend `authStore`.
 
+#### 5. Browse Page Category Pills
+- Restyled the category selection pills in `Browse.jsx` to resemble premium tags rather than basic buttons.
+- Applied `rounded-xl`, subtle shadow states, hover micro-animations (`-translate-y-0.5`), and an editorial dark slate gradient for the active state (`linear-gradient(135deg, #0F172A, #334155)`).
+
+#### 6. ServiceDetail & PostService Minor UI Adjustments
+- **ServiceDetail.jsx:** Conditionally hidden the "Delivery Time" and "Escrow Protected" pills at the bottom of the page when the `SendiYou` category is selected. 
+- **ServiceDetail.jsx:** Conditionally hidden the "Delivery Time" pill when the `Playground` category is selected.
+- **PostService.jsx:** Hidden the "Delivery Time" dropdown selection UI and bypassed its validation requirement when a user is posting a `Playground` category service, automatically defaulting it to 7 days in the background (similar to SendiYou).
+
 ---
 
 *Last updated: May 29, 2026 | GitHub: cosenhub07/cosen | Status: 🟢 Live in Production*

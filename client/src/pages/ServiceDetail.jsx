@@ -419,9 +419,9 @@ export default function ServiceDetail() {
 
 
             {/* Feature pills */}
-            {(() => {
+            {!isSendiYou && (() => {
               const pills = [
-                { icon: Clock,     label: `${service.deliveryDays}-day delivery` },
+                ...(isPlayground ? [] : [{ icon: Clock,     label: `${service.deliveryDays}-day delivery` }]),
                 ...(service.category === 'Study Helper' ? [{ icon: RefreshCw, label: '3 revisions' }] : []),
                 { icon: Shield,    label: 'Escrow protected' },
               ];
