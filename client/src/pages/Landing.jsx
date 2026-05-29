@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import BrandLogo from '../components/BrandLogo';
-import { ChevronRight, ChevronLeft, Star, Shield, Zap, BookOpen, Code, Palette, UtensilsCrossed, Camera, Music, Search, Loader, ShieldCheck, BadgeCheck, ShoppingBag, Trophy } from 'lucide-react';
+import {
+  ChevronRight, ChevronLeft, Star, Shield, Zap, BookOpen,
+  Code, Palette, UtensilsCrossed, Camera, Music, Search,
+  ShieldCheck, BadgeCheck, ShoppingBag, Trophy, ArrowRight,
+  Users, Lock, Sparkles
+} from 'lucide-react';
 import heroBgVideo from '../assets/landing_page_back_video.mp4';
 import person1 from '../assets/person1.jpg';
 import person2 from '../assets/person2.jpg';
@@ -12,104 +17,42 @@ import person5 from '../assets/person5.jpg';
 import person6 from '../assets/person6.jpg';
 
 const categories = [
-  { name: 'Study Helper', icon: BookOpen, color: '#0EA878', bg: '#E8FFF8', count: 120, desc: 'Tutoring & exam prep' },
-  { name: 'Tech & Coding', icon: Code, color: '#4F3EFF', bg: '#EEEEFF', count: 85, desc: 'Websites, apps, scripts' },
-  { name: 'Art & Design', icon: Palette, color: '#D63E82', bg: '#FFF0F6', count: 64, desc: 'Logos, UI & illustrations' },
-  { name: 'Food Friendship', icon: UtensilsCrossed, color: '#FF6348', bg: '#FFF5F0', count: 56, desc: 'Home-cooked meals & snacks' },
-  { name: 'Photography', icon: Camera, color: '#00B2FF', bg: '#EAF8FF', count: 41, desc: 'Portraits, events & camera rental' },
-  { name: 'Playground', icon: Trophy, color: '#F59E0B', bg: '#FEF3C7', count: 32, desc: 'Team matches & esports pool' },
-  { name: 'Other Talents', icon: Music, color: '#8B3FC9', bg: '#F6EFFF', count: 112, desc: 'Music, fitness, languages' },
+  { name: 'Study Helper',     icon: BookOpen,        color: '#0EA878', count: 120, desc: 'Tutoring & exam prep' },
+  { name: 'Tech & Coding',    icon: Code,            color: '#4F3EFF', count: 85,  desc: 'Websites, apps, scripts' },
+  { name: 'Art & Design',     icon: Palette,         color: '#D63E82', count: 64,  desc: 'Logos, UI & illustrations' },
+  { name: 'Food Friendship',  icon: UtensilsCrossed, color: '#FF6348', count: 56,  desc: 'Home-cooked meals & snacks' },
+  { name: 'Photography',      icon: Camera,          color: '#00B2FF', count: 41,  desc: 'Portraits, events & camera rental' },
+  { name: 'Playground',       icon: Trophy,          color: '#F59E0B', count: 32,  desc: 'Team matches & esports pool' },
+  { name: 'Other Talents',    icon: Music,           color: '#8B3FC9', count: 112, desc: 'Music, fitness, languages' },
 ];
 
 const catColor = {
   'Tech & Coding': '#635BFF', 'Art & Design': '#FF6B9D', 'Study Helper': '#00D4AA',
   'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Playground': '#F59E0B', 'Other Talents': '#A855F7',
 };
-
 const catBg = {
-  'Tech & Coding': 'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
-  'Art & Design': 'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
-  'Study Helper': 'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
+  'Tech & Coding':   'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
+  'Art & Design':    'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
+  'Study Helper':    'linear-gradient(135deg,#E8FFF8,#C8FFF0)',
   'Food Friendship': 'linear-gradient(135deg,#FFF5F0,#FFE4D6)',
-  'Photography': 'linear-gradient(135deg,#EAF8FF,#CBEFFF)',
-  'Playground': 'linear-gradient(135deg,#FEF3C7,#FDE68A)',
-  'Other Talents': 'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
+  'Photography':     'linear-gradient(135deg,#EAF8FF,#CBEFFF)',
+  'Playground':      'linear-gradient(135deg,#FEF3C7,#FDE68A)',
+  'Other Talents':   'linear-gradient(135deg,#F8F0FF,#EEDDFF)',
 };
 
-// Fallback featured mock data if DB is empty
 const MOCK_FEATURED = [
-  {
-    _id: '1',
-    title: 'Python Debugging & Full CS Tutoring',
-    description: 'Struggling with DSA, OOP, or Python assignments? I offer 1-on-1 sessions, assignment help, and project reviews. 3 semesters of TA experience.',
-    seller: { name: 'Arjun Mehta', department: "Computer Science '25", avatar: person2 },
-    rating: 4.9, reviewCount: 28, price: 499,
-    category: 'Tech & Coding',
-    tags: ['Python', 'DSA', 'Debugging'],
-    deliveryDays: 1,
-    ordersCompleted: 43,
-  },
-  {
-    _id: '2',
-    title: 'Logo & Brand Identity Design for Your Club',
-    description: 'Professional logo, color palette, and brand guide for your student club or startup. Unlimited revisions in 48 hours — guaranteed satisfaction.',
-    seller: { name: 'Priya Patel', department: "Fine Arts '26", avatar: person1 },
-    rating: 5.0, reviewCount: 17, price: 599,
-    category: 'Art & Design',
-    tags: ['Logo', 'Branding', 'Figma'],
-    deliveryDays: 2,
-    ordersCompleted: 29,
-  },
-  {
-    _id: '3',
-    title: 'Calculus II & Linear Algebra Tutoring',
-    description: 'Gold medallist in Engineering Mathematics. Covers limits, integrals, eigen values, and exam prep. Session recordings provided after every class.',
-    seller: { name: 'Rahul Sharma', department: "Mathematics '25", avatar: person3 },
-    rating: 4.8, reviewCount: 34, price: 449,
-    category: 'Study Helper',
-    tags: ['Calculus', 'Linear Algebra', 'Exam Prep'],
-    deliveryDays: 1,
-    ordersCompleted: 61,
-  },
-  {
-    _id: '4',
-    title: 'Homemade Rajma Chawal & Tiffin Service',
-    description: 'Tired of mess food? I cook authentic home-style North Indian meals — Rajma Chawal, Dal Makhani, Paneer. Fresh, hygienic, and delivered to your hostel. Veg only.',
-    seller: { name: 'Anjali Gupta', department: "Home Science '25", avatar: person4 },
-    rating: 4.9, reviewCount: 41, price: 80,
-    category: 'Food Friendship',
-    tags: ['Tiffin', 'Veg', 'Home-cooked'],
-    deliveryDays: 1,
-    ordersCompleted: 78,
-  },
-  {
-    _id: '5',
-    title: 'Campus Portrait & Event Photography',
-    description: 'Professional event, portfolio and portrait photography around campus. Includes DSLR/Mirrorless high-res editing, raw files, and fast delivery.',
-    seller: { name: 'Divya Nair', department: "Fine Arts '26", avatar: person5 },
-    rating: 4.9, reviewCount: 22, price: 999,
-    category: 'Photography',
-    tags: ['Portrait', 'Event', 'DSLR'],
-    deliveryDays: 2,
-    ordersCompleted: 35,
-  },
-  {
-    _id: '6',
-    title: 'Acoustic Guitar Lessons — Beginner to Intermediate',
-    description: 'Certified ABRSM Grade 6 guitarist. I teach chords, fingerpicking, strumming techniques, and song covers. Flexible slots, patient teaching style.',
-    seller: { name: 'Meera Iyer', department: "Music '27", avatar: person6 },
-    rating: 5.0, reviewCount: 9, price: 299,
-    category: 'Other Talents',
-    tags: ['Guitar', 'Music', 'Beginner-friendly'],
-    deliveryDays: 1,
-    ordersCompleted: 18,
-  },
+  { _id: '1', title: 'Python Debugging & Full CS Tutoring', description: 'Struggling with DSA, OOP, or Python assignments? I offer 1-on-1 sessions, assignment help, and project reviews.', seller: { name: 'Arjun Mehta', department: "Computer Science '25", avatar: person2 }, rating: 4.9, reviewCount: 28, price: 499, category: 'Tech & Coding', deliveryDays: 1, ordersCompleted: 43 },
+  { _id: '2', title: 'Logo & Brand Identity Design for Your Club', description: 'Professional logo, color palette, and brand guide. Unlimited revisions in 48 hours — guaranteed satisfaction.', seller: { name: 'Priya Patel', department: "Fine Arts '26", avatar: person1 }, rating: 5.0, reviewCount: 17, price: 599, category: 'Art & Design', deliveryDays: 2, ordersCompleted: 29 },
+  { _id: '3', title: 'Calculus II & Linear Algebra Tutoring', description: 'Gold medallist in Engineering Mathematics. Covers limits, integrals, eigen values, and exam prep.', seller: { name: 'Rahul Sharma', department: "Mathematics '25", avatar: person3 }, rating: 4.8, reviewCount: 34, price: 449, category: 'Study Helper', deliveryDays: 1, ordersCompleted: 61 },
+  { _id: '4', title: 'Homemade Rajma Chawal & Tiffin Service', description: 'Tired of mess food? I cook authentic home-style North Indian meals — fresh, hygienic, delivered to your hostel.', seller: { name: 'Anjali Gupta', department: "Home Science '25", avatar: person4 }, rating: 4.9, reviewCount: 41, price: 80, category: 'Food Friendship', deliveryDays: 1, ordersCompleted: 78 },
+  { _id: '5', title: 'Campus Portrait & Event Photography', description: 'Professional event, portfolio and portrait photography. High-res editing, raw files, and fast delivery.', seller: { name: 'Divya Nair', department: "Fine Arts '26", avatar: person5 }, rating: 4.9, reviewCount: 22, price: 999, category: 'Photography', deliveryDays: 2, ordersCompleted: 35 },
+  { _id: '6', title: 'Acoustic Guitar Lessons — Beginner to Intermediate', description: 'Certified ABRSM Grade 6 guitarist. Chords, fingerpicking, strumming, song covers. Patient teaching style.', seller: { name: 'Meera Iyer', department: "Music '27", avatar: person6 }, rating: 5.0, reviewCount: 9, price: 299, category: 'Other Talents', deliveryDays: 1, ordersCompleted: 18 },
 ];
 
 const steps = [
   { number: '01', title: 'Sign up with your campus email', desc: 'Instant verification — only real students from your university. No outsiders, ever.' },
   { number: '02', title: 'Share what you need or offer', desc: 'Post a request, offer a skill, or send an anonymous connection. Every need has a match.' },
-  { number: '03', title: 'Connect, chat & transact safely', desc: "Message your match directly. Pay via escrow \u2014 money releases only when you're satisfied." },
+  { number: '03', title: "Connect, chat & transact safely", desc: "Message your match directly. Pay via escrow — money releases only when you're satisfied." },
 ];
 
 const getInitials = (s) =>
@@ -117,589 +60,270 @@ const getInitials = (s) =>
 const getBg = (s) => catColor[s.category] || '#635BFF';
 
 export default function Landing() {
-  const heroRef = useRef(null);
-  const videoRef = useRef(null);
-  const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const heroRef    = useRef(null);
+  const videoRef   = useRef(null);
+  const navigate   = useNavigate();
+  const carouselRef = useRef(null);
+  const { user }   = useAuthStore();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const carouselRef = useRef(null);
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep,  setActiveStep]  = useState(0);
 
-  // Slow down the hero background video for a cinematic feel
+  // Slow hero video
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
     const setSpeed = () => { vid.playbackRate = 0.65; };
     vid.addEventListener('loadedmetadata', setSpeed);
-    if (vid.readyState >= 1) setSpeed(); // already loaded
+    if (vid.readyState >= 1) setSpeed();
     return () => vid.removeEventListener('loadedmetadata', setSpeed);
   }, []);
 
-  // If user is already logged in, skip landing page and go to browse
+  // Redirect logged-in users
   useEffect(() => {
     if (user) navigate('/browse', { replace: true });
   }, [user, navigate]);
 
-  // Auto-play for How it Works steps
+  // Auto-cycle steps
   useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % steps.length);
-    }, 4000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setActiveStep(p => (p + 1) % steps.length), 4000);
+    return () => clearInterval(t);
   }, []);
 
-  // Scroll-reveal fade-up observer
+  // Scroll-reveal
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach(e => e.target.classList.toggle('visible', e.isIntersecting)),
-      { threshold: 0.1 }
+    const obs = new IntersectionObserver(
+      entries => entries.forEach(e => e.target.classList.toggle('visible', e.isIntersecting)),
+      { threshold: 0.08 }
     );
-    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-    return () => observer.disconnect();
+    document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+    return () => obs.disconnect();
   }, []);
 
-  // Auto-slide featured services on mobile devices every 2.5 seconds
+  // Mobile carousel auto-scroll
   useEffect(() => {
     let timer;
-    const startCarousel = () => {
-      // Only auto-slide on mobile screens (width < 768px)
+    const start = () => {
       if (window.innerWidth >= 768) return;
-      
       timer = setInterval(() => {
-        if (carouselRef.current) {
-          const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-          // Loop back to start if reached the end
-          if (scrollLeft + clientWidth >= scrollWidth - 10) {
-            carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-          } else {
-            carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
-          }
+        if (!carouselRef.current) return;
+        const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+        if (scrollLeft + clientWidth >= scrollWidth - 10) {
+          carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
         }
       }, 2500);
     };
-
-    startCarousel();
-
-    // Re-check on resize
-    const handleResize = () => {
-      clearInterval(timer);
-      startCarousel();
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('resize', handleResize);
-    };
+    start();
+    const onResize = () => { clearInterval(timer); start(); };
+    window.addEventListener('resize', onResize);
+    return () => { clearInterval(timer); window.removeEventListener('resize', onResize); };
   }, []);
 
-  const handleHeroSearch = (e) => {
+  const handleHeroSearch = e => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      navigate('/browse');
-    }
+    navigate(searchQuery.trim() ? `/browse?search=${encodeURIComponent(searchQuery.trim())}` : '/browse');
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
 
-      {/* === HERO — Fullscreen video, responsive elements === */}
+      {/* ═══════════════════════════════════════════════════════
+          HERO — Fullscreen video, bottom-left content
+      ═══════════════════════════════════════════════════════ */}
       <section
         ref={heroRef}
-        className="hero-v2"
-        style={{
-          position: 'relative',
-          width: '100vw',
-          marginLeft: 'calc(50% - 50vw)',
-          height: '100svh',
-          minHeight: '100vh',
-          overflow: 'hidden',
-        }}
+        style={{ position:'relative', width:'100vw', marginLeft:'calc(50% - 50vw)', height:'100svh', minHeight:'100vh', overflow:'hidden' }}
       >
-        {/* ── Video: fullscreen, stretched to hide black side bars ── */}
         <video
           ref={videoRef}
           src={heroBgVideo}
-          autoPlay
-          loop
-          muted
-          playsInline
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            /* scaleX hides letterbox bars; scaleY keeps vertical coverage */
-            transform: 'translate(-50%, -50%) scaleX(1.45) scaleY(1.18)',
-            minWidth: '100%',
-            minHeight: '100%',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center center',
-            zIndex: 0,
-          }}
+          autoPlay loop muted playsInline aria-hidden="true"
+          style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%) scaleX(1.45) scaleY(1.18)', minWidth:'100%', minHeight:'100%', width:'100%', height:'100%', objectFit:'cover', zIndex:0 }}
         />
+        {/* Gradient overlay — strong at bottom, fades to transparent at top */}
+        <div aria-hidden="true" style={{ position:'absolute', inset:0, zIndex:1, background:'linear-gradient(to top, rgba(6,8,24,0.96) 0%, rgba(6,8,24,0.70) 35%, rgba(6,8,24,0.25) 65%, transparent 100%)' }} />
 
-        {/* Dark gradient: stronger on mobile (less real-estate), lighter on desktop */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            zIndex: 1,
-            background:
-              'linear-gradient(to top, rgba(8,14,36,0.95) 0%, rgba(8,14,36,0.75) 30%, rgba(8,14,36,0.30) 58%, rgba(8,14,36,0.08) 80%, transparent 100%)',
-          }}
-        />
+        {/* Bottom-left content */}
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, zIndex:10, padding:'0 clamp(1.25rem,5vw,5rem) clamp(2rem,5vh,3.5rem)' }}>
 
-        {/* ── Content: pinned to bottom, full responsive padding ── */}
-        <div
-          className="absolute bottom-0 left-0 right-0 z-10
-                     px-5 pb-8
-                     sm:px-8 sm:pb-10
-                     md:px-12 md:pb-12
-                     lg:px-16 lg:pb-14
-                     xl:px-20"
-          style={{ maxWidth: '680px' }}
-        >
-          {/* Verification Badge */}
-          <div className="hero-verified-badge mb-4 sm:mb-5">
-            <div className="status-dot shrink-0" />
-            <ShieldCheck className="w-3 h-3 text-[#34D399] shrink-0" />
-            <span>100% Verified Students • Your Campus Only</span>
+          {/* Verified pill */}
+          <div style={{ display:'inline-flex', alignItems:'center', gap:'0.5rem', background:'rgba(255,255,255,0.08)', backdropFilter:'blur(12px)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:'100px', padding:'5px 14px', marginBottom:'1.25rem' }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:'#34D399', boxShadow:'0 0 8px rgba(52,211,153,0.6)', display:'inline-block', flexShrink:0 }} />
+            <ShieldCheck style={{ width:12, height:12, color:'#34D399', flexShrink:0 }} />
+            <span style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', color:'rgba(255,255,255,0.85)' }}>100% Verified Students · Campus Only</span>
           </div>
 
           {/* Headline */}
-          <h1
-            className="hero-headline font-extrabold leading-[1.08] tracking-tight text-white mb-2 sm:mb-3"
-            style={{ fontSize: 'clamp(2.2rem, 6.5vw, 4.4rem)', fontFamily: 'Inter, sans-serif' }}
-          >
+          <h1 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, lineHeight:1.05, letterSpacing:'-0.03em', color:'#fff', marginBottom:'1rem', fontSize:'clamp(2.4rem,7vw,5rem)', maxWidth:'680px' }}>
             <span className="hero-word block">Every student</span>
-            <span className="hero-word block">
-              has a&nbsp;<span className="hero-highlight">need.</span>
-            </span>
-            <span className="hero-word block">
-              <span className="hero-highlight">We find the match.</span>
-            </span>
+            <span className="hero-word block">has a&nbsp;<span className="hero-highlight">need.</span></span>
+            <span className="hero-word block"><span className="hero-highlight">We find the match.</span></span>
           </h1>
 
-          {/* Sub-text */}
-          <p
-            className="font-medium leading-relaxed mb-4 sm:mb-5"
-            style={{
-              color: 'rgba(255,255,255,0.72)',
-              fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
-              maxWidth: '520px',
-            }}
-          >
-            Cosen connects you to the right student — not just a service.
-            Skills, connections, group chats, anonymous matches — all in one campus network.
+          {/* Sub */}
+          <p style={{ color:'rgba(255,255,255,0.65)', fontSize:'clamp(0.95rem,2vw,1.1rem)', lineHeight:1.65, maxWidth:'480px', marginBottom:'1.75rem', fontWeight:400 }}>
+            Skills, anonymous connections, group chats — one campus network for everything you need.
           </p>
 
-          {/* Search pill — full width on mobile, capped on larger screens */}
-          <form
-            onSubmit={handleHeroSearch}
-            className="flex items-center mb-4 sm:mb-5 w-full sm:max-w-xs rounded-full overflow-hidden"
-            style={{
-              background: 'rgba(255,255,255,0.13)',
-              backdropFilter: 'blur(18px)',
-              border: '1px solid rgba(255,255,255,0.22)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.28)',
-            }}
-          >
-            <div className="flex items-center gap-1.5 px-3 sm:px-4 shrink-0"
-              style={{ borderRight: '1px solid rgba(255,255,255,0.14)' }}>
-              <Search className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" style={{ color: 'rgba(255,255,255,0.55)' }} />
-              <span className="hidden sm:block text-[10px] font-semibold whitespace-nowrap"
-                style={{ color: 'rgba(255,255,255,0.55)' }}>
-                Find a service
-              </span>
-            </div>
+          {/* Search */}
+          <form onSubmit={handleHeroSearch} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.10)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.20)', borderRadius:'100px', overflow:'hidden', marginBottom:'1.25rem', maxWidth:'380px' }}>
+            <Search style={{ width:14, height:14, color:'rgba(255,255,255,0.45)', flexShrink:0, marginLeft:'1rem' }} />
             <input
               id="hero-search-input"
               type="text"
-              className="flex-1 py-2.5 sm:py-3 px-3 text-[11px] sm:text-xs font-medium bg-transparent border-none outline-none"
-              style={{ color: '#fff' }}
               placeholder='e.g. "Python tutor", "logo design"…'
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#fff', fontSize:'12px', fontWeight:500, padding:'12px 12px' }}
             />
-            <button
-              type="submit"
-              id="hero-search-btn"
-              aria-label="Search"
-              className="m-1 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105 active:scale-95"
-              style={{
-                width: 28, height: 28,
-                background: 'linear-gradient(135deg,#635BFF,#A78BFA)',
-                border: 'none',
-                cursor: 'pointer',
-              }}
+            <button type="submit" id="hero-search-btn" aria-label="Search" style={{ margin:'5px', background:'linear-gradient(135deg,#635BFF,#A78BFA)', border:'none', borderRadius:'100px', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'transform .15s' }}
+              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <ChevronRight className="w-3.5 h-3.5 text-white" />
+              <ArrowRight style={{ width:14, height:14, color:'#fff' }} />
             </button>
           </form>
 
-          {/* CTAs + trust strip */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <Link
-              to="/signup"
-              id="hero-cta-primary"
-              className="inline-flex items-center gap-1.5 font-bold rounded-full text-white transition-all hover:-translate-y-0.5"
-              style={{
-                fontSize: 'clamp(0.68rem, 1.8vw, 0.78rem)',
-                padding: 'clamp(7px,1.5vw,10px) clamp(14px,3vw,22px)',
-                background: 'linear-gradient(135deg,#635BFF,#A78BFA)',
-                boxShadow: '0 4px 14px rgba(99,91,255,0.4)',
-                textDecoration: 'none',
-              }}
+          {/* CTAs */}
+          <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'0.75rem' }}>
+            <Link to="/signup" id="hero-cta-primary" style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'#fff', color:'#0A0E27', fontWeight:700, fontSize:'13px', padding:'10px 22px', borderRadius:'100px', textDecoration:'none', transition:'all .2s', boxShadow:'0 4px 20px rgba(0,0,0,0.3)' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f0efff'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}
             >
-              Find your match <ChevronRight className="w-3.5 h-3.5" />
+              Find your match <ArrowRight style={{ width:14, height:14 }} />
             </Link>
-            <Link
-              to="/browse"
-              id="hero-cta-secondary"
-              className="inline-flex items-center gap-1 font-semibold transition-opacity hover:opacity-80"
-              style={{
-                fontSize: 'clamp(0.68rem, 1.8vw, 0.78rem)',
-                color: 'rgba(255,255,255,0.78)',
-                textDecoration: 'none',
-              }}
+            <Link to="/browse" id="hero-cta-secondary" style={{ display:'inline-flex', alignItems:'center', gap:'4px', color:'rgba(255,255,255,0.72)', fontSize:'13px', fontWeight:500, textDecoration:'none', transition:'opacity .2s' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
-              Explore campus <ChevronRight className="w-3 h-3" />
+              Explore campus <ChevronRight style={{ width:14, height:14 }} />
             </Link>
-
-            {/* Trust badges — only md+ */}
-            <div className="hidden md:flex items-center gap-3 ml-1">
-              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'rgba(255,255,255,0.50)' }}>
-                <Shield className="w-2.5 h-2.5" style={{ color: '#A78BFA' }} />
-                Escrow protected
-              </span>
-              <span className="flex items-center gap-1 text-[10px]" style={{ color: 'rgba(255,255,255,0.50)' }}>
-                <Star className="w-2.5 h-2.5" style={{ color: '#FBBF24', fill: '#FBBF24' }} />
-                4.9 rated
-              </span>
-              <span className="text-[10px] font-bold" style={{ color: 'rgba(255,255,255,0.75)' }}>500+ students connected</span>
+            <div style={{ display:'none' }} className="md:flex items-center gap-4 ml-2">
+              <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'11px', color:'rgba(255,255,255,0.45)', fontWeight:500 }}><Shield style={{ width:11, height:11, color:'#A78BFA' }} /> Escrow protected</span>
+              <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'11px', color:'rgba(255,255,255,0.45)', fontWeight:500 }}><Star style={{ width:11, height:11, color:'#FBBF24', fill:'#FBBF24' }} /> 4.9 rated</span>
+              <span style={{ fontSize:'11px', color:'rgba(255,255,255,0.65)', fontWeight:600 }}>500+ connected</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* === VISION SECTION — New identity: student ↔ student connection platform === */}
+      {/* ═══════════════════════════════════════════════════════
+          VISION — Editorial split layout, no emoji boxes
+      ═══════════════════════════════════════════════════════ */}
       {!user && (
-        <section className="py-20 bg-white px-6 overflow-hidden">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16 fade-up">
-              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Our Vision</p>
-              <h2 className="font-extrabold text-stripe-slate text-4xl md:text-5xl lg:text-[3.5rem] tracking-tight mb-5 leading-tight" style={{ fontFamily: 'Inter, sans-serif' }}>
-                We don't just sell services.<br />
-                <span style={{ background: 'linear-gradient(90deg,#635BFF,#EC4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                  We connect the right students.
-                </span>
-              </h2>
-              <p className="text-slate-500 text-lg max-w-2xl mx-auto leading-relaxed">
-                Cosen is a living campus network. Every student has something to offer and something they need —
-                we make sure they find each other.
+        <section style={{ padding:'7rem clamp(1.5rem,6vw,5rem)', background:'#fff' }}>
+          <div style={{ maxWidth:'1200px', margin:'0 auto' }}>
+
+            {/* Top: label + big statement */}
+            <div className="fade-up" style={{ marginBottom:'5rem' }}>
+              <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#635BFF', display:'block', marginBottom:'1.5rem' }}>What Cosen is</span>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'3rem', alignItems:'end' }} className="vision-grid">
+                <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(2.2rem,4.5vw,3.5rem)', fontWeight:900, color:'#060C20', lineHeight:1.1, letterSpacing:'-0.03em', margin:0 }}>
+                  We don't sell services.<br />
+                  <span style={{ color:'#635BFF' }}>We connect people.</span>
+                </h2>
+                <p style={{ color:'#64748B', fontSize:'clamp(1rem,1.5vw,1.15rem)', lineHeight:1.75, margin:0, paddingBottom:'0.25rem' }}>
+                  Cosen is a living campus network where every student is both a seeker and a provider.
+                  Tutoring, design, food, anonymous matches, group chats — one place for every campus need.
+                </p>
+              </div>
+            </div>
+
+            {/* Three rows — each horizontal, alternating emphasis */}
+            <div className="fade-up" style={{ display:'flex', flexDirection:'column', gap:'0', borderTop:'1px solid #F1F5F9' }}>
+
+              {[
+                {
+                  num: '01',
+                  accent: '#635BFF',
+                  title: 'Skills meet needs',
+                  body: 'A student who codes connects with one who needs a website. One who cooks connects with a hosteller who needs food. Real value, no middlemen.',
+                  tag: 'Skill-based matching',
+                },
+                {
+                  num: '02',
+                  accent: '#EC4899',
+                  title: 'Anonymous connections',
+                  body: 'With SendiYou, reach out to a fellow student without showing your identity. Both parties choose if and when to reveal. Consent-first, always.',
+                  tag: 'SendiYou — unique to Cosen',
+                },
+                {
+                  num: '03',
+                  accent: '#F59E0B',
+                  title: 'Groups for any reason',
+                  body: 'Planning a campus cricket tournament? A group study session? Let multiple students join one shared conversation — up to 50 members per group.',
+                  tag: 'Up to 50 students per group',
+                },
+              ].map((row, i) => (
+                <div key={i} style={{ display:'grid', gridTemplateColumns:'80px 1fr 1fr', gap:'2rem', padding:'2.5rem 0', borderBottom:'1px solid #F1F5F9', alignItems:'center' }} className="vision-row">
+                  <span style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(2rem,3vw,2.8rem)', fontWeight:900, color:'#F1F5F9', letterSpacing:'-0.04em', lineHeight:1 }}>{row.num}</span>
+                  <h3 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.1rem,1.8vw,1.4rem)', fontWeight:700, color:'#060C20', margin:0, letterSpacing:'-0.02em' }}>{row.title}</h3>
+                  <div>
+                    <p style={{ color:'#64748B', fontSize:'0.95rem', lineHeight:1.7, margin:'0 0 0.75rem' }}>{row.body}</p>
+                    <span style={{ fontSize:'11px', fontWeight:700, color:row.accent, letterSpacing:'0.05em', textTransform:'uppercase', display:'inline-flex', alignItems:'center', gap:4 }}>
+                      <span style={{ width:6, height:6, borderRadius:'50%', background:row.accent, display:'inline-block' }} />
+                      {row.tag}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quote strip */}
+            <div className="fade-up" style={{ marginTop:'4rem', padding:'2.5rem 3rem', background:'#060C20', borderRadius:'1.25rem', position:'relative', overflow:'hidden' }}>
+              <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg, #635BFF, #EC4899, #635BFF)', backgroundSize:'200% 100%', animation:'brand-shimmer 3s linear infinite' }} />
+              <p style={{ fontFamily:"'Merriweather', Georgia, serif", fontSize:'clamp(1.1rem,2vw,1.5rem)', color:'#fff', lineHeight:1.6, margin:0, fontWeight:700, maxWidth:'780px' }}>
+                "Not just a marketplace — a campus operating system{' '}
+                <span style={{ color:'#A78BFA' }}>where every student is both a provider and a seeker.</span>"
               </p>
-            </div>
-
-            {/* 3-column vision pillars */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 fade-up">
-              {/* Pillar 1 */}
-              <div className="group relative rounded-3xl p-8 border border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-6 shadow-lg text-white text-2xl">
-                  🎓
-                </div>
-                <h3 className="font-bold text-slate-800 text-xl mb-3">Skills meet needs</h3>
-                <p className="text-slate-500 leading-relaxed text-sm">
-                  A student who codes connects with one who needs a website. One who cooks connects with a hosteller who needs food.
-                  Real value, real exchange — no middlemen.
-                </p>
-                <div className="mt-6 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-purple-500" />
-                  <span className="text-xs font-semibold text-purple-600">Skill-based matching</span>
-                </div>
-              </div>
-
-              {/* Pillar 2 */}
-              <div className="group relative rounded-3xl p-8 border border-pink-50 bg-gradient-to-br from-pink-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mb-6 shadow-lg text-white text-2xl">
-                  💌
-                </div>
-                <h3 className="font-bold text-slate-800 text-xl mb-3">Anonymous connections</h3>
-                <p className="text-slate-500 leading-relaxed text-sm">
-                  Not every connection has to be professional. With <strong className="text-pink-600">SendiYou</strong>, you can anonymously
-                  reach out to a fellow student — for a study partner, campus friend, or something more.
-                </p>
-                <div className="mt-6 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-pink-500" />
-                  <span className="text-xs font-semibold text-pink-600">Identity revealed on mutual consent</span>
-                </div>
-              </div>
-
-              {/* Pillar 3 */}
-              <div className="group relative rounded-3xl p-8 border border-amber-50 bg-gradient-to-br from-amber-50 to-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-6 shadow-lg text-white text-2xl">
-                  👥
-                </div>
-                <h3 className="font-bold text-slate-800 text-xl mb-3">Group connections</h3>
-                <p className="text-slate-500 leading-relaxed text-sm">
-                  Planning a campus cricket tournament? A group study session? Post a connection request and
-                  let multiple students join a single shared chat — all together.
-                </p>
-                <div className="mt-6 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" />
-                  <span className="text-xs font-semibold text-amber-600">Up to 50 students per group</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Full-width banner quote */}
-            <div className="mt-16 rounded-3xl overflow-hidden relative fade-up" style={{ background: 'linear-gradient(135deg, #0A0E27 0%, #1a1060 50%, #0A0E27 100%)' }}>
-              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(ellipse at 30% 50%, #635BFF, transparent 60%), radial-gradient(ellipse at 70% 50%, #EC4899, transparent 60%)' }} />
-              <div className="relative z-10 px-10 py-14 md:py-16 text-center">
-                <p className="text-white/60 font-semibold text-sm uppercase tracking-widest mb-4">The Cosen Difference</p>
-                <h3 className="text-white font-extrabold text-2xl md:text-4xl max-w-3xl mx-auto leading-tight mb-6" style={{ fontFamily: "'Merriweather', Georgia, serif" }}>
-                  "Not just a marketplace — a campus operating system
-                  <span style={{ color: '#A78BFA' }}> where every student is both a provider and a seeker."
-                  </span>
-                </h3>
-                <div className="flex flex-wrap justify-center gap-6 text-sm">
-                  {[
-                    { icon: '🔒', label: 'Private & Secure' },
-                    { icon: '🎯', label: 'Need-based Matching' },
-                    { icon: '⚡', label: 'Real-time Chat' },
-                    { icon: '🏦', label: 'Escrow Payments' },
-                    { icon: '🌐', label: 'Campus-only Network' },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-white/70">
-                      <span>{item.icon}</span>
-                      <span className="font-medium">{item.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </section>
       )}
 
-      {/* === HOW IT WORKS === */}
-      {!user && (
-        <section id="how" className="py-28 relative overflow-hidden bg-[#0A0E27]" style={{ scrollMarginTop: '80px' }}>
-          {/* Abstract Background Accents */}
-          <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-stripe-purple/20 rounded-full blur-[150px] opacity-30 pointer-events-none -translate-y-1/2" />
-          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[120px] opacity-40 pointer-events-none translate-y-1/2" />
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgNDAgTCA0MCAwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wNCkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-50" />
-
-          <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="text-center md:text-left mb-16 fade-up">
-              <p className="text-[#00D4FF] font-black text-sm uppercase tracking-[0.2em] mb-4 flex items-center justify-center md:justify-start gap-2">
-                <Zap className="h-4 w-4" /> Simple as 1-2-3
-              </p>
-              <h2 className="font-extrabold text-white text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 max-w-2xl" style={{ fontFamily: 'Roboto, sans-serif' }}>
-                From need to connection — in minutes.
-              </h2>
-              <p className="text-[#8F9BB3] text-lg max-w-xl leading-relaxed">
-                Whether you're looking for a tutor, a campus friend, or a group for your next tournament — Cosen finds your match.
-              </p>
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-16 items-center">
-              {/* Steps List (Left Column) */}
-              <div className="w-full lg:w-5/12 flex flex-col gap-2">
-                {steps.map((step, i) => {
-                  const isActive = activeStep === i;
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => setActiveStep(i)}
-                      className={`text-left p-6 rounded-2xl transition-all duration-500 relative overflow-hidden border ${isActive
-                        ? 'bg-white/5 border-stripe-purple/30 shadow-[0_8px_32px_rgba(99,91,255,0.15)]'
-                        : 'bg-transparent border-transparent hover:bg-white/[0.02] hover:border-white/5'
-                        }`}
-                    >
-                      {isActive && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stripe-purple to-[#00D4FF] shadow-[0_0_15px_rgba(99,91,255,0.5)]" />
-                      )}
-                      <div className="flex items-start gap-5">
-                        <div className={`mt-0.5 text-2xl font-display font-extrabold transition-colors duration-500 ${isActive ? 'text-[#00D4FF]' : 'text-white/20'
-                          }`}>
-                          {step.number}
-                        </div>
-                        <div>
-                          <h3 className={`text-xl font-bold mb-2 transition-colors duration-500 ${isActive ? 'text-white' : 'text-[#8F9BB3]'
-                            }`}>
-                            {step.title}
-                          </h3>
-                          <div className={`grid transition-all duration-500 ${isActive ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                            <p className="overflow-hidden text-[#8F9BB3] leading-relaxed text-sm">
-                              {step.desc}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Visualizer (Right Column) */}
-              <div className="w-full lg:w-7/12 aspect-square md:aspect-video lg:aspect-square relative flex items-center justify-center">
-                {/* Dynamic Mockup Container */}
-                <div className="w-full max-w-lg relative z-10 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
-                  {activeStep === 0 && (
-                    <div className="bg-[#11183C] p-8 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden backdrop-blur-md animate-fade-in-up">
-                      <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-stripe-purple to-[#00D4FF]" />
-                      <div className="flex flex-col items-center text-center space-y-6">
-                        <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-[0_0_30px_rgba(99,91,255,0.2)]">
-                          <Shield className="h-10 w-10 text-[#00D4FF]" />
-                        </div>
-                        <div>
-                          <h4 className="text-white font-bold text-lg mb-1">Verify Institutional Email</h4>
-                          <p className="text-[#8F9BB3] text-sm">Waiting for .edu address confirmation</p>
-                        </div>
-                        <div className="w-full bg-[#0A0E27] p-4 rounded-xl border border-white/5 flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-stripe-purple/20 flex items-center justify-center flex-shrink-0">
-                            <span className="text-stripe-purple text-xs font-bold">@</span>
-                          </div>
-                          <div className="text-left flex-1">
-                            <div className="text-white text-sm font-medium">student@university.edu</div>
-                            <div className="text-green-400 text-xs flex items-center gap-1 mt-1">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Verified successfully
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeStep === 1 && (
-                    <div className="relative animate-fade-in-up">
-                      {/* Floating Cards */}
-                      <div className="bg-[#11183C] p-5 rounded-2xl border border-white/10 shadow-2xl relative z-20 transform translate-x-6 -translate-y-4 backdrop-blur-md">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0EA878] to-[#046B4B] flex items-center justify-center shadow-lg pt-1 text-xl">💡</div>
-                          <div>
-                            <div className="w-32 h-2.5 bg-white/20 rounded-full mb-2" />
-                            <div className="w-20 h-2 bg-white/10 rounded-full" />
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="px-2.5 py-1 rounded bg-[#0EA878]/20 text-[#0EA878] text-[10px] font-bold border border-[#0EA878]/30">TUTORING</span>
-                          <span className="px-2.5 py-1 rounded bg-white/5 text-white/50 text-[10px] font-bold border border-white/10">₹450/hr</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-[#0A0E27] p-5 rounded-2xl border border-white/10 shadow-2xl relative z-10 transform -translate-x-6 translate-y-4 opacity-80 scale-95">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#4F3EFF] to-[#2518B3] flex items-center justify-center shadow-lg text-white">
-                            <Code className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <div className="w-28 h-2.5 bg-white/20 rounded-full mb-2" />
-                            <div className="w-24 h-2 bg-white/10 rounded-full" />
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <span className="px-2.5 py-1 rounded bg-[#4F3EFF]/20 text-[#4F3EFF] text-[10px] font-bold border border-[#4F3EFF]/30">CODING</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeStep === 2 && (
-                    <div className="bg-[#11183C] p-8 rounded-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden animate-fade-in-up">
-                      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#00D4FF] via-transparent to-transparent pointer-events-none" />
-                      <div className="flex flex-col items-center text-center space-y-6 relative z-10">
-                        <div className="relative">
-                          <div className="w-24 h-24 bg-[#0A0E27] rounded-full flex items-center justify-center border-2 border-[#00D4FF]/30 shadow-[0_0_40px_rgba(0,212,255,0.2)]">
-                            <div className="w-16 h-16 bg-gradient-to-tr from-stripe-purple to-[#00D4FF] rounded-full flex items-center justify-center animate-[spin_4s_linear_infinite]">
-                              <div className="w-14 h-14 bg-[#11183C] rounded-full flex items-center justify-center animate-[spin_4s_linear_infinite_reverse]">
-                                <Shield className="h-6 w-6 text-[#00D4FF]" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="absolute -top-2 -right-2 w-8 h-8 bg-black rounded-full border border-white/10 flex items-center justify-center shadow-lg">
-                            <span className="text-[#00D4FF] font-black text-xs">Escrow</span>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="text-white font-bold text-xl mb-1">Funds Secured</h4>
-                          <p className="text-[#8F9BB3] text-sm">Payment released only upon delivery</p>
-                        </div>
-
-                        {/* Fake Progress Bar */}
-                        <div className="w-full space-y-2">
-                          <div className="flex justify-between text-xs font-bold">
-                            <span className="text-[#00D4FF]">Funded</span>
-                            <span className="text-white/40">Delivered</span>
-                          </div>
-                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full w-1/2 bg-gradient-to-r from-stripe-purple to-[#00D4FF] rounded-full relative">
-                              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/50 blur-[2px]" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-
-      {/* === CATEGORIES === */}
-      <section className="bg-white py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 fade-up">
+      {/* ═══════════════════════════════════════════════════════
+          CATEGORIES — Minimal list layout, not icon boxes
+      ═══════════════════════════════════════════════════════ */}
+      <section style={{ background:'#F8FAFC', padding:'6rem clamp(1.5rem,6vw,5rem)' }}>
+        <div style={{ maxWidth:'1200px', margin:'0 auto' }}>
+          <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:'3rem', gap:'1rem' }} className="fade-up">
             <div>
-              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Every Kind of Need, Covered</p>
-              <h2 className="font-bold text-stripe-slate text-4xl lg:text-5xl" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#635BFF', display:'block', marginBottom:'0.75rem' }}>Every kind of need</span>
+              <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3.5vw,2.8rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
                 Find your kind of student
               </h2>
-              <p className="text-slate-500 mt-3 text-base max-w-lg">From study sessions to sports matches to anonymous campus connections — there's a category for every need.</p>
             </div>
-            <Link to="/browse" id="categories-browse-all" className="btn-ghost font-semibold text-stripe-purple shrink-0">
-              Browse connections <ChevronRight className="h-4 w-4" />
+            <Link to="/browse" id="categories-browse-all" style={{ display:'inline-flex', alignItems:'center', gap:4, color:'#635BFF', fontSize:'13px', fontWeight:600, textDecoration:'none', flexShrink:0, whiteSpace:'nowrap', borderBottom:'1px solid transparent', transition:'border-color .2s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#635BFF'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+            >
+              Browse all <ChevronRight style={{ width:14, height:14 }} />
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+          {/* Category grid — 2+2+2+1 editorial style */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'1px', background:'#E2E8F0', borderRadius:'1rem', overflow:'hidden' }} className="fade-up">
             {categories.map((cat, i) => (
               <Link
                 key={i}
                 to={`/browse?category=${encodeURIComponent(cat.name)}`}
                 id={`cat-${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
-                className="block rounded-2xl overflow-hidden group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl shadow-sm border border-white/80"
-                style={{ background: cat.bg }}
+                style={{ background:'#fff', display:'flex', alignItems:'center', gap:'1.25rem', padding:'1.5rem 1.75rem', textDecoration:'none', transition:'all .2s', position:'relative' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#FAFBFF'; e.currentTarget.querySelector('.cat-arrow').style.opacity = '1'; e.currentTarget.querySelector('.cat-arrow').style.transform = 'translateX(0)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.querySelector('.cat-arrow').style.opacity = '0'; e.currentTarget.querySelector('.cat-arrow').style.transform = 'translateX(-6px)'; }}
               >
-                {/* Coloured top strip */}
-                <div className="h-1.5 w-full" style={{ background: cat.color }} />
-                <div className="p-5">
-                  <div className="mb-4">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm"
-                      style={{ background: cat.color }}>
-                      <cat.icon className="h-6 w-6 text-white" />
-                    </div>
-                  </div>
-                  <h3 className="font-display font-bold text-[#0D1B2A] text-base mb-1 group-hover:opacity-80 transition-opacity">
-                    {cat.name}
-                  </h3>
-                  <p className="text-[#425466] text-sm mb-3 leading-snug">{cat.desc}</p>
-                  <span className="inline-block text-xs font-bold px-3 py-1 rounded-full text-white"
-                    style={{ background: cat.color }}>
-                    {cat.count}+ peers
-                  </span>
+                <div style={{ width:44, height:44, borderRadius:'12px', background:`${cat.color}12`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, border:`1.5px solid ${cat.color}25` }}>
+                  <cat.icon style={{ width:20, height:20, color: cat.color }} />
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontWeight:700, fontSize:'15px', color:'#0F172A', marginBottom:'2px' }}>{cat.name}</div>
+                  <div style={{ fontSize:'12px', color:'#94A3B8' }}>{cat.desc}</div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
+                  <span style={{ fontSize:'11px', fontWeight:600, color:cat.color, background:`${cat.color}12`, padding:'2px 10px', borderRadius:'100px' }}>{cat.count}+</span>
+                  <ArrowRight className="cat-arrow" style={{ width:14, height:14, color:'#635BFF', opacity:0, transform:'translateX(-6px)', transition:'all .2s' }} />
                 </div>
               </Link>
             ))}
@@ -707,189 +331,204 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === SENDIYOU SPOTLIGHT — Connection types showcase === */}
+      {/* ═══════════════════════════════════════════════════════
+          HOW IT WORKS — Clean dark section, no blobs
+      ═══════════════════════════════════════════════════════ */}
       {!user && (
-        <section className="py-24 px-6 bg-gradient-to-br from-[#0A0E27] to-[#180C3A] overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
-          <div className="max-w-7xl mx-auto relative z-10">
-            <div className="text-center mb-16 fade-up">
-              <p className="text-pink-400 font-semibold text-sm uppercase tracking-widest mb-3">💌 Beyond a Marketplace</p>
-              <h2 className="font-extrabold text-white text-4xl md:text-5xl tracking-tight mb-4" style={{ fontFamily: "'Playwrite MX Guides', cursive" }}>
-                Connections that go beyond transactions
+        <section id="how" style={{ background:'#060C20', padding:'7rem clamp(1.5rem,6vw,5rem)', scrollMarginTop:'80px' }}>
+          <div style={{ maxWidth:'1200px', margin:'0 auto' }}>
+            <div className="fade-up" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'5rem', alignItems:'start' }} id="how-grid">
+              {/* Left: heading */}
+              <div>
+                <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#635BFF', display:'block', marginBottom:'1.5rem' }}>How it works</span>
+                <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(2rem,4vw,3.2rem)', fontWeight:900, color:'#fff', lineHeight:1.1, letterSpacing:'-0.03em', margin:'0 0 1.5rem' }}>
+                  From need to<br />connection —<br />
+                  <span style={{ color:'#635BFF' }}>in minutes.</span>
+                </h2>
+                <p style={{ color:'rgba(255,255,255,0.45)', fontSize:'1rem', lineHeight:1.7, margin:'0 0 2.5rem', maxWidth:'380px' }}>
+                  Whether you need a tutor, a campus friend, or a group for your next tournament — Cosen finds your match.
+                </p>
+                <Link to="/signup" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#635BFF', color:'#fff', fontWeight:600, fontSize:'13px', padding:'11px 24px', borderRadius:'100px', textDecoration:'none', transition:'background .2s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#4F3EFF'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#635BFF'}
+                >
+                  Get started free <ArrowRight style={{ width:14, height:14 }} />
+                </Link>
+              </div>
+
+              {/* Right: steps */}
+              <div style={{ display:'flex', flexDirection:'column', gap:'0', paddingTop:'0.5rem' }}>
+                {steps.map((step, i) => {
+                  const isActive = activeStep === i;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => setActiveStep(i)}
+                      style={{ textAlign:'left', padding:'1.75rem 1.5rem', borderRadius:'0.875rem', background: isActive ? 'rgba(99,91,255,0.10)' : 'transparent', border: isActive ? '1px solid rgba(99,91,255,0.25)' : '1px solid transparent', cursor:'pointer', transition:'all .4s', marginBottom:'0.5rem', position:'relative' }}
+                    >
+                      {isActive && <div style={{ position:'absolute', left:0, top:'15%', bottom:'15%', width:3, borderRadius:3, background:'#635BFF', boxShadow:'0 0 12px rgba(99,91,255,0.6)' }} />}
+                      <div style={{ display:'flex', alignItems:'flex-start', gap:'1.25rem' }}>
+                        <span style={{ fontFamily:'Inter, sans-serif', fontSize:'1.5rem', fontWeight:900, color: isActive ? '#635BFF' : 'rgba(255,255,255,0.15)', lineHeight:1, flexShrink:0, transition:'color .4s', letterSpacing:'-0.04em' }}>{step.number}</span>
+                        <div>
+                          <h3 style={{ fontSize:'1rem', fontWeight:700, color: isActive ? '#fff' : 'rgba(255,255,255,0.45)', margin:'0 0 0.5rem', transition:'color .4s', letterSpacing:'-0.01em' }}>{step.title}</h3>
+                          <div style={{ overflow:'hidden', maxHeight: isActive ? '80px' : '0', opacity: isActive ? 1 : 0, transition:'max-height .4s, opacity .4s' }}>
+                            <p style={{ fontSize:'13px', color:'rgba(255,255,255,0.50)', lineHeight:1.65, margin:0 }}>{step.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════
+          SENDIYOU — Minimal, editorial dark feature section
+      ═══════════════════════════════════════════════════════ */}
+      {!user && (
+        <section style={{ background:'#fff', padding:'7rem clamp(1.5rem,6vw,5rem)', borderTop:'1px solid #F1F5F9' }}>
+          <div style={{ maxWidth:'1200px', margin:'0 auto' }}>
+
+            {/* Top label */}
+            <div className="fade-up" style={{ marginBottom:'4rem' }}>
+              <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#EC4899', display:'block', marginBottom:'0.75rem' }}>Beyond a marketplace</span>
+              <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3.5vw,3rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em', lineHeight:1.1, maxWidth:'600px' }}>
+                Connections that go{' '}
+                <span style={{ fontFamily:"'Playwrite MX Guides', cursive", fontWeight:400, color:'#EC4899' }}>beyond</span>{' '}
+                transactions
               </h2>
-              <p className="text-white/50 text-lg max-w-xl mx-auto">
-                Cosen understands that students don't just need services — they need the right person at the right time.
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Card 1: Skill Connection */}
-              <div className="rounded-3xl p-8 border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all hover:-translate-y-1">
-                <div className="text-4xl mb-5">🎯</div>
-                <h3 className="text-white font-bold text-xl mb-3">Skill Connections</h3>
-                <p className="text-white/50 text-sm leading-relaxed mb-6">
-                  Need help with Python? Find a CS senior. Want a logo for your club? A design student is waiting.
-                  Post what you need — someone on campus can do it.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {['📚 Tutoring', '💻 Coding', '🎨 Design', '📸 Photography'].map(tag => (
-                    <span key={tag} className="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/10 text-white/70">{tag}</span>
-                  ))}
+            {/* Three feature panels — horizontal layout, not card grid */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'2px', borderRadius:'1.25rem', overflow:'hidden', border:'1px solid #F1F5F9', boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }} className="fade-up sendiyou-grid">
+              {[
+                {
+                  accent: '#635BFF',
+                  icon: <Code style={{ width:20, height:20, color:'#635BFF' }} />,
+                  title: 'Skill Connections',
+                  body: 'Post what you need — someone on campus can do it. Tutoring, design, code, food, events.',
+                  tags: ['Tutoring', 'Coding', 'Design', 'Photography'],
+                  link: '/browse',
+                },
+                {
+                  accent: '#EC4899',
+                  icon: <Lock style={{ width:20, height:20, color:'#EC4899' }} />,
+                  title: 'SendiYou — Anonymous',
+                  body: 'Connect with a student anonymously. Reveal your identity only when you both agree. Campus-safe, consent-first.',
+                  tags: ['Anonymous', 'Gender filter', '7-day chat'],
+                  link: '/signup',
+                  featured: true,
+                },
+                {
+                  accent: '#F59E0B',
+                  icon: <Users style={{ width:20, height:20, color:'#F59E0B' }} />,
+                  title: 'Group Connections',
+                  body: 'One post, up to 50 students. Group study, cricket team, club event — all in a shared chat.',
+                  tags: ['Sports', 'Study groups', 'Club events'],
+                  link: '/browse',
+                },
+              ].map((panel, i) => (
+                <div key={i} style={{ background: panel.featured ? '#060C20' : '#fff', padding:'2.5rem 2rem', position:'relative', transition:'background .3s' }}
+                  onMouseEnter={e => { if (!panel.featured) e.currentTarget.style.background = '#FAFBFF'; }}
+                  onMouseLeave={e => { if (!panel.featured) e.currentTarget.style.background = '#fff'; }}
+                >
+                  {panel.featured && <div style={{ position:'absolute', top:0, left:0, right:0, height:'2px', background:'linear-gradient(90deg, #635BFF, #EC4899)' }} />}
+                  <div style={{ width:40, height:40, borderRadius:10, background:`${panel.accent}15`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'1.5rem', border:`1px solid ${panel.accent}25` }}>
+                    {panel.icon}
+                  </div>
+                  <h3 style={{ fontSize:'1.05rem', fontWeight:700, color: panel.featured ? '#fff' : '#0F172A', margin:'0 0 0.75rem', letterSpacing:'-0.01em' }}>
+                    {panel.title}
+                    {panel.featured && <span style={{ fontSize:'10px', fontWeight:700, background:'#EC4899', color:'#fff', padding:'2px 8px', borderRadius:'100px', marginLeft:'0.5rem', verticalAlign:'middle', letterSpacing:'0.05em' }}>UNIQUE</span>}
+                  </h3>
+                  <p style={{ fontSize:'13.5px', color: panel.featured ? 'rgba(255,255,255,0.55)' : '#64748B', lineHeight:1.7, margin:'0 0 1.5rem' }}>{panel.body}</p>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                    {panel.tags.map(t => (
+                      <span key={t} style={{ fontSize:'11px', fontWeight:600, color: panel.featured ? 'rgba(255,255,255,0.6)' : panel.accent, background: panel.featured ? 'rgba(255,255,255,0.08)' : `${panel.accent}12`, padding:'3px 10px', borderRadius:'100px', border: panel.featured ? '1px solid rgba(255,255,255,0.12)' : `1px solid ${panel.accent}25` }}>{t}</span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Card 2: SendiYou */}
-              <div className="rounded-3xl p-8 border border-pink-500/30 bg-gradient-to-br from-pink-500/10 to-purple-500/10 backdrop-blur-md hover:from-pink-500/20 hover:to-purple-500/20 transition-all hover:-translate-y-1 relative overflow-hidden">
-                <div className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">✨ Unique Feature</div>
-                <div className="text-4xl mb-5">💌</div>
-                <h3 className="text-white font-bold text-xl mb-3">SendiYou — Anonymous Matches</h3>
-                <p className="text-white/50 text-sm leading-relaxed mb-6">
-                  Post a connection anonymously. Choose your preferred match. Both students reveal identities
-                  only when they both agree — a safe, consent-based campus connection.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {['🔒 Anonymous', '⚧ Gender filter', '⏱ 7-day chat', '🤝 Mutual reveal'].map(tag => (
-                    <span key={tag} className="text-[11px] font-semibold px-3 py-1 rounded-full bg-pink-500/20 text-pink-300">{tag}</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Card 3: Group Connections */}
-              <div className="rounded-3xl p-8 border border-amber-500/20 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all hover:-translate-y-1">
-                <div className="text-4xl mb-5">👥</div>
-                <h3 className="text-white font-bold text-xl mb-3">Group Connections</h3>
-                <p className="text-white/50 text-sm leading-relaxed mb-6">
-                  Organizing a campus cricket tournament? Planning a group study? Post one connection request
-                  and let up to 50 students join a shared group chat — all in one place.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {['🏏 Sports teams', '📖 Study groups', '🎭 Club events', '🎮 Gaming squads'].map(tag => (
-                    <span key={tag} className="text-[11px] font-semibold px-3 py-1 rounded-full bg-white/10 text-white/70">{tag}</span>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="text-center mt-12 fade-up">
-              <Link to="/signup" id="sendiyou-cta" className="inline-flex items-center gap-2 font-bold text-white px-8 py-4 rounded-full transition-all hover:-translate-y-0.5" style={{ background: 'linear-gradient(135deg,#EC4899,#A855F7)', boxShadow: '0 4px 20px rgba(236,72,153,0.4)' }}>
-                Start connecting on campus <ChevronRight className="h-5 w-5" />
+            <div className="fade-up" style={{ marginTop:'2.5rem', textAlign:'center' }}>
+              <Link to="/signup" id="sendiyou-cta" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#060C20', color:'#fff', fontWeight:600, fontSize:'13px', padding:'12px 28px', borderRadius:'100px', textDecoration:'none', transition:'background .2s', boxShadow:'0 4px 16px rgba(6,12,32,0.15)' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#1a1060'}
+                onMouseLeave={e => e.currentTarget.style.background = '#060C20'}
+              >
+                Start connecting on campus <ArrowRight style={{ width:14, height:14 }} />
               </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* === FEATURED SERVICES (dummy data only) === */}
-      <section className="bg-stripe-bg py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header row with arrows */}
-          <div className="flex items-end justify-between mb-10 fade-up">
-            <div className="text-center flex-1">
-              <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-3">Real Students, Real Skills</p>
-              <h2 className="font-display font-bold text-stripe-slate text-4xl lg:text-5xl mb-3">Top student connections</h2>
-              <p className="text-stripe-steel text-lg">Verified peers offering genuine skills — chosen by your campus community.</p>
+      {/* ═══════════════════════════════════════════════════════
+          FEATURED SERVICES — Clean card carousel
+      ═══════════════════════════════════════════════════════ */}
+      <section style={{ background:'#F8FAFC', padding:'6rem clamp(1.5rem,6vw,5rem)' }}>
+        <div style={{ maxWidth:'1200px', margin:'0 auto' }}>
+          <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:'2.5rem', gap:'1rem' }} className="fade-up">
+            <div>
+              <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#635BFF', display:'block', marginBottom:'0.75rem' }}>Real students, real skills</span>
+              <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3vw,2.5rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em' }}>Top student connections</h2>
             </div>
-            {/* Arrow buttons */}
-            <div className="flex gap-2 shrink-0 ml-4">
-              <button
-                onClick={() => carouselRef.current?.scrollBy({ left: -320, behavior: 'smooth' })}
-                className="w-10 h-10 rounded-full border border-stripe-border bg-white shadow-sm flex items-center justify-center hover:border-stripe-purple hover:text-stripe-purple transition-all"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => carouselRef.current?.scrollBy({ left: 320, behavior: 'smooth' })}
-                className="w-10 h-10 rounded-full border border-stripe-border bg-white shadow-sm flex items-center justify-center hover:border-stripe-purple hover:text-stripe-purple transition-all"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+            <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+              <button onClick={() => carouselRef.current?.scrollBy({ left:-320, behavior:'smooth' })} style={{ width:36, height:36, borderRadius:'50%', border:'1px solid #E2E8F0', background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .2s' }} aria-label="Scroll left"
+                onMouseEnter={e => { e.currentTarget.style.borderColor='#635BFF'; e.currentTarget.style.color='#635BFF'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor='#E2E8F0'; e.currentTarget.style.color='inherit'; }}
+              ><ChevronLeft style={{ width:16, height:16 }} /></button>
+              <button onClick={() => carouselRef.current?.scrollBy({ left:320, behavior:'smooth' })} style={{ width:36, height:36, borderRadius:'50%', border:'1px solid #E2E8F0', background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .2s' }} aria-label="Scroll right"
+                onMouseEnter={e => { e.currentTarget.style.borderColor='#635BFF'; e.currentTarget.style.color='#635BFF'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor='#E2E8F0'; e.currentTarget.style.color='inherit'; }}
+              ><ChevronRight style={{ width:16, height:16 }} /></button>
             </div>
           </div>
 
-          {/* Horizontal scroll carousel — dummy data only */}
-          <div
-            ref={carouselRef}
-            className="flex gap-5 overflow-x-auto pb-4 featured-carousel"
-            style={{ scrollSnapType: 'x mandatory' }}
-          >
+          <div ref={carouselRef} style={{ display:'flex', gap:'1rem', overflowX:'auto', paddingBottom:'0.5rem', scrollSnapType:'x mandatory', scrollbarWidth:'none' }} className="featured-carousel">
             {MOCK_FEATURED.map((service, i) => {
               const color = catColor[service.category] || '#635BFF';
-              const initials = getInitials(service);
               return (
                 <Link
                   key={service._id || i}
                   to="/browse"
                   id={`featured-service-${service._id || i}`}
-                  className="group block rounded-2xl bg-white overflow-hidden shrink-0 transition-all duration-300 hover:-translate-y-1"
-                  style={{
-                    width: '300px',
-                    scrollSnapAlign: 'start',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)'}
-                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)'}
+                  style={{ background:'#fff', borderRadius:'1rem', overflow:'hidden', flexShrink:0, width:'280px', scrollSnapAlign:'start', textDecoration:'none', display:'flex', flexDirection:'column', border:'1px solid #F1F5F9', transition:'all .25s', boxShadow:'0 1px 3px rgba(0,0,0,0.04)' }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.09)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Image area with inner padding */}
-                  <div className="p-3 pb-0">
-                    <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
-                      {service.seller?.avatar ? (
-                        <img
-                          src={service.seller.avatar}
-                          alt={service.seller.name}
-                          className="w-full h-full object-cover object-top"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"
-                          style={{ background: catBg[service.category] || 'linear-gradient(135deg,#EEF0FF,#DDE0FF)' }}>
-                          <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg"
-                            style={{ background: color }}>
-                            {initials}
-                          </div>
-                        </div>
-                      )}
-                      {/* Category badge */}
-                      <span className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm"
-                        style={{ background: 'rgba(255,255,255,0.85)', color }}>
-                        {service.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Card body */}
-                  <div className="px-4 pt-4 pb-4">
-                    {/* Seller name + verified badge */}
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <h3 className="font-bold text-stripe-slate text-[15px] truncate">
-                        {service.seller?.name || 'Student'}
-                      </h3>
-                      <BadgeCheck className="h-4.5 w-4.5 shrink-0" style={{ color: '#22c55e' }} />
-                    </div>
-
-                    {/* Service title as description */}
-                    <p className="text-sm text-stripe-muted leading-snug line-clamp-2 mb-4" style={{ minHeight: '2.5rem' }}>
-                      {service.title}
-                    </p>
-
-                    {/* Stats row */}
-                    <div className="flex items-center justify-between pt-3"
-                      style={{ borderTop: '1px solid #F0F4F8' }}>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-xs text-stripe-muted">
-                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                          <span className="font-semibold text-stripe-slate">{service.rating?.toFixed(1) || '5.0'}</span>
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-stripe-muted">
-                          <ShoppingBag className="h-3.5 w-3.5" />
-                          {service.reviewCount || 0}
-                        </span>
+                  {/* Image */}
+                  <div style={{ position:'relative', aspectRatio:'4/3', overflow:'hidden' }}>
+                    {service.seller?.avatar ? (
+                      <img src={service.seller.avatar} alt={service.seller.name} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'top', display:'block', transition:'transform .4s' }}
+                        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                      />
+                    ) : (
+                      <div style={{ width:'100%', height:'100%', background:catBg[service.category], display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <div style={{ width:52, height:52, borderRadius:14, background:color, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:'18px' }}>{getInitials(service)}</div>
                       </div>
-                      <span className="text-xs font-bold px-3 py-1.5 rounded-full"
-                        style={{ background: '#F6F9FC', color: '#0A2540' }}>
-                        ₹{Number(service.price).toLocaleString('en-IN')}
-                      </span>
+                    )}
+                    <span style={{ position:'absolute', top:10, left:10, fontSize:'10px', fontWeight:700, color, background:'rgba(255,255,255,0.92)', backdropFilter:'blur(8px)', padding:'3px 10px', borderRadius:'100px', letterSpacing:'0.04em' }}>{service.category}</span>
+                  </div>
+                  {/* Body */}
+                  <div style={{ padding:'1rem 1.1rem 1.1rem', flex:1, display:'flex', flexDirection:'column' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom:4 }}>
+                      <span style={{ fontSize:'14px', fontWeight:700, color:'#0F172A', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{service.seller?.name}</span>
+                      <BadgeCheck style={{ width:15, height:15, color:'#22C55E', flexShrink:0 }} />
+                    </div>
+                    <p style={{ fontSize:'12.5px', color:'#64748B', lineHeight:1.55, margin:'0 0 auto', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{service.title}</p>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'0.875rem', paddingTop:'0.875rem', borderTop:'1px solid #F1F5F9' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ display:'flex', alignItems:'center', gap:3, fontSize:'12px' }}>
+                          <Star style={{ width:12, height:12, color:'#FBBF24', fill:'#FBBF24' }} />
+                          <span style={{ fontWeight:700, color:'#0F172A' }}>{service.rating?.toFixed(1)}</span>
+                        </span>
+                        <span style={{ fontSize:'11px', color:'#94A3B8' }}>{service.reviewCount} reviews</span>
+                      </div>
+                      <span style={{ fontSize:'13px', fontWeight:700, color:'#0F172A' }}>₹{Number(service.price).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </Link>
@@ -897,44 +536,43 @@ export default function Landing() {
             })}
           </div>
 
-          <div className="text-center mt-10 fade-up">
-            <Link to="/browse" id="featured-browse-more" className="btn-primary">
-              Browse marketplace <ChevronRight className="h-4 w-4" />
+          <div className="fade-up" style={{ textAlign:'center', marginTop:'2.5rem' }}>
+            <Link to="/browse" id="featured-browse-more" style={{ display:'inline-flex', alignItems:'center', gap:6, color:'#635BFF', fontWeight:600, fontSize:'13px', textDecoration:'none', borderBottom:'1px solid transparent', transition:'border-color .2s', paddingBottom:2 }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#635BFF'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+            >
+              Browse all student connections <ChevronRight style={{ width:14, height:14 }} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* === PLATFORM SERVICE SLIDER === */}
-      <section className="py-12 bg-white overflow-hidden border-t border-stripe-border relative">
-        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-
-        <div className="text-center mb-8 fade-up">
-          <p className="text-stripe-purple font-semibold text-sm uppercase tracking-widest mb-2">Explore the possibilities</p>
-          <h3 className="font-display font-bold text-stripe-slate text-2xl">What students are connecting on</h3>
-        </div>
-
-        <div className="flex w-[200%] animate-marquee hover:[animation-play-state:paused]">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="flex flex-1 justify-around gap-6 px-3">
+      {/* ═══════════════════════════════════════════════════════
+          MARQUEE SLIDER
+      ═══════════════════════════════════════════════════════ */}
+      <section style={{ background:'#fff', padding:'3rem 0', borderTop:'1px solid #F1F5F9', borderBottom:'1px solid #F1F5F9', overflow:'hidden', position:'relative' }}>
+        <div style={{ position:'absolute', inset:'0 0 0 0', background:'linear-gradient(to right, #fff 0%, transparent 10%, transparent 90%, #fff 100%)', zIndex:10, pointerEvents:'none' }} />
+        <div style={{ display:'flex', width:'200%', animation:'marquee 28s linear infinite' }} className="hover:[animation-play-state:paused]">
+          {[0,1].map(k => (
+            <div key={k} style={{ display:'flex', flex:1, justifyContent:'space-around', gap:'1rem', padding:'0 0.5rem' }}>
               {[
-                { name: 'App Development', icon: Code },
-                { name: 'UI/UX Design', icon: Palette },
-                { name: 'Calculus Tutoring', icon: BookOpen },
-                { name: 'Portrait Shoot', icon: Camera },
-                { name: 'Homemade Tiffin', icon: UtensilsCrossed },
-                { name: 'Anonymous Match 💌', icon: Zap },
-                { name: 'Cricket Group 🏏', icon: Trophy },
-                { name: 'Logo Animation', icon: Palette },
-                { name: 'Guitar Lessons', icon: Music },
-                { name: 'Study Partner 📚', icon: BookOpen },
-              ].map((service, j) => (
-                <div key={j} className="flex items-center gap-3 bg-stripe-bg border border-stripe-border rounded-full py-3 px-6 shadow-sm hover:border-stripe-purple hover:shadow-md transition-all cursor-pointer group whitespace-nowrap">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:text-stripe-purple transition-colors">
-                    <service.icon className="h-4 w-4" />
-                  </div>
-                  <span className="font-semibold text-stripe-slate text-sm group-hover:text-stripe-purple transition-colors">{service.name}</span>
+                { name:'App Development', icon:Code },
+                { name:'UI/UX Design', icon:Palette },
+                { name:'Calculus Tutoring', icon:BookOpen },
+                { name:'Portrait Shoot', icon:Camera },
+                { name:'Homemade Tiffin', icon:UtensilsCrossed },
+                { name:'Anonymous Match 💌', icon:Zap },
+                { name:'Cricket Group 🏏', icon:Trophy },
+                { name:'Logo Animation', icon:Palette },
+                { name:'Guitar Lessons', icon:Music },
+                { name:'Study Partner 📚', icon:BookOpen },
+              ].map((s, j) => (
+                <div key={j} style={{ display:'flex', alignItems:'center', gap:10, background:'#F8FAFC', border:'1px solid #F1F5F9', borderRadius:'100px', padding:'10px 18px', whiteSpace:'nowrap', cursor:'pointer', transition:'all .2s', flexShrink:0 }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor='#635BFF'; e.currentTarget.style.background='#F0EFFF'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor='#F1F5F9'; e.currentTarget.style.background='#F8FAFC'; }}
+                >
+                  <s.icon style={{ width:14, height:14, color:'#635BFF', flexShrink:0 }} />
+                  <span style={{ fontSize:'13px', fontWeight:600, color:'#334155' }}>{s.name}</span>
                 </div>
               ))}
             </div>
@@ -942,53 +580,78 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === CTA BANNER === */}
-      <section className="relative py-24 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-stripe-slate" />
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: 'radial-gradient(ellipse at 20% 50%, #635BFF 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, #00D4FF 0%, transparent 50%)'
-        }} />
-        <div className="relative z-10 max-w-3xl mx-auto text-center fade-up">
-          <p className="text-white/50 font-semibold text-sm uppercase tracking-widest mb-4">Join your campus network</p>
-          <h2 className="font-bold text-white text-4xl lg:text-5xl mb-6" style={{ fontFamily: 'Rubik, sans-serif' }}>
-            Your next connection is already on campus.
+      {/* ═══════════════════════════════════════════════════════
+          CTA BANNER — Clean, no gradients overload
+      ═══════════════════════════════════════════════════════ */}
+      <section style={{ background:'#060C20', padding:'7rem clamp(1.5rem,6vw,5rem)' }}>
+        <div style={{ maxWidth:'780px', margin:'0 auto', textAlign:'center' }} className="fade-up">
+          <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(255,255,255,0.35)', display:'block', marginBottom:'1.5rem' }}>Join your campus network</span>
+          <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(2rem,5vw,3.5rem)', fontWeight:900, color:'#fff', lineHeight:1.1, letterSpacing:'-0.03em', margin:'0 0 1.25rem' }}>
+            Your next connection<br />is already on campus.
           </h2>
-          <p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
-            Hundreds of students are sharing skills, finding matches, and building campus connections on Cosen — right now.
+          <p style={{ color:'rgba(255,255,255,0.50)', fontSize:'1.05rem', lineHeight:1.7, margin:'0 0 2.5rem', maxWidth:'480px', marginLeft:'auto', marginRight:'auto' }}>
+            Hundreds of students are sharing skills, finding matches, and building connections on Cosen — right now.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/signup" id="cta-banner-join" className="bg-white text-stripe-purple hover:bg-stripe-bg font-bold px-8 py-4 rounded-xl shadow-stripe-btn transition-all hover:-translate-y-0.5 inline-flex items-center gap-2">
-              Join free with .edu email <ChevronRight className="h-5 w-5" />
+          <div style={{ display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center', marginBottom:'2.5rem' }}>
+            <Link to="/signup" id="cta-banner-join" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#635BFF', color:'#fff', fontWeight:700, fontSize:'14px', padding:'13px 28px', borderRadius:'100px', textDecoration:'none', transition:'background .2s', boxShadow:'0 4px 20px rgba(99,91,255,0.35)' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#4F3EFF'}
+              onMouseLeave={e => e.currentTarget.style.background = '#635BFF'}
+            >
+              Join free with .edu email <ArrowRight style={{ width:16, height:16 }} />
             </Link>
-            <Link to="/browse" id="cta-banner-browse" className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-8 py-4 rounded-xl transition-all">
+            <Link to="/browse" id="cta-banner-browse" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(255,255,255,0.07)', color:'rgba(255,255,255,0.75)', fontWeight:600, fontSize:'14px', padding:'13px 28px', borderRadius:'100px', textDecoration:'none', border:'1px solid rgba(255,255,255,0.12)', transition:'all .2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.2)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.12)'; }}
+            >
               Explore connections
             </Link>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-white/40">
-            <span>✓ 100% student-verified</span>
-            <span>✓ Anonymous connections</span>
-            <span>✓ Group & 1-on-1 chats</span>
-            <span>✓ Escrow-protected payments</span>
+          <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'0.5rem 2rem' }}>
+            {['100% student-verified', 'Anonymous connections', 'Group & 1-on-1 chats', 'Escrow-protected'].map(item => (
+              <span key={item} style={{ fontSize:'12px', color:'rgba(255,255,255,0.30)', fontWeight:500 }}>✓ {item}</span>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* === FOOTER === */}
-      <footer className="bg-stripe-bg border-t border-stripe-border py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-3">
+      {/* ═══════════════════════════════════════════════════════
+          FOOTER
+      ═══════════════════════════════════════════════════════ */}
+      <footer style={{ background:'#F8FAFC', borderTop:'1px solid #F1F5F9', padding:'3rem clamp(1.5rem,6vw,5rem)' }}>
+        <div style={{ maxWidth:'1200px', margin:'0 auto', display:'flex', flexWrap:'wrap', alignItems:'center', justifyContent:'space-between', gap:'1.5rem' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <BrandLogo size="sm" />
-            <span className="text-stripe-muted font-sans font-normal text-sm">© 2025</span>
+            <span style={{ color:'#94A3B8', fontSize:'13px' }}>© 2025 Cosen</span>
           </div>
-          <div className="flex flex-wrap gap-6 text-sm text-stripe-steel">
-            <Link to="/browse" className="hover:text-stripe-purple transition-colors">Browse</Link>
-            <Link to="/services/new" className="hover:text-stripe-purple transition-colors">Post a Service</Link>
-            <Link to="/signup" className="hover:text-stripe-purple transition-colors">Sign Up</Link>
-            <Link to="/login" className="hover:text-stripe-purple transition-colors">Login</Link>
-            <Link to="/dashboard" className="hover:text-stripe-purple transition-colors">Dashboard</Link>
-          </div>
+          <nav style={{ display:'flex', flexWrap:'wrap', gap:'0 2rem' }}>
+            {[['Browse', '/browse'], ['Post a Service', '/services/new'], ['Sign Up', '/signup'], ['Login', '/login']].map(([label, href]) => (
+              <Link key={label} to={href} style={{ color:'#64748B', fontSize:'13px', textDecoration:'none', fontWeight:500, transition:'color .2s' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#635BFF'}
+                onMouseLeave={e => e.currentTarget.style.color = '#64748B'}
+              >{label}</Link>
+            ))}
+          </nav>
         </div>
       </footer>
+
+      {/* Responsive helper styles */}
+      <style>{`
+        @media (max-width: 768px) {
+          .vision-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+          .vision-row { grid-template-columns: 60px 1fr !important; gap: 1rem !important; }
+          .vision-row > *:last-child { grid-column: 2 !important; }
+          #how-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
+          .sendiyou-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          .vision-row { grid-template-columns: 1fr !important; }
+          .vision-row span:first-child { display: none !important; }
+        }
+        @keyframes marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   );
 }
