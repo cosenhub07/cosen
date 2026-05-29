@@ -518,4 +518,26 @@ The `sendSms.js` utility is also kept for future use once DLT registration is co
 
 ---
 
-*Last updated: May 23, 2026 | GitHub: cosenhub07/cosen | Status: 🟢 Live in Production*
+### May 29, 2026
+#### 1. Landing Page Redesign
+- Redesigned the Landing page (`client/src/pages/Landing.jsx`) to a high-contrast, editorial, asymmetric layout.
+- Removed "AI-generated" aesthetics (blobs, generic gradients) and applied modern typography, rich colors, and intentional whitespace.
+
+#### 2. Authentication Pages Overhaul
+- Completely redesigned `Login.jsx` and `Signup.jsx` into a premium, clean, light-mode interface (slate-50 background).
+- Refined typography and structural layout to feel high-end and editorial.
+- Polished the `Profile` (Step 2) and `Interests` (Step 3) stages of the Signup flow with custom radio cards, crisp border hover effects, and modern select inputs.
+
+#### 3. Navbar Visibility & Integration
+- Modified `Navbar.jsx` to conditionally hide the global navigation bar on all auth pages (`/login`, `/signup`, `/forgot-password`, `/reset-password`).
+- Resolved visual overlap between the global navbar and the auth-specific brand logo headers.
+
+#### 4. Mandatory Phone Number in Signup
+- Added a mandatory `Phone Number` field to the first step of the signup flow.
+- Configured frontend validation to require a 10-digit phone number and added an explanatory placeholder note indicating verification will occur later.
+- Updated `server/routes/auth.js` register endpoint to parse, save, and persist `phone` and `isPhoneVerified` into the Supabase database.
+- Ensured phone number passes cleanly through the frontend `authStore`.
+
+---
+
+*Last updated: May 29, 2026 | GitHub: cosenhub07/cosen | Status: 🟢 Live in Production*
