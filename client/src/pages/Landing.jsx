@@ -8,6 +8,10 @@ import {
   ShieldCheck, BadgeCheck, ShoppingBag, Trophy, ArrowRight,
   Users, Lock, Sparkles
 } from 'lucide-react';
+import LottieModule from 'lottie-react';
+const Lottie = LottieModule.default || LottieModule;
+import catLottie from '../assets/cat.json';
+import playGameLottie from '../assets/play_game.json';
 import heroBgVideo from '../assets/landing_page_back_video.mp4';
 import person1 from '../assets/person1.jpg';
 import person2 from '../assets/person2.jpg';
@@ -158,12 +162,23 @@ export default function Landing() {
             <span style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.06em', textTransform:'uppercase', color:'rgba(255,255,255,0.85)' }}>100% Verified Students · Campus Only</span>
           </div>
 
-          {/* Headline */}
-          <h1 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, lineHeight:1.05, letterSpacing:'-0.03em', color:'#fff', marginBottom:'1rem', fontSize:'clamp(2.4rem,7vw,5rem)', maxWidth:'680px' }}>
-            <span className="hero-word block">Every student</span>
-            <span className="hero-word block">has a&nbsp;<span className="hero-highlight">need.</span></span>
-            <span className="hero-word block"><span className="hero-highlight">We find the match.</span></span>
-          </h1>
+          {/* Headline & Abstract Lottie */}
+          <div style={{ position: 'relative', marginBottom: '1.25rem', maxWidth: '720px' }}>
+            <h1 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, lineHeight:1.05, letterSpacing:'-0.04em', color:'#fff', fontSize:'clamp(2.8rem,8vw,6rem)', position: 'relative', zIndex: 10 }}>
+              <span className="hero-word block" style={{ animationDelay: '0.1s' }}>Every student</span>
+              <span className="hero-word block" style={{ animationDelay: '0.2s', color: 'rgba(255,255,255,0.7)' }}>has a <span style={{ color: '#fff' }}>need.</span></span>
+              <span className="hero-word block" style={{ animationDelay: '0.3s' }}>
+                <span style={{ 
+                  background: 'linear-gradient(135deg, #00D4AA 0%, #635BFF 100%)', 
+                  WebkitBackgroundClip: 'text', 
+                  WebkitTextFillColor: 'transparent',
+                  display: 'inline-block'
+                }}>
+                  We find the match.
+                </span>
+              </span>
+            </h1>
+          </div>
 
           {/* Sub */}
           <p style={{ color:'rgba(255,255,255,0.65)', fontSize:'clamp(0.95rem,2vw,1.1rem)', lineHeight:1.65, maxWidth:'480px', marginBottom:'1.75rem', fontWeight:400 }}>
@@ -171,23 +186,35 @@ export default function Landing() {
           </p>
 
           {/* Search */}
-          <form onSubmit={handleHeroSearch} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.10)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.20)', borderRadius:'100px', overflow:'hidden', marginBottom:'1.25rem', maxWidth:'380px' }}>
-            <Search style={{ width:14, height:14, color:'rgba(255,255,255,0.45)', flexShrink:0, marginLeft:'1rem' }} />
-            <input
-              id="hero-search-input"
-              type="text"
-              placeholder='e.g. "Python tutor", "logo design"…'
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#fff', fontSize:'12px', fontWeight:500, padding:'12px 12px' }}
-            />
-            <button type="submit" id="hero-search-btn" aria-label="Search" style={{ margin:'5px', background:'linear-gradient(135deg,#635BFF,#A78BFA)', border:'none', borderRadius:'100px', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'transform .15s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <ArrowRight style={{ width:14, height:14, color:'#fff' }} />
-            </button>
-          </form>
+          <div style={{ position: 'relative', maxWidth: '380px', marginBottom: '1.25rem' }}>
+            {/* Cat sleeping on search bar */}
+            <div style={{ position: 'absolute', bottom: '100%', left: '30px', width: '95px', zIndex: 20, pointerEvents: 'none', marginBottom: '-5px' }}>
+              <Lottie animationData={catLottie} loop={true} />
+            </div>
+
+            {/* Playing game on right side of search bar */}
+            <div style={{ position: 'absolute', bottom: '100%', right: '15px', width: '70px', zIndex: 20, pointerEvents: 'none', marginBottom: '-2px' }}>
+              <Lottie animationData={playGameLottie} loop={true} />
+            </div>
+
+            <form onSubmit={handleHeroSearch} style={{ display:'flex', alignItems:'center', background:'rgba(255,255,255,0.10)', backdropFilter:'blur(20px)', border:'1px solid rgba(255,255,255,0.20)', borderRadius:'100px', overflow:'hidden' }}>
+              <Search style={{ width:14, height:14, color:'rgba(255,255,255,0.45)', flexShrink:0, marginLeft:'1rem' }} />
+              <input
+                id="hero-search-input"
+                type="text"
+                placeholder='e.g. "Python tutor", "logo design"…'
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex:1, background:'transparent', border:'none', outline:'none', color:'#fff', fontSize:'12px', fontWeight:500, padding:'12px 12px' }}
+              />
+              <button type="submit" id="hero-search-btn" aria-label="Search" style={{ margin:'5px', background:'linear-gradient(135deg,#635BFF,#A78BFA)', border:'none', borderRadius:'100px', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, transition:'transform .15s' }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <ArrowRight style={{ width:14, height:14, color:'#fff' }} />
+              </button>
+            </form>
+          </div>
 
           {/* CTAs */}
           <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:'0.75rem' }}>
