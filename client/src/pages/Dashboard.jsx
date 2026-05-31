@@ -145,7 +145,7 @@ export default function Dashboard() {
     try {
       const [ordersRes, servicesRes] = await Promise.all([
         api.get('/orders'),
-        api.get(`/services/user/${user._id}`),
+        api.get('/services/me'),
       ]);
       setOrders(ordersRes.data.orders?.length ? ordersRes.data.orders : MOCK_ORDERS);
       setMyServices(servicesRes.data.services || []);

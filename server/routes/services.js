@@ -121,6 +121,35 @@ router.get('/', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// GET /api/services/me — services by current user (protected)
+// ─────────────────────────────────────────────────────────────
+router.get('/me', protect, async (req, res) => {
+  try {
+    const { data: services, error } = await supabase
+      .from('services')
+      .select('*, seller:users!seller_id(id, name, avatar_url, avatar_public_id, department, rating)')
+      .eq('seller_id', req.user._id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const now = new Date();
+    const filtered = services.filter(svc => {
+      if (svc.category === 'SendiYou') {
+        if (svc.accepted_by_id) return false;
+        if (svc.expires_at && new Date(svc.expires_at) < now) return false;
+      }
+      return true;
+    });
+
+    res.status(200).json({ success: true, services: filtered.map(mapService) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
 // GET /api/services/user/:userId — services by a specific seller (public)
 // ─────────────────────────────────────────────────────────────
 router.get('/user/:userId', async (req, res) => {
