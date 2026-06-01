@@ -206,7 +206,9 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
 
             {/* ── Logo ── */}
-            <BrandLogo size="md" variant={isOnHero ? 'light' : 'dark'} />
+            <div className="-ml-2 sm:-ml-4 flex items-center">
+              <BrandLogo size="md" variant={isOnHero ? 'light' : 'dark'} />
+            </div>
 
             {/* ── Desktop Nav Links ── */}
             <div className="hidden md:flex items-center gap-1">
