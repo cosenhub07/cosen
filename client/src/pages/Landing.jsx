@@ -667,13 +667,13 @@ export default function Landing() {
                 <Mail className="h-4 w-4" />
                 <span style={{ fontSize:'13px', fontWeight:500 }}>cosen.hub@gmail.com</span>
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color:'#64748B', transition:'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = '#635BFF'} onMouseLeave={e => e.currentTarget.style.color = '#64748B'} title="Instagram">
+              <a href="https://www.instagram.com/cosen.hub?igsh=YmpiOTh4aWlxMjg3" target="_blank" rel="noopener noreferrer" style={{ color:'#64748B', transition:'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = '#635BFF'} onMouseLeave={e => e.currentTarget.style.color = '#64748B'} title="Instagram">
                 <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color:'#64748B', transition:'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = '#635BFF'} onMouseLeave={e => e.currentTarget.style.color = '#64748B'} title="LinkedIn">
+              <a href="https://www.linkedin.com/in/ankit-rajput-7969b0224?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" style={{ color:'#64748B', transition:'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = '#635BFF'} onMouseLeave={e => e.currentTarget.style.color = '#64748B'} title="LinkedIn">
                 <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
               </a>
-              <a href="#" target="_blank" rel="noopener noreferrer" style={{ color:'#64748B', transition:'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = '#635BFF'} onMouseLeave={e => e.currentTarget.style.color = '#64748B'} title="WhatsApp">
+              <a href="https://whatsapp.com/channel/0029Va4dI6XKmCPJ1lc5Pa0L" target="_blank" rel="noopener noreferrer" style={{ color:'#64748B', transition:'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = '#635BFF'} onMouseLeave={e => e.currentTarget.style.color = '#64748B'} title="WhatsApp">
                 <MessageCircle className="h-4 w-4" />
               </a>
             </div>
