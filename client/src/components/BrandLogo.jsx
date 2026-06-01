@@ -13,9 +13,9 @@ import useAuthStore from '../store/authStore';
  *  onClick — optional click handler (e.g. close mobile menu)
  */
 const sizes = {
-  sm: { img: 'h-7', text: 'text-lg' },
-  md: { img: 'h-9', text: 'text-xl' },
-  lg: { img: 'h-12', text: 'text-2xl' },
+  sm: { img: 'h-8' },
+  md: { img: 'h-10' },
+  lg: { img: 'h-14' },
 };
 
 export default function BrandLogo({ size = 'md', onClick }) {
@@ -32,9 +32,6 @@ export default function BrandLogo({ size = 'md', onClick }) {
         alt="Cosen logo"
         className={`${s.img} w-auto brand-logo-img`}
       />
-      <span className={`brand-logo-name ${s.text}`}>
-        cosen
-      </span>
     </Link>
   );
 }
