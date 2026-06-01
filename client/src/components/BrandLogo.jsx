@@ -13,9 +13,9 @@ import useAuthStore from '../store/authStore';
  *  onClick — optional click handler (e.g. close mobile menu)
  */
 const sizes = {
-  sm: { img: 'h-10' },
-  md: { img: 'h-14' },
-  lg: { img: 'h-20' },
+  sm: { img: 'h-12' },
+  md: { img: 'h-16' },
+  lg: { img: 'h-24' },
 };
 
 export default function BrandLogo({ size = 'md', onClick }) {
