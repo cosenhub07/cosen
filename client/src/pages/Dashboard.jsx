@@ -377,7 +377,7 @@ export default function Dashboard() {
                   <LottieLoader size={120} text="Loading transactions..." />
                 ) : (
                   <div className="divide-y" style={{ borderColor: '#F0F4F8' }}>
-                    {orders.slice(0, 5).map((order, i) => {
+                    {orders.map((order, i) => {
                       const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
                       const sellerName = typeof order.seller === 'object' ? order.seller?.name : 'Seller';
                       const d = new Date(order.createdAt);
@@ -519,8 +519,8 @@ export default function Dashboard() {
               </div>
 
               {/* Active Orders as Events */}
-              <div className="space-y-3">
-                {orders.filter(o => o.status === 'inProgress').slice(0, 2).map((o, i) => (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {orders.filter(o => o.status === 'inProgress').map((o, i) => (
                   <div key={i} className="p-3 rounded-xl border hover:shadow-sm cursor-pointer transition-all"
                     style={{ borderColor: '#E6EBF1' }}
                     onClick={() => navigate(`/orders/${o._id}`)}>
