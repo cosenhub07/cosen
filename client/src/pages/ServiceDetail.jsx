@@ -128,7 +128,7 @@ export default function ServiceDetail() {
           order_id:    data.razorpayOrderId,
           name:        'Cosen Marketplace',
           description: data.serviceTitle,
-          image:       '/logo.png',
+          image:       '/cosen_brand_logo.svg',
           prefill: {
             name:  user.name,
             email: user.email,

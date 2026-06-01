@@ -28,7 +28,7 @@ export default function BrandLogo({ size = 'md', onClick }) {
   return (
     <Link to={destination} className="brand-logo" onClick={onClick}>
       <img
-        src="/logo.png"
+        src="/cosen_brand_logo.svg"
         alt="Cosen logo"
         className={`${s.img} w-auto brand-logo-img`}
       />
