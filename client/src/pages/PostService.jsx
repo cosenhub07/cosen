@@ -404,10 +404,15 @@ export default function PostService() {
 
           {/* ── Category selector ── */}
           <div className="stripe-card bg-white p-6">
-            <label className="form-label flex items-center gap-2 mb-4">
-              <Tag className="h-4 w-4 text-stripe-purple" />
-              <span>Category <span className="text-red-500">*</span></span>
-            </label>
+            <div className="flex justify-between items-start mb-4">
+              <label className="form-label flex items-center gap-2">
+                <Tag className="h-4 w-4 text-stripe-purple" />
+                <span>Category <span className="text-red-500">*</span></span>
+              </label>
+              {!!editId && (
+                <span className="text-[10px] font-bold tracking-wider uppercase bg-gray-100 text-gray-500 px-2 py-1 rounded-md mt-1">Locked</span>
+              )}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {CATEGORIES.map(cat => {
                 const Icon = cat.icon;
@@ -418,10 +423,12 @@ export default function PostService() {
                     type="button"
                     id={`cat-btn-${cat.value.toLowerCase().replace(/\s+/g, '-')}`}
                     onClick={() => {
+                      if (editId) return;
                       setForm(f => ({ ...f, category: cat.value }));
                       setErrors(e => ({ ...e, category: undefined }));
                     }}
-                    className="relative p-4 rounded-xl border-2 text-left transition-all duration-200 group"
+                    disabled={!!editId}
+                    className={`relative p-4 rounded-xl border-2 text-left transition-all duration-200 group ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{
                       borderColor: isSelected ? cat.color : '#E6EBF1',
                       background: isSelected ? catBg[cat.value] : '#fff',
@@ -693,14 +700,19 @@ export default function PostService() {
           {/* ── SendiYou Connection Fields ── */}
           {form.category === 'SendiYou' && (
             <div className="stripe-card bg-white p-6 space-y-6" style={{ border: '2px solid #FBCFE8' }}>
-              <div className="border-b border-pink-100 pb-4">
-                <h3 className="font-display font-bold text-stripe-slate text-lg flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />
-                  <span>SendiYou Connection Details</span>
-                </h3>
-                <p className="text-xs text-stripe-muted mt-1">
-                  Set up your anonymous campus connection request. Your real identity can optionally be hidden.
-                </p>
+              <div className="border-b border-pink-100 pb-4 flex justify-between items-start">
+                <div>
+                  <h3 className="font-display font-bold text-stripe-slate text-lg flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-pink-500 fill-pink-500" />
+                    <span>SendiYou Connection Details</span>
+                  </h3>
+                  <p className="text-xs text-stripe-muted mt-1">
+                    {editId ? 'Core connection settings are locked after creation to prevent conflicts.' : 'Set up your anonymous campus connection request. Your real identity can optionally be hidden.'}
+                  </p>
+                </div>
+                {!!editId && (
+                  <span className="text-[10px] font-bold tracking-wider uppercase bg-gray-100 text-gray-500 px-2 py-1 rounded-md mt-1">Locked</span>
+                )}
               </div>
 
               {/* Display Name */}
@@ -736,7 +748,8 @@ export default function PostService() {
                       key={g}
                       type="button"
                       onClick={() => setForm(f => ({ ...f, preferredGender: g }))}
-                      className="py-3 px-3 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-center"
+                      disabled={!!editId}
+                      className={`py-3 px-3 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-center ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                       style={{
                         borderColor: form.preferredGender === g ? '#EC4899' : '#E6EBF1',
                         background: form.preferredGender === g ? '#FFF0F8' : '#FAFAFA',
@@ -760,7 +773,8 @@ export default function PostService() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, connectionType: 'individual', groupSize: 1 }))}
-                    className="py-4 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-left flex items-start gap-3"
+                    disabled={!!editId}
+                    className={`py-4 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-left flex items-start gap-3 ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{
                       borderColor: form.connectionType === 'individual' ? '#EC4899' : '#E6EBF1',
                       background: form.connectionType === 'individual' ? '#FFF0F8' : '#FAFAFA',
@@ -778,7 +792,8 @@ export default function PostService() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, connectionType: 'group', groupSize: Math.max(2, form.groupSize || 2) }))}
-                    className="py-4 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-left flex items-start gap-3"
+                    disabled={!!editId}
+                    className={`py-4 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 text-left flex items-start gap-3 ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{
                       borderColor: form.connectionType === 'group' ? '#EC4899' : '#E6EBF1',
                       background: form.connectionType === 'group' ? '#FFF0F8' : '#FAFAFA',
@@ -805,12 +820,14 @@ export default function PostService() {
                     <button
                       type="button"
                       onClick={() => setForm(f => ({ ...f, groupSize: Math.max(2, (Number(f.groupSize) || 2) - 1) }))}
-                      className="w-10 h-10 rounded-xl border border-pink-200 bg-white text-pink-600 font-bold text-lg flex items-center justify-center hover:bg-pink-50 transition-all"
+                      disabled={!!editId}
+                      className={`w-10 h-10 rounded-xl border border-pink-200 bg-white text-pink-600 font-bold text-lg flex items-center justify-center hover:bg-pink-50 transition-all ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >−</button>
                     <input
                       type="number"
                       id="svc-group-size"
-                      className="stripe-input text-center w-24 font-bold text-lg"
+                      disabled={!!editId}
+                      className={`stripe-input text-center w-24 font-bold text-lg ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                       min={2}
                       max={50}
                       value={form.groupSize || 2}
@@ -819,7 +836,8 @@ export default function PostService() {
                     <button
                       type="button"
                       onClick={() => setForm(f => ({ ...f, groupSize: Math.min(50, (Number(f.groupSize) || 2) + 1) }))}
-                      className="w-10 h-10 rounded-xl border border-pink-200 bg-white text-pink-600 font-bold text-lg flex items-center justify-center hover:bg-pink-50 transition-all"
+                      disabled={!!editId}
+                      className={`w-10 h-10 rounded-xl border border-pink-200 bg-white text-pink-600 font-bold text-lg flex items-center justify-center hover:bg-pink-50 transition-all ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >+</button>
                     <span className="text-sm font-semibold text-pink-700">
                       Up to {form.groupSize} members
@@ -838,7 +856,8 @@ export default function PostService() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, identityHidden: true }))}
-                    className="flex-1 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2"
+                    disabled={!!editId}
+                    className={`flex-1 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{
                       borderColor: form.identityHidden ? '#EC4899' : '#E6EBF1',
                       background: form.identityHidden ? '#FFF0F8' : '#FAFAFA',
@@ -851,7 +870,8 @@ export default function PostService() {
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, identityHidden: false }))}
-                    className="flex-1 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2"
+                    disabled={!!editId}
+                    className={`flex-1 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${editId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     style={{
                       borderColor: !form.identityHidden ? '#10B981' : '#E6EBF1',
                       background: !form.identityHidden ? '#F0FDF4' : '#FAFAFA',

@@ -278,6 +278,7 @@ router.put('/:id', protect, async (req, res) => {
       subCategory: 'sub_category', isNegotiable: 'is_negotiable',
       price: 'price', deliveryDays: 'delivery_days', tags: 'tags', isActive: 'is_active',
       coverImageUrl: 'cover_image_url', portfolioImages: 'portfolio_images',
+      displayName: 'display_name',
     };
 
     const updates = {};
