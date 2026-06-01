@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Plus, ChevronRight, Star, TrendingUp, ShoppingBag,
@@ -110,6 +110,27 @@ function GaugeChart({ value = 0, max = 100, color = '#635BFF', label = '' }) {
   );
 }
 
+// Time Filter Dropdown
+function TimeFilterDropdown({ value, onChange }) {
+  return (
+    <div className="relative inline-block">
+      <select 
+        value={value} 
+        onChange={(e) => onChange(e.target.value)}
+        className="text-xs font-semibold text-stripe-muted bg-stripe-bg pl-3 pr-6 py-1 rounded-full appearance-none cursor-pointer border-none outline-none focus:ring-2 focus:ring-stripe-purple/20 transition-all"
+        style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
+      >
+        <option value="7d">Last 7 Days</option>
+        <option value="30d">Last 30 Days</option>
+        <option value="all">All Time</option>
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-stripe-muted text-[10px]">
+        ▼
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -133,7 +154,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('orders');
   const [myPayouts, setMyPayouts] = useState([]);
+  const [timeRange, setTimeRange] = useState('7d');
   const today = new Date();
+
+  const filteredOrders = useMemo(() => {
+    if (timeRange === 'all') return orders;
+    const cutoff = new Date();
+    if (timeRange === '7d') cutoff.setDate(cutoff.getDate() - 7);
+    if (timeRange === '30d') cutoff.setDate(cutoff.getDate() - 30);
+    return orders.filter(o => new Date(o.createdAt || o.date || new Date()) >= cutoff);
+  }, [orders, timeRange]);
 
   useEffect(() => {
     if (!user) return;
@@ -179,7 +209,7 @@ export default function Dashboard() {
     );
   }
 
-  const totalEarnings = orders
+  const totalEarnings = filteredOrders
     .filter(o => o.status === 'completed')
     .reduce((sum, o) => {
       const isPlayground = o.service?.category === 'Playground';
@@ -197,9 +227,9 @@ export default function Dashboard() {
         return sum;
       }
     }, 0);
-  const activeOrders = orders.filter(o => o.status === 'inProgress').length;
-  const completedOrders = orders.filter(o => o.status === 'completed').length;
-  const totalSpent = orders
+  const activeOrders = filteredOrders.filter(o => o.status === 'inProgress').length;
+  const completedOrders = filteredOrders.filter(o => o.status === 'completed').length;
+  const totalSpent = filteredOrders
     .filter(o => o.status === 'completed')
     .reduce((sum, o) => {
       const isPlayground = o.service?.category === 'Playground';
@@ -223,20 +253,20 @@ export default function Dashboard() {
 
   const statsCards = [
     {
-      label: 'Total Earnings', value: `₹${(totalEarnings || 9800).toLocaleString('en-IN')}`,
-      sub: '+6.53%', subLabel: 'Last Week Total', up: true, icon: IndianRupee, color: '#635BFF',
+      label: 'Total Earnings', value: `₹${(totalEarnings || (orders.length ? 0 : 9800)).toLocaleString('en-IN')}`,
+      sub: timeRange === 'all' ? 'Lifetime' : 'vs Previous', subLabel: 'Trend', up: true, icon: IndianRupee, color: '#635BFF',
     },
     {
-      label: 'Total Orders', value: orders.length || 1009,
-      sub: '+23.09%', subLabel: 'Last Week Total', up: true, icon: ShoppingBag, color: '#00D4AA',
+      label: 'Total Orders', value: filteredOrders.length || (orders.length ? 0 : 1009),
+      sub: timeRange === 'all' ? 'Lifetime' : 'vs Previous', subLabel: 'Trend', up: true, icon: ShoppingBag, color: '#00D4AA',
     },
     {
-      label: 'Completed', value: completedOrders || 1231,
-      sub: '-1.53%', subLabel: 'Last Month Total', up: false, icon: Package, color: '#FF9F43',
+      label: 'Completed', value: completedOrders || (orders.length ? 0 : 1231),
+      sub: timeRange === 'all' ? 'Lifetime' : 'vs Previous', subLabel: 'Trend', up: false, icon: Package, color: '#FF9F43',
     },
     {
-      label: 'Services Posted', value: myServices.length || 4,
-      sub: '+5.87%', subLabel: 'Last Week Total', up: true, icon: Zap, color: '#FF6B9D',
+      label: 'Services Posted', value: myServices.length || (orders.length ? 0 : 4),
+      sub: 'All Time', subLabel: 'Total', up: true, icon: Zap, color: '#FF6B9D',
     },
   ];
 
@@ -305,7 +335,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#E6EBF1' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-stripe-slate">My Expenses</h2>
-              <span className="text-xs text-stripe-muted bg-stripe-bg px-3 py-1 rounded-full">Last 7 Days ▾</span>
+              <TimeFilterDropdown value={timeRange} onChange={setTimeRange} />
             </div>
             <GaugeChart value={weeklySpend} max={maxSpend} label={`₹${weeklySpend.toLocaleString('en-IN')}`} />
             <div className="flex justify-center gap-5 mt-4 flex-wrap">
@@ -327,7 +357,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl border p-6" style={{ borderColor: '#E6EBF1' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-stripe-slate">My Finance</h2>
-              <span className="text-xs text-stripe-muted bg-stripe-bg px-3 py-1 rounded-full">Last 7 Days ▾</span>
+              <TimeFilterDropdown value={timeRange} onChange={setTimeRange} />
             </div>
             <div className="relative">
               {/* Tooltip */}
@@ -359,7 +389,7 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
-                <span className="text-xs text-stripe-muted bg-stripe-bg px-3 py-1.5 rounded-full">Last 7 Days ▾</span>
+                <TimeFilterDropdown value={timeRange} onChange={setTimeRange} />
               </div>
             </div>
 
@@ -377,7 +407,9 @@ export default function Dashboard() {
                   <LottieLoader size={120} text="Loading transactions..." />
                 ) : (
                   <div className="divide-y" style={{ borderColor: '#F0F4F8' }}>
-                    {orders.map((order, i) => {
+                    {filteredOrders.length === 0 ? (
+                      <div className="text-center py-10 text-stripe-muted text-sm">No transactions found for this period.</div>
+                    ) : filteredOrders.map((order, i) => {
                       const st = STATUS_MAP[order.status] || STATUS_MAP.pending;
                       const sellerName = typeof order.seller === 'object' ? order.seller?.name : 'Seller';
                       const d = new Date(order.createdAt);
@@ -520,7 +552,7 @@ export default function Dashboard() {
 
               {/* Active Orders as Events */}
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                {orders.filter(o => o.status === 'inProgress').map((o, i) => (
+                {filteredOrders.filter(o => o.status === 'inProgress').map((o, i) => (
                   <div key={i} className="p-3 rounded-xl border hover:shadow-sm cursor-pointer transition-all"
                     style={{ borderColor: '#E6EBF1' }}
                     onClick={() => navigate(`/orders/${o._id}`)}>
@@ -534,7 +566,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 ))}
-                {orders.filter(o => o.status === 'inProgress').length === 0 && (
+                {filteredOrders.filter(o => o.status === 'inProgress').length === 0 && (
                   <div className="text-center py-4">
                     <Clock className="h-8 w-8 text-stripe-muted mx-auto mb-2 opacity-40" />
                     <p className="text-xs text-stripe-muted">No active orders right now</p>
