@@ -461,7 +461,7 @@ export default function OrderDetail() {
         <div className="flex flex-col lg:flex-row gap-6 items-start">
 
           {/* ── LEFT: Chat ────────────────────────────────────────── */}
-          <div className="flex-1 flex flex-col stripe-card bg-white overflow-hidden" style={{ height: '520px', minHeight: '400px' }}>
+          <div className="flex-1 flex flex-col stripe-card bg-white overflow-hidden w-full" style={{ height: 'calc(100vh - 220px)', minHeight: '500px', maxHeight: '850px' }}>
 
             {/* Chat header */}
             <div className="p-4 border-b border-stripe-border bg-slate-50 flex items-center justify-between gap-3 flex-wrap shrink-0">

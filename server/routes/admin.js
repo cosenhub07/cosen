@@ -476,4 +476,202 @@ router.put('/services/:serviceId/status', async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin/orders — Search & list all orders
+// ─────────────────────────────────────────────────────────────
+router.get('/orders', async (req, res) => {
+  try {
+    const { search, status, page = 1, limit = 20 } = req.query;
+    const offset = (Number(page) - 1) * Number(limit);
+
+    let orders = [];
+    let total = 0;
+
+    if (search && search.trim()) {
+      const term = search.trim().toLowerCase();
+
+      // Fetch recent 1000 orders to search through in JS (extremely reliable for partial UUIDs)
+      let query = supabase
+        .from('orders')
+        .select(`
+          *,
+          service:services!service_id(id, title, category, price),
+          buyer:users!buyer_id(id, name, email),
+          seller:users!seller_id(id, name, email)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(1000);
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Filter in JS to support partial matches on UUID, names, emails, and titles
+      const filtered = (data || []).filter(o => {
+        const orderId = String(o.id).toLowerCase();
+        const serviceTitle = String(o.service?.title || '').toLowerCase();
+        const buyerName = String(o.buyer?.name || '').toLowerCase();
+        const buyerEmail = String(o.buyer?.email || '').toLowerCase();
+        const sellerName = String(o.seller?.name || '').toLowerCase();
+        const sellerEmail = String(o.seller?.email || '').toLowerCase();
+
+        return orderId.includes(term) ||
+               serviceTitle.includes(term) ||
+               buyerName.includes(term) ||
+               buyerEmail.includes(term) ||
+               sellerName.includes(term) ||
+               sellerEmail.includes(term);
+      });
+
+      total = filtered.length;
+      orders = filtered.slice(offset, offset + Number(limit));
+    } else {
+      // Normal paginated fetch
+      let query = supabase
+        .from('orders')
+        .select(`
+          *,
+          service:services!service_id(id, title, category, price),
+          buyer:users!buyer_id(id, name, email),
+          seller:users!seller_id(id, name, email)
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(offset, offset + Number(limit) - 1);
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, count, error } = await query;
+      if (error) throw error;
+
+      orders = data || [];
+      total = count || 0;
+    }
+
+    res.json({
+      success: true,
+      orders: orders.map(o => ({
+        _id: o.id,
+        price: o.price,
+        status: o.status,
+        createdAt: o.created_at,
+        service: o.service ? { _id: o.service.id, title: o.service.title, category: o.service.category, price: o.service.price } : null,
+        buyer: o.buyer ? { _id: o.buyer.id, name: o.buyer.name, email: o.buyer.email } : null,
+        seller: o.seller ? { _id: o.seller.id, name: o.seller.name, email: o.seller.email } : null,
+      })),
+      total,
+      page: Number(page),
+      limit: Number(limit)
+    });
+  } catch (error) {
+    console.error('[Admin] Orders list error:', error);
+    res.status(500).json({ success: false, message: 'Server error fetching orders' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// GET /api/admin/orders/:orderId — Single order detail audit
+// ─────────────────────────────────────────────────────────────
+router.get('/orders/:orderId', async (req, res) => {
+  try {
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        service:services!service_id(*),
+        buyer:users!buyer_id(*),
+        seller:users!seller_id(*),
+        review:reviews(rating, comment, created_at)
+      `)
+      .eq('id', req.params.orderId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    // Fetch associated payout (if any)
+    const { data: payout } = await supabase
+      .from('payouts')
+      .select('*')
+      .eq('order_id', order.id)
+      .maybeSingle();
+
+    // Fetch chat messages audit transcript
+    const { data: messages } = await supabase
+      .from('messages')
+      .select(`
+        id, content, created_at, sender_id,
+        sender:users!sender_id(name)
+      `)
+      .eq('order_id', order.id)
+      .order('created_at', { ascending: true });
+
+    res.json({
+      success: true,
+      order: {
+        _id: order.id,
+        price: order.price,
+        platformFee: order.platform_fee,
+        sellerEarnings: order.seller_earnings,
+        status: order.status,
+        deliveryNote: order.delivery_note,
+        disputeReason: order.dispute_reason,
+        disputeVerdict: order.dispute_verdict,
+        createdAt: order.created_at,
+        updatedAt: order.updated_at,
+        deliveredAt: order.delivered_at,
+        completedAt: order.completed_at,
+        service: order.service ? {
+          _id: order.service.id,
+          title: order.service.title,
+          category: order.service.category,
+          price: order.service.price,
+          deliveryDays: order.service.delivery_days,
+          is_active: order.service.is_active
+        } : null,
+        buyer: order.buyer ? {
+          _id: order.buyer.id,
+          name: order.buyer.name,
+          email: order.buyer.email,
+          phone: order.buyer.phone,
+          isPhoneVerified: order.buyer.is_phone_verified,
+          avatar: { url: order.buyer.avatar_url }
+        } : null,
+        seller: order.seller ? {
+          _id: order.seller.id,
+          name: order.seller.name,
+          email: order.seller.email,
+          phone: order.seller.phone,
+          isPhoneVerified: order.seller.is_phone_verified,
+          upiId: order.seller.upi_id,
+          avatar: { url: order.seller.avatar_url }
+        } : null,
+        review: order.review,
+        payout: payout ? {
+          id: payout.id,
+          amount: payout.amount,
+          upi_id: payout.upi_id,
+          status: payout.status,
+          paid_at: payout.paid_at,
+          created_at: payout.created_at
+        } : null,
+        messages: (messages || []).map(m => ({
+          _id: m.id,
+          content: m.content,
+          createdAt: m.created_at,
+          senderId: m.sender_id,
+          senderName: m.sender?.name || 'User'
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('[Admin] Get order detail error:', error);
+    res.status(500).json({ success: false, message: 'Server error fetching order details' });
+  }
+});
+
 module.exports = router;

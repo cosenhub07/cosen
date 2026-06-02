@@ -27,14 +27,15 @@ import AdminDisputes from './pages/admin/AdminDisputes';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminServices from './pages/admin/AdminServices';
 import AdminPayouts from './pages/admin/AdminPayouts';
-
+import AdminOrders from './pages/admin/AdminOrders';
+ 
 function TitleUpdater() {
   const location = useLocation();
-
+ 
   useEffect(() => {
     const path = location.pathname;
     let title = 'Cosen';
-
+ 
     if (path === '/') title = 'Cosen | Campus Marketplace';
     else if (path === '/login') title = 'Log in | Cosen';
     else if (path === '/signup') title = 'Sign up | Cosen';
@@ -50,13 +51,13 @@ function TitleUpdater() {
     else if (path === '/verify-email') title = 'Verify Email | Cosen';
     else if (path === '/forgot-password' || path.startsWith('/reset-password')) title = 'Reset Password | Cosen';
     else if (path.startsWith('/admin')) title = 'Admin Panel | Cosen';
-
+ 
     document.title = title;
   }, [location]);
-
+ 
   return null;
 }
-
+ 
 function App() {
   return (
     <Router>
@@ -74,6 +75,7 @@ function App() {
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="services" element={<AdminServices />} />
                 <Route path="payouts" element={<AdminPayouts />} />
+                <Route path="orders" element={<AdminOrders />} />
               </Routes>
             </AdminLayout>
           </AdminRoute>

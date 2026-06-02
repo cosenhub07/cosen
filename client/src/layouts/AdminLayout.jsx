@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, ShieldCheck, Gavel, Users, Package,
-  ChevronRight, LogOut, Menu, X, Bell, IndianRupee
+  ChevronRight, LogOut, Menu, X, Bell, IndianRupee, ShoppingBag
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import adminApi from '../lib/adminApi';
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', badge: null },
   { to: '/admin/verifications', icon: ShieldCheck, label: 'Verifications', badgeKey: 'pendingVerifications' },
   { to: '/admin/disputes', icon: Gavel, label: 'Disputes', badgeKey: 'openDisputes' },
+  { to: '/admin/orders', icon: ShoppingBag, label: 'Orders', badge: null },
   { to: '/admin/users', icon: Users, label: 'Users', badge: null },
   { to: '/admin/services', icon: Package, label: 'Services', badge: null },
   { to: '/admin/payouts', icon: IndianRupee, label: 'Payouts', badgeKey: 'pendingPayouts' },

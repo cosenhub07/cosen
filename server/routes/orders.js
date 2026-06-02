@@ -306,8 +306,10 @@ router.post('/', protect, async (req, res) => {
       .eq('id', serviceId)
       .maybeSingle();
 
-    if (svcErr || !service || !service.is_active)
-      return res.status(404).json({ success: false, message: 'Service not found' });
+    if (svcErr || !service || !service.is_active) {
+      if (svcErr) console.error('[POST /orders] Supabase error fetching service:', svcErr);
+      return res.status(404).json({ success: false, message: 'Service not found', error: svcErr?.message });
+    }
 
     if (service.seller_id === req.user._id)
       return res.status(400).json({ success: false, message: 'You cannot order your own service' });

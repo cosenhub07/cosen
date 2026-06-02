@@ -14,6 +14,8 @@ const adminApi = {
   updateUserRole: (userId, role) => api.put(`/admin/users/${userId}/role`, { role }),
   getServices: (params = {}) => api.get('/admin/services', { params }),
   toggleServiceStatus: (serviceId) => api.put(`/admin/services/${serviceId}/status`),
+  getOrders: (params = {}) => api.get('/admin/orders', { params }),
+  getOrderDetail: (orderId) => api.get(`/admin/orders/${orderId}`),
 };
 
 export default adminApi;
