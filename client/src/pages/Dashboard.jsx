@@ -177,10 +177,10 @@ export default function Dashboard() {
         api.get('/orders'),
         api.get('/services/me'),
       ]);
-      setOrders(ordersRes.data.orders?.length ? ordersRes.data.orders : MOCK_ORDERS);
+      setOrders(ordersRes.data.orders || []);
       setMyServices(servicesRes.data.services || []);
     } catch {
-      setOrders(MOCK_ORDERS);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
