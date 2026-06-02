@@ -38,6 +38,7 @@ export default function Messages() {
   const [sending,        setSending]        = useState(false);
   const [onlineUsers,    setOnlineUsers]    = useState(new Set());
   const [search,         setSearch]         = useState('');
+  const [activeTab,      setActiveTab]      = useState('direct'); // 'direct' | 'sendiyou'
   const [mobileView,     setMobileView]     = useState('list'); // 'list' | 'chat'
 
   const socketRef    = useRef(null);
@@ -228,9 +229,13 @@ export default function Messages() {
   };
 
   // ── Filtered conversations ──────────────────────────────────
-  const filtered = conversations.filter(c =>
+  const baseFiltered = conversations.filter(c =>
     c.other?.name?.toLowerCase().includes(search.toLowerCase())
   );
+  
+  const filtered = activeTab === 'direct'
+    ? baseFiltered.filter(c => c.type !== 'sendiyou')
+    : baseFiltered.filter(c => c.type === 'sendiyou');
 
   const totalUnread = conversations.reduce((s, c) => s + (c.unreadCount || 0), 0);
 
@@ -264,17 +269,43 @@ export default function Messages() {
               ${mobileView === 'chat' ? 'hidden lg:flex' : 'flex'}
             `}
           >
-            {/* Search */}
-            <div className="p-4 border-b border-stripe-border">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stripe-muted" />
-                <input
-                  type="text"
-                  placeholder="Search conversations…"
-                  className="stripe-input pl-9 py-2 text-sm w-full"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
+            {/* Search & Tabs */}
+            <div className="flex flex-col border-b border-stripe-border">
+              <div className="p-4 pb-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stripe-muted" />
+                  <input
+                    type="text"
+                    placeholder="Search conversations…"
+                    className="stripe-input pl-9 py-2 text-sm w-full"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              {/* Tabs */}
+              <div className="flex items-center px-4 pb-3 gap-2">
+                <button
+                  onClick={() => setActiveTab('direct')}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                    activeTab === 'direct'
+                      ? 'bg-stripe-purple text-white shadow-sm'
+                      : 'bg-slate-100 text-stripe-slate hover:bg-slate-200'
+                  }`}
+                >
+                  Direct
+                </button>
+                <button
+                  onClick={() => setActiveTab('sendiyou')}
+                  className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                    activeTab === 'sendiyou'
+                      ? 'bg-stripe-purple text-white shadow-sm'
+                      : 'bg-slate-100 text-stripe-slate hover:bg-slate-200'
+                  }`}
+                >
+                  SendiYou
+                </button>
               </div>
             </div>
 
