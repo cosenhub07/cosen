@@ -488,7 +488,10 @@ router.get('/orders', async (req, res) => {
     let total = 0;
 
     if (search && search.trim()) {
-      const term = search.trim().toLowerCase();
+      let term = search.trim().toLowerCase();
+      if (term.startsWith('#')) {
+        term = term.slice(1);
+      }
 
       // Fetch recent 1000 orders to search through in JS (extremely reliable for partial UUIDs)
       let query = supabase
@@ -511,7 +514,7 @@ router.get('/orders', async (req, res) => {
 
       // Filter in JS to support partial matches on UUID, names, emails, and titles
       const filtered = (data || []).filter(o => {
-        const orderId = String(o.id).toLowerCase();
+        const orderId = String(o.id || '').toLowerCase();
         const serviceTitle = String(o.service?.title || '').toLowerCase();
         const buyerName = String(o.buyer?.name || '').toLowerCase();
         const buyerEmail = String(o.buyer?.email || '').toLowerCase();
