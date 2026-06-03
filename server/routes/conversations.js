@@ -82,20 +82,61 @@ router.get('/', protect, async (req, res) => {
     const conversations = rows.map(r => mapConvo({ ...r, unread_count: unreadMap[r.id] || 0 }, userId));
 
     // --- FETCH SENDIYOU ORDERS ---
-    const sendiFields = `
-      id, created_at, status, revealed_ids, buyer_ids, buyer_id, seller_id,
-      service:services!inner(category, display_name, expires_at, group_size),
-      buyer:users!buyer_id(id, name, avatar_url),
-      seller:users!seller_id(id, name, avatar_url)
-    `;
+    // We need to get all SendiYou orders where the user is involved:
+    // - as the seller (posted the request)
+    // - as a buyer (accepted the request)
+    // - as a group member (buyer_ids array)
+    // We first get all service IDs for SendiYou category, then query orders
+    const { data: sendiServices } = await supabase
+      .from('services')
+      .select('id, category, display_name, expires_at, group_size')
+      .eq('category', 'SendiYou');
 
-    const [directRes, groupRes] = await Promise.all([
-      supabase.from('orders').select(sendiFields).eq('service.category', 'SendiYou').or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
-      supabase.from('orders').select(sendiFields).eq('service.category', 'SendiYou').contains('buyer_ids', [userId])
-    ]);
+    const sendiServiceIds = (sendiServices || []).map(s => s.id);
 
-    const allSendi = [...(directRes.data || []), ...(groupRes.data || [])].filter((o, i, arr) => arr.findIndex(x => x.id === o.id) === i);
-    const sendiOrderIds = allSendi.map(o => o.id);
+    let allSendi = [];
+    if (sendiServiceIds.length > 0) {
+      const sendiFields = `
+        id, created_at, status, revealed_ids, buyer_ids, buyer_id, seller_id, service_id,
+        buyer:users!buyer_id(id, name, avatar_url),
+        seller:users!seller_id(id, name, avatar_url)
+      `;
+
+      const [directRes, groupRes] = await Promise.all([
+        supabase.from('orders').select(sendiFields)
+          .in('service_id', sendiServiceIds)
+          .or(`buyer_id.eq.${userId},seller_id.eq.${userId}`),
+        supabase.from('orders').select(sendiFields)
+          .in('service_id', sendiServiceIds)
+          .contains('buyer_ids', [userId])
+      ]);
+
+      // Also get orders where user is seller but hasn't been accepted (buyer_id may be null)
+      // These are captured in directRes already via seller_id.eq.${userId}
+
+      const seen = new Set();
+      allSendi = [...(directRes.data || []), ...(groupRes.data || [])].filter(o => {
+        if (seen.has(o.id)) return false;
+        seen.add(o.id);
+        return true;
+      });
+
+      // Attach service info from already-fetched sendiServices
+      const sendiServiceMap = {};
+      (sendiServices || []).forEach(s => { sendiServiceMap[s.id] = s; });
+      allSendi.forEach(o => {
+        o.service = sendiServiceMap[o.service_id] || null;
+      });
+    }
+
+    // Filter out expired connections
+    const now = new Date();
+    const activeSendi = allSendi.filter(o => {
+      if (!o.service?.expires_at) return true; // no expiry = active
+      return new Date(o.service.expires_at) > now;
+    });
+
+    const sendiOrderIds = activeSendi.map(o => o.id);
 
     let sendiConversations = [];
     if (sendiOrderIds.length > 0) {
@@ -114,44 +155,56 @@ router.get('/', protect, async (req, res) => {
         if (!latestMsgs[m.order_id]) latestMsgs[m.order_id] = m;
       });
 
-      sendiConversations = allSendi.map(o => {
+      sendiConversations = activeSendi.map(o => {
         const isRevealed = (o.revealed_ids || []).includes(userId);
         const lastMsg = latestMsgs[o.id];
         const isGroup = o.service?.group_size > 1;
+        const isSeller = o.seller_id === userId;
 
         let otherName = 'SendiYou Connection';
         let otherAvatar = '';
 
         if (isGroup) {
-          otherName = 'SendiYou Group';
+          otherName = isSeller
+            ? `Your Group (${o.buyer_ids?.length || 0}/${o.service?.group_size || 1} joined)`
+            : 'SendiYou Group';
+        } else if (isSeller) {
+          // Seller sees their own posted request — show the display name
+          const buyer = o.buyer;
+          if (buyer) {
+            const buyerRevealed = (o.revealed_ids || []).includes(buyer.id);
+            otherName = buyerRevealed ? buyer.name : 'SendiYou Match';
+            otherAvatar = buyerRevealed ? (buyer.avatar_url || '') : '';
+          } else {
+            otherName = 'Waiting for match...';
+          }
         } else {
-          const other = o.buyer_id === userId ? o.seller : o.buyer;
+          // Buyer sees the seller (poster)
+          const other = o.seller;
           if (other) {
-            // If they haven't revealed, mask it
             const otherRevealed = (o.revealed_ids || []).includes(other.id);
-            if (otherRevealed || isRevealed) { // Reveal logic: if either revealed (based on recent fix) it's visible. Actually, independent reveal means if OTHER revealed, I can see them.
-              otherName = otherRevealed ? other.name : (o.service?.display_name || 'Secret');
-              otherAvatar = otherRevealed ? other.avatar_url : '';
-            } else {
-              otherName = o.service?.display_name || 'Secret';
-            }
+            otherName = otherRevealed ? other.name : (o.service?.display_name || 'Secret');
+            otherAvatar = otherRevealed ? (other.avatar_url || '') : '';
           }
         }
 
         return {
           id: o.id,
           type: 'sendiyou',
-          lastMessage: lastMsg ? lastMsg.content : (o.buyer_ids?.length > 1 ? 'Someone joined the group.' : 'Connection accepted!'),
+          lastMessage: lastMsg
+            ? lastMsg.content
+            : (isSeller && !o.buyer_id ? 'Your request is live, waiting for a match!' : 'Connection accepted!'),
           lastMessageAt: lastMsg ? lastMsg.created_at : o.created_at,
           createdAt: o.created_at,
           other: { name: otherName, avatarUrl: otherAvatar },
           unreadCount: sendiUnread[o.id] || 0,
           sendiyou: {
-            isExpired: o.service?.expires_at ? new Date(o.service.expires_at) < new Date() : false,
+            isExpired: false, // already filtered out expired ones above
             expiresAt: o.service?.expires_at,
             groupSize: o.service?.group_size || 1,
-            joinedCount: o.buyer_ids?.length || 1,
-            revealedIds: o.revealed_ids || []
+            joinedCount: o.buyer_ids?.length || 0,
+            revealedIds: o.revealed_ids || [],
+            isSeller,
           }
         };
       });
