@@ -89,7 +89,7 @@ router.get('/', protect, async (req, res) => {
     // We first get all service IDs for SendiYou category, then query orders
     const { data: sendiServices } = await supabase
       .from('services')
-      .select('id, category, display_name, expires_at, group_size')
+      .select('id, category, title, display_name, expires_at, group_size')
       .eq('category', 'SendiYou');
 
     const sendiServiceIds = (sendiServices || []).map(s => s.id);
@@ -165,9 +165,11 @@ router.get('/', protect, async (req, res) => {
         let otherAvatar = '';
 
         if (isGroup) {
+          // Use the service title set by the poster as the group name
+          const groupTitle = o.service?.title || null;
           otherName = isSeller
-            ? `Your Group (${o.buyer_ids?.length || 0}/${o.service?.group_size || 1} joined)`
-            : 'SendiYou Group';
+            ? `${groupTitle || 'Your Group'} (${o.buyer_ids?.length || 0}/${o.service?.group_size || 1} joined)`
+            : (groupTitle || 'SendiYou Group');
         } else if (isSeller) {
           // Seller sees their own posted request — show the display name
           const buyer = o.buyer;
