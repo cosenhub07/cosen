@@ -190,6 +190,22 @@ router.get('/', protect, async (req, res) => {
           }
         }
 
+        const allMemberIds = [o.seller_id, ...(o.buyer_ids || [])].filter(Boolean);
+        const memberAliases = o.member_aliases || {};
+        
+        allMemberIds.forEach((id, index) => {
+          if (!memberAliases[id]) {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            let alias = '';
+            let n = index;
+            do {
+              alias = letters[n % 26] + alias;
+              n = Math.floor(n / 26) - 1;
+            } while (n >= 0);
+            memberAliases[id] = alias;
+          }
+        });
+
         return {
           id: o.id,
           type: 'sendiyou',
@@ -206,7 +222,7 @@ router.get('/', protect, async (req, res) => {
             groupSize: o.service?.group_size || 1,
             joinedCount: o.buyer_ids?.length || 0,
             revealedIds: o.revealed_ids || [],
-            memberAliases: o.member_aliases || {},
+            memberAliases,
             isSeller,
           }
         };

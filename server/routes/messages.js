@@ -80,8 +80,27 @@ router.get('/order/:orderId', protect, async (req, res) => {
       (memberProfiles || []).forEach(p => { membersMap[p.id] = p; });
     }
 
+    function generateAlias(index) {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let alias = '';
+      let n = index;
+      do {
+        alias = letters[n % 26] + alias;
+        n = Math.floor(n / 26) - 1;
+      } while (n >= 0);
+      return alias;
+    }
+
     // Build members list with alias + reveal status
     const memberAliases = access.member_aliases || {};
+    
+    // Fallback for orders without member_aliases
+    allMemberIds.forEach((id, index) => {
+      if (!memberAliases[id]) {
+        memberAliases[id] = generateAlias(index);
+      }
+    });
+
     const revealedIds = access.revealed_ids || [];
 
     const members = allMemberIds.map(id => {
