@@ -1,5 +1,5 @@
 # 🚀 Cosen — Full Project Report
-### Campus Marketplace | Status: Production Deployed | May 2026
+### Campus Marketplace | Status: Production Deployed | June 2026
 
 ---
 
@@ -93,6 +93,13 @@
 - **Reviews API** — submit after order completion, auto-triggers rating recalculation in DB
 - **Dashboard Page** — buyer active orders, seller incoming orders, earnings, quick links
 - **Verify Email Page** — OTP entry page after registration
+
+### Phase 8 — Advanced UX & Marketing ✅ (June 2026 Update)
+- **Hero Banner Slider** — Full-width auto-playing banner slider on the Browse page with dot indicators and fade transitions.
+- **Admin Banner Management** — Drag-and-drop admin panel (`/admin/banners`) to upload, toggle visibility, and delete hero banners (integrated with Supabase Storage).
+- **Browse Grid Enhancements** — Streamlined UI with search bar above the banner, clean Lucide-icon category pills below, and auto-injected WhatsApp/Instagram promotional banners every 5 services.
+- **Incognito Aliases** — Dynamic fallback alias generation for "SendiYou" mode across all messaging routes to protect user identity.
+- **Role Upgrade Flow** — An automated modal intercept that detects when basic "student" accounts attempt to post standard services, seamlessly prompting and upgrading them to "Student + Seller" roles via a new backend endpoint (bypassed for independent SendiYou connections).
 
 ---
 
