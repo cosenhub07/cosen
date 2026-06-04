@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, ShieldCheck, Gavel, Users, Package,
@@ -51,16 +51,15 @@ export default function AdminLayout({ children }) {
       >
         {/* Logo / header */}
         <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: '1px solid rgba(99,91,255,0.12)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #635BFF, #00D4AA)' }}>
-              <ShieldCheck className="w-5 h-5 text-white" />
+          <Link to="/admin/dashboard" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
+              <img src="/cosen_brand_logo.svg" alt="Cosen Logo" className="w-full h-full object-contain brand-logo-img" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm leading-tight" style={{ fontFamily: 'Syne, sans-serif' }}>Cosen Admin</p>
+              <p className="text-white font-bold text-sm leading-tight transition-colors group-hover:text-purple-400" style={{ fontFamily: 'Syne, sans-serif' }}>Cosen Admin</p>
               <p className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>Control Panel</p>
             </div>
-          </div>
+          </Link>
           <button className="md:hidden text-white/40 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <X className="w-5 h-5" />
           </button>
@@ -149,7 +148,7 @@ export default function AdminLayout({ children }) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="hidden md:flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            <ShieldCheck className="w-4 h-4" style={{ color: '#635BFF' }} />
+            <img src="/cosen_brand_logo.svg" alt="Cosen Logo" className="w-5 h-5 object-contain" />
             <span>Cosen Admin Control Panel</span>
           </div>
           <div className="flex items-center gap-3">
