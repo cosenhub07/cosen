@@ -98,7 +98,7 @@ export default function Browse() {
         setTimeout(() => setBannerFading(false), 300);
         return next;
       });
-    }, 2000);
+    }, 3000);
     return () => clearInterval(bannerTimer.current);
   }, [totalSlides]);
 
