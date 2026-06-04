@@ -188,8 +188,40 @@ export default function Browse() {
   return (
     <div className="min-h-screen bg-white pt-16">
 
-      {/* ── Hero Banner Slider ───────────────────────────────────── */}
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3780/1819', maxHeight: '55vh', minHeight: '200px' }}>
+      {/* ── Search bar — ABOVE the banner ──────────────────────── */}
+      <div className="bg-white border-b border-slate-100 px-4 py-3">
+        <div className="max-w-3xl mx-auto flex gap-2">
+          <div className="relative flex-1">
+            {loading && search
+              ? <Loader className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stripe-purple animate-spin" />
+              : <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            }
+            <input
+              id="browse-search"
+              type="text"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-stripe-purple/20 focus:border-stripe-purple transition-all"
+              placeholder="Search for a service…"
+              value={searchVal}
+              onChange={e => setSearchVal(e.target.value)}
+            />
+            {searchVal && (
+              <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => fetchServices(search, category, sort)}
+            className="px-4 py-2.5 rounded-xl bg-stripe-purple text-white font-semibold text-sm shadow-sm hover:bg-stripe-purple/90 transition-colors flex items-center gap-1.5"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Search
+          </button>
+        </div>
+      </div>
+
+      {/* ── Hero Banner Slider — CLEAN, fully visible ────────────── */}
+      <div className="relative w-full overflow-hidden bg-slate-900" style={{ aspectRatio: '3780/1819', maxHeight: '52vh', minHeight: '180px' }}>
         {/* Banner image / gradient */}
         <div
           className="absolute inset-0 w-full h-full transition-opacity duration-500"
@@ -206,84 +238,18 @@ export default function Browse() {
           )}
         </div>
 
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/50" />
-
-        {/* Centered search + filter overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 gap-4">
-          <h1 className="text-white font-bold text-2xl sm:text-3xl text-center drop-shadow-lg" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
-            Browse Services
-          </h1>
-
-          {/* Search bar */}
-          <div className="flex gap-2 w-full max-w-xl">
-            <div className="relative flex-1">
-              {loading && search
-                ? <Loader className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stripe-purple animate-spin" />
-                : <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              }
-              <input
-                id="browse-search"
-                type="text"
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl border-0 shadow-lg text-sm text-slate-800 bg-white/95 backdrop-blur-sm outline-none focus:ring-2 focus:ring-white/50"
-                placeholder="Search for a service…"
-                value={searchVal}
-                onChange={e => setSearchVal(e.target.value)}
-              />
-              {searchVal && (
-                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => fetchServices(search, category, sort)}
-              className="px-4 py-2.5 rounded-xl bg-white/95 backdrop-blur-sm text-stripe-purple font-semibold text-sm shadow-lg hover:bg-white transition-colors flex items-center gap-1.5"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5" /> Go
-            </button>
-          </div>
-
-          {/* Category pills — icon only, no text */}
-          <div className="flex items-center gap-1.5 flex-wrap justify-center">
-            {CATS.map(cat => (
-              <button
-                key={cat}
-                id={`browse-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
-                onClick={() => handleCategoryChange(cat)}
-                title={cat}
-                className="w-9 h-9 rounded-full text-base flex items-center justify-center transition-all duration-200 shadow-sm hover:scale-110"
-                style={{
-                  background: category === cat
-                    ? 'rgba(255,255,255,0.95)'
-                    : 'rgba(255,255,255,0.25)',
-                  backdropFilter: 'blur(8px)',
-                  border: category === cat
-                    ? `2px solid ${catColor[cat] || '#635BFF'}`
-                    : '2px solid rgba(255,255,255,0.4)',
-                  boxShadow: category === cat ? `0 0 0 3px ${(catColor[cat] || '#635BFF')}30` : '',
-                  transform: category === cat ? 'scale(1.15)' : '',
-                }}
-              >
-                {catIcon[cat] || '•'}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Prev / Next arrows */}
         {totalSlides > 1 && (
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all backdrop-blur-sm z-10"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all backdrop-blur-sm z-10"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -292,7 +258,7 @@ export default function Browse() {
 
         {/* Dot indicators */}
         {totalSlides > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
             {Array.from({ length: totalSlides }).map((_, i) => (
               <button
                 key={i}
@@ -307,6 +273,36 @@ export default function Browse() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Category icon pills — BELOW the banner ───────────────── */}
+      <div className="bg-white border-b border-slate-100 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 flex-wrap justify-center">
+          {CATS.map(cat => (
+            <button
+              key={cat}
+              id={`browse-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
+              onClick={() => handleCategoryChange(cat)}
+              title={cat}
+              className="w-10 h-10 rounded-full text-lg flex items-center justify-center transition-all duration-200 hover:scale-110"
+              style={{
+                background: category === cat
+                  ? (catColor[cat] || '#635BFF')
+                  : '#F1F5F9',
+                border: category === cat
+                  ? `2px solid ${catColor[cat] || '#635BFF'}`
+                  : '2px solid transparent',
+                boxShadow: category === cat
+                  ? `0 4px 12px ${(catColor[cat] || '#635BFF')}40`
+                  : 'none',
+                transform: category === cat ? 'scale(1.15)' : '',
+                color: category === cat ? '#fff' : 'inherit',
+              }}
+            >
+              {catIcon[cat] || '•'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Results ── */}
