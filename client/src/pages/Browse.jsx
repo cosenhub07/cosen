@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, Star, ChevronRight, ChevronLeft, Loader, X, BadgeCheck, ShoppingBag, Heart, Eye, EyeOff, LayoutGrid, Code, Palette, BookOpen, Coffee, Camera, Trophy, Sparkles } from 'lucide-react';
 import useAuthStore from '../store/authStore';
@@ -43,6 +43,12 @@ const catColor = {
   'SendiYou': '#EC4899', 'Tech & Coding': '#635BFF', 'Art & Design': '#FF6B9D', 'Study Helper': '#00D4AA',
   'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Playground': '#F59E0B', 'Other Talents': '#A855F7',
 };
+
+// ── In-Grid Social Banners ─────────────────────────────────────
+const SOCIAL_BANNERS = [
+  { url: '/social/whatsapp.png', link: 'https://whatsapp.com/channel/0029Va4dI6XKmCPJ1lc5Pa0L', alt: 'Cosen WhatsApp Channel' },
+  { url: '/social/instagram.png', link: 'https://www.instagram.com/cosen.hub?igsh=YmpiOTh4aWlxMjg3', alt: 'Cosen Instagram Page' }
+];
 
 // ── Gradient fallbacks when no banner is uploaded ──────────────
 const FALLBACK_BANNERS = [
@@ -375,14 +381,18 @@ export default function Browse() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map(s => {
+            {services.map((s, index) => {
               const hasCover = !!s.coverImageUrl;
               const hasAvatar = !!s.seller?.avatar?.url;
               const initials = getInitials(s);
               const bg = getBg(s);
+
+              const isSocialBannerPosition = (index + 1) % 5 === 0;
+              const bannerIndex = Math.floor((index + 1) / 5 - 1) % SOCIAL_BANNERS.length;
+
               return (
+              <Fragment key={s._id}>
               <Link
-                key={s._id}
                 to={`/services/${s._id}`}
                 id={`service-card-${s._id}`}
                 className="group block rounded-2xl bg-white overflow-hidden transition-all duration-300 hover:-translate-y-1"
@@ -508,6 +518,18 @@ export default function Browse() {
                   </div>
                 </div>
               </Link>
+              
+              {isSocialBannerPosition && (
+                <a 
+                  href={SOCIAL_BANNERS[bannerIndex].link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="col-span-1 sm:col-span-2 lg:col-span-3 block rounded-2xl overflow-hidden hover:opacity-90 transition-opacity"
+                >
+                   <img src={SOCIAL_BANNERS[bannerIndex].url} alt={SOCIAL_BANNERS[bannerIndex].alt} className="w-full h-auto object-cover" />
+                </a>
+              )}
+              </Fragment>
             );
             })}
           </div>
