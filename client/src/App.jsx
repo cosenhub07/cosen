@@ -28,6 +28,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminServices from './pages/admin/AdminServices';
 import AdminPayouts from './pages/admin/AdminPayouts';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminBanners from './pages/admin/AdminBanners';
  
 function TitleUpdater() {
   const location = useLocation();
@@ -76,6 +77,7 @@ function App() {
                 <Route path="services" element={<AdminServices />} />
                 <Route path="payouts" element={<AdminPayouts />} />
                 <Route path="orders" element={<AdminOrders />} />
+                <Route path="banners" element={<AdminBanners />} />
               </Routes>
             </AdminLayout>
           </AdminRoute>

@@ -72,6 +72,7 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/sendiyou',      require('./routes/sendiyou'));
 app.use('/api/admin',         require('./routes/admin'));
 app.use('/api/payouts',       require('./routes/payouts'));
+app.use('/api/banners',       require('./routes/banners'));
 
 
 

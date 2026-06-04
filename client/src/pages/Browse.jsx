@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, Star, ChevronRight, Loader, X, BadgeCheck, ShoppingBag, Heart, Eye, EyeOff } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, ChevronRight, ChevronLeft, Loader, X, BadgeCheck, ShoppingBag, Heart, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import api from '../lib/api';
 import LottieLoader from '../components/LottieLoader';
@@ -16,7 +16,19 @@ const MOCK = [
   { _id: '6', title: 'Portraits & Campus Event Shoots',             seller: { name: 'Meera S.', department: "Fine Arts '26" },         rating: 4.8, reviewCount: 9,  price: 999, category: 'Photography', avatarBg: '#00B2FF', initials: 'MS' },
 ];
 
+// Category config — icon only (no text in pills)
 const CATS = ['All', 'SendiYou', 'Tech & Coding', 'Art & Design', 'Study Helper', 'Food Friendship', 'Photography', 'Playground', 'Other Talents'];
+const catIcon = {
+  'All':            '✦',
+  'SendiYou':       '💌',
+  'Tech & Coding':  '💻',
+  'Art & Design':   '🎨',
+  'Study Helper':   '📚',
+  'Food Friendship':'🍱',
+  'Photography':    '📸',
+  'Playground':     '⚽',
+  'Other Talents':  '✨',
+};
 const catBg = {
   'SendiYou':        'linear-gradient(135deg,#FFF0F6,#FFE0ED)',
   'Tech & Coding':   'linear-gradient(135deg,#EEF0FF,#DDE0FF)',
@@ -32,6 +44,13 @@ const catColor = {
   'Food Friendship': '#FF6348', 'Photography': '#00B2FF', 'Playground': '#F59E0B', 'Other Talents': '#A855F7',
 };
 
+// ── Gradient fallbacks when no banner is uploaded ──────────────
+const FALLBACK_BANNERS = [
+  { gradient: 'linear-gradient(135deg, #0F172A 0%, #1E3A5F 40%, #0EA5E9 100%)', label: 'Campus Services, Simplified' },
+  { gradient: 'linear-gradient(135deg, #1a0533 0%, #3b0764 50%, #7c3aed 100%)', label: 'Connect · Learn · Earn' },
+  { gradient: 'linear-gradient(135deg, #042f2e 0%, #065f46 50%, #10b981 100%)', label: 'Student Talent Marketplace' },
+];
+
 export default function Browse() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -45,9 +64,54 @@ export default function Browse() {
   const [sort, setSort]           = useState('rating');
   const [usingMock, setUsingMock] = useState(false);
 
+  // ── Hero banner state ──────────────────────────────────────────
+  const [banners, setBanners]         = useState([]);
+  const [bannerIdx, setBannerIdx]     = useState(0);
+  const [bannerFading, setBannerFading] = useState(false);
+  const bannerTimer = useRef(null);
+
   const debounceTimer = useRef(null);
 
-  // ─── Core fetch ──────────────────────────────────────────────
+  // ── Load banners from API ──────────────────────────────────────
+  useEffect(() => {
+    api.get('/banners').then(r => {
+      if (r.data?.banners?.length) setBanners(r.data.banners);
+    }).catch(() => {});
+  }, []);
+
+  // ── Auto-advance banner every 5s ──────────────────────────────
+  const totalSlides = banners.length || FALLBACK_BANNERS.length;
+
+  const goToSlide = useCallback((idx) => {
+    setBannerFading(true);
+    setTimeout(() => {
+      setBannerIdx(idx);
+      setBannerFading(false);
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    bannerTimer.current = setInterval(() => {
+      setBannerIdx(prev => {
+        const next = (prev + 1) % totalSlides;
+        setBannerFading(true);
+        setTimeout(() => setBannerFading(false), 300);
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(bannerTimer.current);
+  }, [totalSlides]);
+
+  const prevSlide = () => {
+    clearInterval(bannerTimer.current);
+    goToSlide((bannerIdx - 1 + totalSlides) % totalSlides);
+  };
+  const nextSlide = () => {
+    clearInterval(bannerTimer.current);
+    goToSlide((bannerIdx + 1) % totalSlides);
+  };
+
+  // ── Core fetch ──────────────────────────────────────────────────
   const fetchServices = useCallback(async (searchTerm, cat, sortVal) => {
     setLoading(true);
     setUsingMock(false);
@@ -62,14 +126,12 @@ export default function Browse() {
         setServices(data.services);
         setTotal(data.total);
       } else if (data.success && data.services?.length === 0) {
-        // Real response but empty — show empty state (not mock)
         setServices([]);
         setTotal(0);
       } else {
         throw new Error('No data');
       }
     } catch {
-      // Fallback to mock only when API completely fails
       const filtered = MOCK.filter(s =>
         (cat === 'All' || s.category === cat) &&
         (!searchTerm?.trim() || s.title.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -82,94 +144,94 @@ export default function Browse() {
     }
   }, []);
 
-  // ─── Debounce searchVal -> search ─────────────────────────────
+  // ── Debounce searchVal -> search ─────────────────────────────
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
-      if (searchVal.trim() !== search) {
-        setSearch(searchVal.trim());
-      }
+      if (searchVal.trim() !== search) setSearch(searchVal.trim());
     }, 420);
     return () => clearTimeout(debounceTimer.current);
   }, [searchVal, search]);
 
-  // ─── Sync URL params back to state ───────────────────────────
+  // ── Sync URL params ─────────────────────────────────────────────
   useEffect(() => {
     const urlSearch = searchParams.get('search') || '';
     const urlCategory = searchParams.get('category') || 'All';
-
-    if (urlSearch !== search) {
-      setSearch(urlSearch);
-      setSearchVal(urlSearch);
-    }
-    if (urlCategory !== category) {
-      setCategory(urlCategory);
-    }
+    if (urlSearch !== search) { setSearch(urlSearch); setSearchVal(urlSearch); }
+    if (urlCategory !== category) setCategory(urlCategory);
   }, [searchParams]);
 
-  // ─── Fetch services on query param / state changes ───────────
   useEffect(() => {
-    // Sync state to URL params (immediately!)
     const newParams = {};
     if (search.trim()) newParams.search = search.trim();
     if (category !== 'All') newParams.category = category;
-
     const urlSearch = searchParams.get('search') || '';
     const urlCategory = searchParams.get('category') || 'All';
     if (urlSearch !== search || urlCategory !== category) {
       setSearchParams(newParams, { replace: true });
     }
-
     fetchServices(search, category, sort);
   }, [search, category, sort, fetchServices]);
 
-  // ─── Category change ─────────────────────────────────────────
-  const handleCategoryChange = (cat) => {
-    setCategory(cat);
-  };
+  const handleCategoryChange = (cat) => setCategory(cat);
+  const clearSearch = () => { setSearchVal(''); setSearch(''); };
 
-  // ─── Clear search ─────────────────────────────────────────────
-  const clearSearch = () => {
-    setSearchVal('');
-    setSearch('');
-  };
-
-  // ─── Helpers ─────────────────────────────────────────────────
   const getInitials = (s) => {
     if (s.initials) return s.initials;
     return s.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';
   };
   const getBg = (s) => s.avatarBg || catColor[s.category] || '#635BFF';
 
+  // ── Active banner ──────────────────────────────────────────────
+  const activeBanner = banners.length > 0 ? banners[bannerIdx] : FALLBACK_BANNERS[bannerIdx % FALLBACK_BANNERS.length];
+
   return (
     <div className="min-h-screen bg-white pt-16">
-      {/* ── Header ── */}
-      <div className="bg-stripe-bg border-b border-stripe-border py-10 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <h1 className="font-display font-bold text-stripe-slate text-3xl">Browse Services</h1>
-          </div>
 
-          {/* Search */}
-          <div className="flex gap-3 max-w-2xl">
+      {/* ── Hero Banner Slider ───────────────────────────────────── */}
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3780/1819', maxHeight: '55vh', minHeight: '200px' }}>
+        {/* Banner image / gradient */}
+        <div
+          className="absolute inset-0 w-full h-full transition-opacity duration-500"
+          style={{ opacity: bannerFading ? 0 : 1 }}
+        >
+          {activeBanner?.url ? (
+            <img
+              src={activeBanner.url}
+              alt={activeBanner.label || 'Banner'}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full" style={{ background: activeBanner?.gradient }} />
+          )}
+        </div>
+
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/50" />
+
+        {/* Centered search + filter overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 gap-4">
+          <h1 className="text-white font-bold text-2xl sm:text-3xl text-center drop-shadow-lg" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
+            Browse Services
+          </h1>
+
+          {/* Search bar */}
+          <div className="flex gap-2 w-full max-w-xl">
             <div className="relative flex-1">
               {loading && search
                 ? <Loader className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stripe-purple animate-spin" />
-                : <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stripe-muted" />
+                : <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               }
               <input
                 id="browse-search"
                 type="text"
-                className="stripe-input pl-10 pr-10"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border-0 shadow-lg text-sm text-slate-800 bg-white/95 backdrop-blur-sm outline-none focus:ring-2 focus:ring-white/50"
                 placeholder="Search for a service…"
                 value={searchVal}
                 onChange={e => setSearchVal(e.target.value)}
               />
               {searchVal && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stripe-muted hover:text-stripe-slate transition-colors"
-                >
+                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   <X className="h-4 w-4" />
                 </button>
               )}
@@ -177,50 +239,74 @@ export default function Browse() {
             <button
               type="button"
               onClick={() => fetchServices(search, category, sort)}
-              className="btn-outline flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-white/95 backdrop-blur-sm text-stripe-purple font-semibold text-sm shadow-lg hover:bg-white transition-colors flex items-center gap-1.5"
             >
-              <SlidersHorizontal className="h-4 w-4" /> Search
+              <SlidersHorizontal className="h-3.5 w-3.5" /> Go
             </button>
           </div>
 
-          {/* Category pills */}
-          <div className="flex items-center gap-2 mt-5 flex-wrap">
+          {/* Category pills — icon only, no text */}
+          <div className="flex items-center gap-1.5 flex-wrap justify-center">
             {CATS.map(cat => (
               <button
                 key={cat}
                 id={`browse-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => handleCategoryChange(cat)}
-                className="px-4 py-2 rounded-xl text-[14px] font-semibold border transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                title={cat}
+                className="w-9 h-9 rounded-full text-base flex items-center justify-center transition-all duration-200 shadow-sm hover:scale-110"
                 style={{
-                  background: category === cat ? 'linear-gradient(135deg, #0F172A, #334155)' : '#FAFBFF',
-                  color: category === cat ? '#fff' : '#475569',
-                  borderColor: category === cat ? 'transparent' : '#E2E8F0',
-                  boxShadow: category === cat ? '0 4px 12px rgba(15, 23, 42, 0.15)' : '',
-                  fontFamily: 'Plus Jakarta Sans, sans-serif',
-                  letterSpacing: '0.01em',
+                  background: category === cat
+                    ? 'rgba(255,255,255,0.95)'
+                    : 'rgba(255,255,255,0.25)',
+                  backdropFilter: 'blur(8px)',
+                  border: category === cat
+                    ? `2px solid ${catColor[cat] || '#635BFF'}`
+                    : '2px solid rgba(255,255,255,0.4)',
+                  boxShadow: category === cat ? `0 0 0 3px ${(catColor[cat] || '#635BFF')}30` : '',
+                  transform: category === cat ? 'scale(1.15)' : '',
                 }}
               >
-                {cat}
+                {catIcon[cat] || '•'}
               </button>
             ))}
           </div>
-
-          {/* Active search indicator */}
-          {search.trim() && !loading && (
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm text-stripe-muted">
-                Results for&nbsp;
-                <span className="font-semibold text-stripe-slate">"{search}"</span>
-              </span>
-              <button
-                onClick={clearSearch}
-                className="text-xs text-stripe-purple font-semibold hover:underline"
-              >
-                Clear
-              </button>
-            </div>
-          )}
         </div>
+
+        {/* Prev / Next arrows */}
+        {totalSlides > 1 && (
+          <>
+            <button
+              onClick={prevSlide}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {totalSlides > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {Array.from({ length: totalSlides }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { clearInterval(bannerTimer.current); goToSlide(i); }}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === bannerIdx ? '20px' : '6px',
+                  height: '6px',
+                  background: i === bannerIdx ? '#fff' : 'rgba(255,255,255,0.45)',
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Results ── */}
@@ -232,6 +318,11 @@ export default function Browse() {
               : <>
                   <span className="font-semibold text-stripe-slate">{total}</span> service{total !== 1 ? 's' : ''} found
                   {usingMock && <span className="ml-2 text-xs text-amber-500 font-medium">(demo data)</span>}
+                  {category !== 'All' && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-xs font-semibold" style={{ color: catColor[category] || '#635BFF' }}>
+                      {catIcon[category]} {category}
+                    </span>
+                  )}
                 </>
             }
           </p>
@@ -248,6 +339,19 @@ export default function Browse() {
             <option value="-createdAt">Newest First</option>
           </select>
         </div>
+
+        {/* Active search indicator */}
+        {search.trim() && !loading && (
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-sm text-stripe-muted">
+              Results for&nbsp;
+              <span className="font-semibold text-stripe-slate">"{search}"</span>
+            </span>
+            <button onClick={clearSearch} className="text-xs text-stripe-purple font-semibold hover:underline">
+              Clear
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <LottieLoader size={120} text="Finding services..." />
@@ -286,16 +390,13 @@ export default function Browse() {
                 to={`/services/${s._id}`}
                 id={`service-card-${s._id}`}
                 className="group block rounded-2xl bg-white overflow-hidden transition-all duration-300 hover:-translate-y-1"
-                style={{
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)',
-                }}
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)' }}
                 onMouseEnter={e => e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)'}
                 onMouseLeave={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)'}
               >
-                {/* Image area with inner padding like reference */}
+                {/* Image area */}
                 <div className="p-3 pb-0">
-                  <div className="relative rounded-xl overflow-hidden"
-                    style={{ aspectRatio: '4/3' }}>
+                  <div className="relative rounded-xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
                     {s.category === 'SendiYou' && s.identityHidden ? (
                       hasCover && s.coverImageUrl.endsWith('.json') ? (
                         <div className="w-full h-full flex items-center justify-center bg-slate-50/50 transition-transform duration-500 group-hover:scale-105 p-6">
@@ -315,33 +416,20 @@ export default function Browse() {
                           <LottieUrlRenderer url={s.coverImageUrl} className="w-full h-full" />
                         </div>
                       ) : (
-                        <img
-                          src={s.coverImageUrl}
-                          alt={s.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
+                        <img src={s.coverImageUrl} alt={s.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                       )
                     ) : hasAvatar ? (
-                      <img
-                        src={s.seller.avatar.url}
-                        alt={s.seller.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
+                      <img src={s.seller.avatar.url} alt={s.seller.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center"
-                        style={{ background: catBg[s.category] || 'linear-gradient(135deg,#EEF0FF,#DDE0FF)' }}>
-                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg"
-                          style={{ background: bg }}>
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: catBg[s.category] || 'linear-gradient(135deg,#EEF0FF,#DDE0FF)' }}>
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg" style={{ background: bg }}>
                           {initials}
                         </div>
                       </div>
                     )}
-                    {/* Category badge on image */}
+                    {/* Category badge */}
                     <span className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-sm"
-                      style={{
-                        background: 'rgba(255,255,255,0.85)',
-                        color: catColor[s.category] || '#635BFF',
-                      }}>
+                      style={{ background: 'rgba(255,255,255,0.85)', color: catColor[s.category] || '#635BFF' }}>
                       {s.category}
                     </span>
                   </div>
@@ -349,7 +437,6 @@ export default function Browse() {
 
                 {/* Card body */}
                 <div className="px-4 pt-4 pb-4">
-                  {/* Seller name / anonymous alias */}
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <h3 className="font-bold text-stripe-slate text-[15px] truncate flex items-center gap-1">
                       {s.category === 'SendiYou' && s.identityHidden ? (
@@ -396,14 +483,11 @@ export default function Browse() {
                     </div>
                   )}
 
-                  {/* Service title as description */}
                   <p className="text-sm text-stripe-muted leading-snug line-clamp-2 mb-4" style={{ minHeight: '2.5rem' }}>
                     {s.title}
                   </p>
 
-                  {/* Stats row */}
-                  <div className="flex items-center justify-between pt-3"
-                    style={{ borderTop: '1px solid #F0F4F8' }}>
+                  <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #F0F4F8' }}>
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1 text-xs text-stripe-muted">
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -416,17 +500,12 @@ export default function Browse() {
                     </div>
                     {s.category === 'SendiYou' ? (
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-full text-white transition-colors animate-pulse"
-                        style={{
-                          background: 'linear-gradient(135deg, #EC4899, #F43F5E)',
-                        }}>
+                        style={{ background: 'linear-gradient(135deg, #EC4899, #F43F5E)' }}>
                         Connect →
                       </span>
                     ) : (
                       <span className="text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
-                        style={{
-                          background: '#F6F9FC',
-                          color: '#0A2540',
-                        }}>
+                        style={{ background: '#F6F9FC', color: '#0A2540' }}>
                         ₹{s.price?.toLocaleString('en-IN')}
                       </span>
                     )}
