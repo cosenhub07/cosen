@@ -210,6 +210,10 @@ router.post('/', protect, async (req, res) => {
 
     const isSendiYou = category === 'SendiYou';
 
+    if (req.user.role === 'student' && !isSendiYou) {
+      return res.status(403).json({ success: false, message: 'You must upgrade to a seller account to post this service.' });
+    }
+
     if (!title || !description || !category) {
       return res.status(400).json({ success: false, message: 'All required fields must be provided' });
     }

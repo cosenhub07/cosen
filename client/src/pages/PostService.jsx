@@ -85,7 +85,7 @@ const catBg = {
 
 export default function PostService() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit'); // null if creating, service id if editing
 
@@ -120,6 +120,8 @@ export default function PostService() {
   const [success, setSuccess] = useState(false);
   const [apiError, setApiError] = useState('');
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
+  const [showRoleUpgradeModal, setShowRoleUpgradeModal] = useState(false);
+  const [upgradingRole, setUpgradingRole] = useState(false);
 
 
   // ── Load existing service for editing ──────────────
@@ -290,14 +292,8 @@ export default function PostService() {
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(); }
   };
 
-  // ── Submit (create or update) ──────────────────────
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setApiError('');
-    const errs = validate();
-    setErrors(errs);
-    if (Object.keys(errs).length) return;
-
+  // ── Submit logic ───────────────────────────────────
+  const submitForm = async () => {
     setSubmitting(true);
     try {
       let finalDescription = form.description.trim();
@@ -346,6 +342,36 @@ export default function PostService() {
       setApiError(err.response?.data?.message || 'Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setApiError('');
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+
+    if (user.role === 'student' && form.category !== 'SendiYou') {
+      setShowRoleUpgradeModal(true);
+      return;
+    }
+
+    submitForm();
+  };
+
+  const handleUpgradeRole = async () => {
+    setUpgradingRole(true);
+    try {
+      const { data } = await api.patch('/users/me/role', { role: 'both' });
+      setUser(data.user);
+      setShowRoleUpgradeModal(false);
+      submitForm();
+    } catch (err) {
+      setApiError('Failed to upgrade role. Please try again.');
+      setShowRoleUpgradeModal(false);
+    } finally {
+      setUpgradingRole(false);
     }
   };
 
@@ -1373,6 +1399,45 @@ export default function PostService() {
           </div>
         </form>
       </div>
+
+      {/* ── Role Upgrade Modal ── */}
+      {showRoleUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-stripe-slate/40 backdrop-blur-sm" onClick={() => !upgradingRole && setShowRoleUpgradeModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-full bg-stripe-purple/10 flex items-center justify-center mx-auto mb-5">
+              <Trophy className="h-8 w-8 text-stripe-purple" />
+            </div>
+            <h3 className="font-display font-bold text-stripe-slate text-xl mb-2">
+              Upgrade to Seller
+            </h3>
+            <p className="text-stripe-muted text-sm mb-8 leading-relaxed">
+              To post standard services and earn money on Cosen, you need to upgrade your account role to <strong className="text-stripe-slate font-semibold">Student + Seller</strong>.
+              <br/><br/>
+              It's free, instant, and lets you both hire and sell!
+            </p>
+            
+            <div className="flex items-center gap-3 w-full">
+              <button
+                type="button"
+                onClick={() => setShowRoleUpgradeModal(false)}
+                disabled={upgradingRole}
+                className="btn-outline flex-1 py-3"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUpgradeRole}
+                disabled={upgradingRole}
+                className="btn-primary flex-1 py-3 justify-center"
+              >
+                {upgradingRole ? <Loader className="w-5 h-5 animate-spin" /> : 'Upgrade & Post'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -94,6 +94,29 @@ router.put('/me', protect, async (req, res) => {
   }
 });
 
+// PATCH /api/users/me/role — Upgrade own role (protected)
+router.patch('/me/role', protect, async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (role !== 'both' && role !== 'seller') {
+      return res.status(400).json({ success: false, message: 'Invalid role upgrade' });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({ role })
+      .eq('id', req.user._id)
+      .select('id, name, email, avatar_url, avatar_public_id, banner_url, department, year_of_study, bio, skills, role, gender, rating, review_count, is_email_verified, phone, is_phone_verified, upi_id, created_at, dob, id_card_image_url, instagram_url, facebook_url, youtube_url, x_url, platform_agreement_accepted, is_onboarding_complete')
+      .single();
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true, user: mapUser(user) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // GET /api/users/:id — Get public profile of any user
 router.get('/:id', async (req, res) => {
   try {
