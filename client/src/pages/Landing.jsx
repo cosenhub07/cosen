@@ -30,11 +30,11 @@ const categories = [
   { name: 'Study Helper',     icon: BookOpen,        color: '#0EA878', count: 120, desc: 'Tutoring & exam prep' },
   { name: 'Tech & Coding',    icon: Code,            color: '#4F3EFF', count: 85,  desc: 'Websites, apps, scripts' },
   { name: 'Art & Design',     icon: Palette,         color: '#D63E82', count: 64,  desc: 'Logos, UI & illustrations' },
-  { name: 'SendiYou',         icon: Zap,             color: '#EC4899', count: 215, desc: 'Anonymous matches & connections' },
   { name: 'Food Friendship',  icon: UtensilsCrossed, color: '#FF6348', count: 56,  desc: 'Home-cooked meals & snacks' },
   { name: 'Photography',      icon: Camera,          color: '#00B2FF', count: 41,  desc: 'Portraits, events & camera rental' },
   { name: 'Playground',       icon: Trophy,          color: '#F59E0B', count: 32,  desc: 'Team matches & esports pool' },
   { name: 'Other Talents',    icon: Music,           color: '#8B3FC9', count: 112, desc: 'Music, fitness, languages' },
+  { name: 'SendiYou',         icon: Zap,             color: '#EC4899', count: null, desc: 'Anonymous matches & connections' },
 ];
 
 const catColor = {
@@ -171,8 +171,8 @@ export default function Landing() {
           {/* Headline & Abstract Lottie */}
           <div style={{ position: 'relative', marginBottom: '1.25rem', maxWidth: '720px' }}>
             <h1 style={{ fontFamily:'Inter, sans-serif', fontWeight:900, lineHeight:1.05, letterSpacing:'-0.04em', color:'#fff', fontSize:'clamp(2.8rem,8vw,6rem)', position: 'relative', zIndex: 10 }}>
-              <span className="hero-word block" style={{ animationDelay: '0.1s' }}>Every student</span>
-              <span className="hero-word block" style={{ animationDelay: '0.2s', color: 'rgba(255,255,255,0.7)' }}>has a <span style={{ color: '#fff' }}>need.</span></span>
+              <span className="hero-word block" style={{ animationDelay: '0.1s' }}>Campus skills.</span>
+              <span className="hero-word block" style={{ animationDelay: '0.2s', color: 'rgba(255,255,255,0.7)' }}>Real students.</span>
               <span className="hero-word block" style={{ animationDelay: '0.3s' }}>
                 <span style={{ 
                   background: 'linear-gradient(135deg, #00D4AA 0%, #635BFF 100%)', 
@@ -180,7 +180,7 @@ export default function Landing() {
                   WebkitTextFillColor: 'transparent',
                   display: 'inline-block'
                 }}>
-                  We find the match.
+                  Fair prices.
                 </span>
               </span>
             </h1>
@@ -188,7 +188,7 @@ export default function Landing() {
 
           {/* Sub */}
           <p style={{ color:'rgba(255,255,255,0.65)', fontSize:'clamp(0.95rem,2vw,1.1rem)', lineHeight:1.65, maxWidth:'480px', marginBottom:'1.75rem', fontWeight:400 }}>
-            Skills, anonymous connections, group chats. One campus network for everything you need.
+            Hire verified campus peers for tutoring, design, tech, food and more — paid safely via escrow.
           </p>
 
           {/* Search */}
@@ -228,13 +228,13 @@ export default function Landing() {
               onMouseEnter={e => e.currentTarget.style.background = '#f0efff'}
               onMouseLeave={e => e.currentTarget.style.background = '#fff'}
             >
-              Find your match <ArrowRight style={{ width:14, height:14 }} />
+              Browse Services <ArrowRight style={{ width:14, height:14 }} />
             </Link>
             <Link to="/browse" id="hero-cta-secondary" style={{ display:'inline-flex', alignItems:'center', gap:'4px', color:'rgba(255,255,255,0.72)', fontSize:'13px', fontWeight:500, textDecoration:'none', transition:'opacity .2s' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
-              Explore campus <ChevronRight style={{ width:14, height:14 }} />
+              Post a Service <ChevronRight style={{ width:14, height:14 }} />
             </Link>
             <div style={{ display:'none' }} className="md:flex items-center gap-4 ml-2">
               <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:'11px', color:'rgba(255,255,255,0.45)', fontWeight:500 }}><Shield style={{ width:11, height:11, color:'#A78BFA' }} /> Escrow protected</span>
@@ -257,10 +257,10 @@ export default function Landing() {
             <div className="fade-up visible mb-16 max-w-3xl">
               <span className="text-sm font-medium text-stripe-purple block mb-3">What Cosen is</span>
               <h2 className="font-sans text-3xl sm:text-4xl font-semibold text-slate-900 mb-5 leading-tight">
-                We don't sell services. <span className="text-stripe-purple">We connect people.</span>
+                Campus talent, <span className="text-stripe-purple">on demand.</span>
               </h2>
               <p className="text-slate-600 text-lg leading-relaxed font-sans">
-                Cosen is a living campus network where every student is both a seeker and a provider. Tutoring, design, food, anonymous matches, group chats. One place for every campus need.
+                Cosen is India's first verified campus marketplace. Hire a student tutor, designer, developer, or food seller — and pay only when you're satisfied.
               </p>
             </div>
 
@@ -350,7 +350,7 @@ export default function Landing() {
             <div>
               <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#635BFF', display:'block', marginBottom:'0.75rem' }}>Every kind of need</span>
               <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3.5vw,2.8rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em', lineHeight:1.1 }}>
-                Find your kind of student
+                Browse by category
               </h2>
             </div>
             <Link to="/browse" id="categories-browse-all" style={{ display:'inline-flex', alignItems:'center', gap:4, color:'#635BFF', fontSize:'13px', fontWeight:600, textDecoration:'none', flexShrink:0, whiteSpace:'nowrap', borderBottom:'1px solid transparent', transition:'border-color .2s' }}
@@ -380,7 +380,7 @@ export default function Landing() {
                   <div style={{ fontSize:'12px', color:'#94A3B8' }}>{cat.desc}</div>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-                  <span style={{ fontSize:'11px', fontWeight:600, color:cat.color, background:`${cat.color}12`, padding:'2px 10px', borderRadius:'100px' }}>{cat.count}+</span>
+                  {cat.count && <span style={{ fontSize:'11px', fontWeight:600, color:cat.color, background:`${cat.color}12`, padding:'2px 10px', borderRadius:'100px' }}>{cat.count}+</span>}
                   <ArrowRight className="cat-arrow" style={{ width:14, height:14, color:'#635BFF', opacity:0, transform:'translateX(-6px)', transition:'all .2s' }} />
                 </div>
               </Link>
@@ -452,11 +452,10 @@ export default function Landing() {
 
             {/* Top label */}
             <div className="fade-up" style={{ marginBottom:'4rem' }}>
-              <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#EC4899', display:'block', marginBottom:'0.75rem' }}>Beyond a marketplace</span>
+              <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#EC4899', display:'block', marginBottom:'0.75rem' }}>What sets us apart</span>
               <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3.5vw,3rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em', lineHeight:1.1, maxWidth:'600px' }}>
-                Connections that go{' '}
-                <span style={{ fontFamily:"'Playwrite MX Guides', cursive", fontWeight:400, color:'#EC4899' }}>beyond</span>{' '}
-                transactions
+                More than just{' '}
+                <span style={{ fontFamily:"'Playwrite MX Guides', cursive", fontWeight:400, color:'#EC4899' }}>tutoring</span>
               </h2>
             </div>
 
@@ -466,7 +465,7 @@ export default function Landing() {
                 {
                   accent: '#635BFF',
                   icon: <Code style={{ width:20, height:20, color:'#635BFF' }} />,
-                  title: 'Skill Connections',
+                  title: 'Hire Campus Talent',
                   body: 'Post what you need, someone on campus can do it. Tutoring, design, code, food, events.',
                   tags: ['Tutoring', 'Coding', 'Design', 'Photography'],
                   link: '/browse',
@@ -474,7 +473,7 @@ export default function Landing() {
                 {
                   accent: '#EC4899',
                   icon: <Lock style={{ width:20, height:20, color:'#EC4899' }} />,
-                  title: 'SendiYou: Anonymous',
+                  title: 'SendiYou',
                   body: 'Connect with a student anonymously. Reveal your identity only when you both agree. Campus-safe, consent-first.',
                   tags: ['Anonymous', 'Gender filter', '7-day chat'],
                   link: '/signup',
@@ -483,7 +482,7 @@ export default function Landing() {
                 {
                   accent: '#F59E0B',
                   icon: <Users style={{ width:20, height:20, color:'#F59E0B' }} />,
-                  title: 'Group Connections',
+                  title: 'Group Services',
                   body: 'One post, up to 50 students. Group study, cricket team, club event all in a shared chat.',
                   tags: ['Sports', 'Study groups', 'Club events'],
                   link: '/browse',
@@ -499,7 +498,6 @@ export default function Landing() {
                   </div>
                   <h3 style={{ fontSize:'1.05rem', fontWeight:700, color: panel.featured ? '#fff' : '#0F172A', margin:'0 0 0.75rem', letterSpacing:'-0.01em' }}>
                     {panel.title}
-                    {panel.featured && <span style={{ fontSize:'10px', fontWeight:700, background:'#EC4899', color:'#fff', padding:'2px 8px', borderRadius:'100px', marginLeft:'0.5rem', verticalAlign:'middle', letterSpacing:'0.05em' }}>UNIQUE</span>}
                   </h3>
                   <p style={{ fontSize:'13.5px', color: panel.featured ? 'rgba(255,255,255,0.55)' : '#64748B', lineHeight:1.7, margin:'0 0 1.5rem' }}>{panel.body}</p>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
@@ -516,7 +514,7 @@ export default function Landing() {
                 onMouseEnter={e => e.currentTarget.style.background = '#1a1060'}
                 onMouseLeave={e => e.currentTarget.style.background = '#060C20'}
               >
-                Start connecting on campus <ArrowRight style={{ width:14, height:14 }} />
+                Start hiring on campus <ArrowRight style={{ width:14, height:14 }} />
               </Link>
             </div>
           </div>
@@ -531,7 +529,7 @@ export default function Landing() {
           <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:'2.5rem', gap:'1rem' }} className="fade-up">
             <div>
               <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'#635BFF', display:'block', marginBottom:'0.75rem' }}>Real students, real skills</span>
-              <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3vw,2.5rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em' }}>Top student connections</h2>
+              <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(1.8rem,3vw,2.5rem)', fontWeight:900, color:'#060C20', margin:0, letterSpacing:'-0.03em' }}>Top campus services</h2>
             </div>
             <div style={{ display:'flex', gap:8, flexShrink:0 }}>
               <button onClick={() => carouselRef.current?.scrollBy({ left:-320, behavior:'smooth' })} style={{ width:36, height:36, borderRadius:'50%', border:'1px solid #E2E8F0', background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .2s' }} aria-label="Scroll left"
@@ -599,7 +597,7 @@ export default function Landing() {
               onMouseEnter={e => e.currentTarget.style.borderColor = '#635BFF'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
             >
-              Browse all student connections <ChevronRight style={{ width:14, height:14 }} />
+              Browse all services <ChevronRight style={{ width:14, height:14 }} />
             </Link>
           </div>
         </div>
@@ -645,10 +643,10 @@ export default function Landing() {
         <div style={{ maxWidth:'780px', margin:'0 auto', textAlign:'center' }} className="fade-up">
           <span style={{ fontSize:'11px', fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(255,255,255,0.35)', display:'block', marginBottom:'1.5rem' }}>Join your campus network</span>
           <h2 style={{ fontFamily:'Inter, sans-serif', fontSize:'clamp(2rem,5vw,3.5rem)', fontWeight:900, color:'#fff', lineHeight:1.1, letterSpacing:'-0.03em', margin:'0 0 1.25rem' }}>
-            Your next connection<br />is already on campus.
+            Your campus peer<br />is ready to help.
           </h2>
           <p style={{ color:'#828F9E', fontSize:'clamp(1rem,2vw,1.1rem)', maxWidth:'600px', margin:'0 auto 2.5rem', lineHeight:1.7 }}>
-            Hundreds of students are sharing skills, finding matches, and building connections on Cosen right now.
+            Hundreds of students offering real skills at campus prices. Pay safely via Razorpay escrow.
           </p>
           <div style={{ display:'flex', flexWrap:'wrap', gap:12, justifyContent:'center', marginBottom:'2.5rem' }}>
             <Link to="/signup" id="cta-banner-join" style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#635BFF', color:'#fff', fontWeight:700, fontSize:'14px', padding:'13px 28px', borderRadius:'100px', textDecoration:'none', transition:'background .2s', boxShadow:'0 4px 20px rgba(99,91,255,0.35)' }}
@@ -661,11 +659,11 @@ export default function Landing() {
               onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.12)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.2)'; }}
               onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.07)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.12)'; }}
             >
-              Explore connections
+              Browse services
             </Link>
           </div>
           <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:'0.5rem 2rem' }}>
-            {['100% student-verified', 'Anonymous connections', 'Group & 1-on-1 chats', 'Escrow-protected'].map(item => (
+            {['100% student-verified', 'Escrow-protected payments', 'Group & 1-on-1 chats', 'Escrow-protected'].map(item => (
               <span key={item} style={{ fontSize:'12px', color:'rgba(255,255,255,0.30)', fontWeight:500 }}>✓ {item}</span>
             ))}
           </div>
