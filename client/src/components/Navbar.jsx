@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   ChevronRight, Menu, X, BookOpen, Code, Palette, UtensilsCrossed,
   Camera, Music, LayoutDashboard, Search, LogIn, LogOut, User as UserIcon,
-  MessageCircle, PlusSquare, Bell, Trophy, Heart
+  MessageCircle, PlusSquare, Bell, Trophy, Heart, CalendarDays
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import BrandLogo from './BrandLogo';
@@ -469,6 +469,9 @@ export default function Navbar() {
                           </span>
                         )}
                       </Link>
+                      <Link to="/timetable" className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-stripe-slate hover:bg-stripe-bg transition-colors">
+                        <CalendarDays className="h-4 w-4 text-stripe-purple" /> Free Room Finder
+                      </Link>
                       <div style={{ borderTop: '1px solid #E6EBF1' }}>
                         <button
                           id="nav-logout"
@@ -595,6 +598,12 @@ export default function Navbar() {
               )}
             </span>
             Messages
+          </Link>
+
+          <Link to="/timetable" id="mobile-nav-timetable" onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2 px-3 py-3 rounded-xl font-semibold text-sm"
+            style={{ color: location.pathname === '/timetable' ? '#635BFF' : '#425466', fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+            <CalendarDays className="h-4 w-4" /> Free Room Finder
           </Link>
 
           <Link to="/profile" id="mobile-nav-profile" onClick={() => setMobileOpen(false)}
