@@ -198,13 +198,14 @@ export default function Timetable() {
     return () => clearInterval(timerRef.current);
   }, [useCurrentTime]);
 
-  // Fetch rooms whenever params change
+  // Fetch rooms whenever params change — only when building is actually selected
   useEffect(() => {
-    if (!selectedBuilding) return;
+    if (!selectedBuilding || buildings.length === 0) return;
     fetchRooms();
   }, [selectedBuilding, selectedDay, selectedTime]);
 
   async function fetchRooms() {
+    if (!selectedBuilding) return;
     setLoading(true);
     setError('');
     try {
@@ -214,7 +215,9 @@ export default function Timetable() {
       setRooms(data.rooms || []);
       setExpandedRooms({});
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load room data');
+      // Don't show generic API error if no data is loaded yet
+      const msg = err.response?.data?.message || 'Failed to load room data';
+      if (msg !== 'building, day, and time are required') setError(msg);
     } finally {
       setLoading(false);
     }
@@ -272,7 +275,20 @@ export default function Timetable() {
             </label>
             {loadingBuildings ? (
               <div style={{ display: 'flex', gap: 8 }}>
-                {[1,2,3,4].map(i => <div key={i} style={{ width: 60, height: 38, borderRadius: 10, background: '#F1F5F9', animation: 'pulse 1.5s infinite' }} />)}
+                {[1,2,3,4,5,6].map(i => <div key={i} style={{ width: 76, height: 38, borderRadius: 10, background: '#F1F5F9', animation: 'pulse 1.5s infinite' }} />)}
+              </div>
+            ) : buildings.length === 0 ? (
+              /* No timetable data loaded yet */
+              <div style={{ background: '#FFF7ED', border: '1.5px solid #FED7AA', borderRadius: 14, padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.875rem' }}>
+                <span style={{ fontSize: 22, flexShrink: 0 }}>📋</span>
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: 14, color: '#92400E', margin: '0 0 4px' }}>Timetable data not loaded yet</p>
+                  <p style={{ fontSize: 13, color: '#B45309', margin: 0, lineHeight: 1.5 }}>
+                    An admin needs to:
+                    <br />1. Run the SQL migration in Supabase
+                    <br />2. Upload the timetable Excel file from the <strong>Admin Panel → Timetable</strong> section
+                  </p>
+                </div>
               </div>
             ) : (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -281,7 +297,7 @@ export default function Timetable() {
                     key={b}
                     onClick={() => setSelectedBuilding(b)}
                     style={{
-                      padding: '0.5rem 1rem', borderRadius: 10, fontSize: 13, fontWeight: 700,
+                      padding: '0.5rem 1.125rem', borderRadius: 10, fontSize: 13, fontWeight: 700,
                       border: selectedBuilding === b ? '2px solid #635BFF' : '1.5px solid #E2E8F0',
                       background: selectedBuilding === b ? '#635BFF' : '#fff',
                       color: selectedBuilding === b ? '#fff' : '#475569',
@@ -399,8 +415,8 @@ export default function Timetable() {
           </div>
         )}
 
-        {/* Error */}
-        {error && (
+        {/* Error — only show for real fetch errors, not setup errors */}
+        {error && buildings.length > 0 && (
           <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, padding: '0.875rem 1.125rem', marginBottom: '1rem', color: '#EF4444', fontSize: 13, fontWeight: 500 }}>
             {error}
           </div>
