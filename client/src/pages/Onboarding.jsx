@@ -67,7 +67,6 @@ export default function Onboarding() {
     clearError();
     if (step === 1 && !form.dob) return setLocalError('Date of Birth is required.');
     if (step === 2) {
-      if (!phoneVerified) return setLocalError('Please verify your phone number to continue.');
       if (isSeller && !form.avatarUrl) return setLocalError('A profile photo is required for sellers.');
     }
     if (step === 4 && !form.platformAgreementAccepted) return setLocalError('You must accept the platform agreement.');
@@ -249,7 +248,7 @@ export default function Onboarding() {
             </h2>
             <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
               {step === 1 && 'Tell us about yourself so services are tailored to you.'}
-              {step === 2 && 'Verify your phone number to secure your account.'}
+              {step === 2 && '(Optional) Verify your phone number to secure your account.'}
               {step === 3 && 'Optional links that help buyers trust your identity.'}
               {step === 4 && 'Review and accept our community guidelines.'}
             </p>
@@ -285,9 +284,9 @@ export default function Onboarding() {
 
               {/* Phone number */}
               <div>
-                <Label>Mobile Number *</Label>
+                <Label optional>Mobile Number</Label>
                 <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                  We'll send a 6-digit WhatsApp OTP to verify your number. Indian numbers only (+91).
+                  (Optional) Verify your number via WhatsApp OTP to build more trust on your profile.
                 </p>
 
                 {phoneVerified ? (
