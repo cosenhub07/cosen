@@ -235,7 +235,7 @@ router.post('/forgot-password', async (req, res) => {
       .update({ reset_password_token: hashedToken, reset_password_expire: expire })
       .eq('id', user.id);
 
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
     // ✅ Send response immediately — don't block on email
     res.status(200).json({ success: true, message: 'Password reset link sent to your email.' });
@@ -462,7 +462,31 @@ router.post('/verify-otp', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'OTP is required' });
     }
 
+    // ── TEST MODE OTP BYPASS ──
+    // When NODE_ENV=test, accept '123456' as a universal OTP
+    if (process.env.NODE_ENV === 'test' && otp.toString() === '123456') {
+      const { data: updatedUser, error } = await supabase
+        .from('users')
+        .update({
+          is_email_verified: true,
+          email_verification_token: null,
+          email_verification_expire: null
+        })
+        .eq('id', req.user._id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        message: 'Email verified successfully! (test mode)',
+        user: buildUserPayload(updatedUser)
+      });
+    }
+
     const hashedOtp = crypto.createHash('sha256').update(otp.toString()).digest('hex');
+
 
     const { data: user } = await supabase
       .from('users')
@@ -605,7 +629,22 @@ router.post('/verify-phone-otp', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'OTP is required' });
     }
 
+    // ── TEST MODE PHONE OTP BYPASS ──
+    if (process.env.NODE_ENV === 'test' && otp.toString() === '123456') {
+      await supabase
+        .from('users')
+        .update({
+          is_phone_verified: true,
+          phone_otp_token: null,
+          phone_otp_expire: null,
+        })
+        .eq('id', req.user._id);
+
+      return res.status(200).json({ success: true, message: 'Phone number verified successfully! (test mode)' });
+    }
+
     const hashedOtp = crypto.createHash('sha256').update(otp.toString()).digest('hex');
+
 
     const { data: user } = await supabase
       .from('users')
