@@ -31,3 +31,8 @@ yarn-error.log*
 # Build output
 /client/dist/
 /client/build/
+
+# Local tests and scratch
+scratch/
+e2e/
+

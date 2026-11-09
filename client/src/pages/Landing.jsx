@@ -361,30 +361,237 @@ export default function Landing() {
             </Link>
           </div>
 
-          {/* Category grid — 2+2+2+1 editorial style */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'1px', background:'#E2E8F0', borderRadius:'1rem', overflow:'hidden' }} className="fade-up">
-            {categories.map((cat, i) => (
-              <Link
-                key={i}
-                to={`/browse?category=${encodeURIComponent(cat.name)}`}
-                id={`cat-${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
-                style={{ background:'#fff', display:'flex', alignItems:'center', gap:'1.25rem', padding:'1.5rem 1.75rem', textDecoration:'none', transition:'all .2s', position:'relative' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#FAFBFF'; e.currentTarget.querySelector('.cat-arrow').style.opacity = '1'; e.currentTarget.querySelector('.cat-arrow').style.transform = 'translateX(0)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.querySelector('.cat-arrow').style.opacity = '0'; e.currentTarget.querySelector('.cat-arrow').style.transform = 'translateX(-6px)'; }}
+          {/* Side-by-Side Showcase: Motion Carousel Video (Left) + Category Cards (Right) */}
+          <div
+            id="category-showcase-split"
+            className="fade-up"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(320px, 430px) 1fr',
+              gap: '1.75rem',
+              alignItems: 'stretch'
+            }}
+          >
+            {/* Left: Motion Wheel Showcase Card */}
+            <div
+              style={{
+                background: '#0B0F19',
+                borderRadius: '1.25rem',
+                overflow: 'hidden',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                padding: '1.75rem',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 20px 45px -15px rgba(11, 15, 25, 0.35)',
+              }}
+            >
+              {/* Subtle background glow */}
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  top: '25%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '280px',
+                  height: '280px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(99, 91, 255, 0.22) 0%, transparent 70%)',
+                  pointerEvents: 'none'
+                }}
+              />
+
+              {/* Top badge & title */}
+              <div style={{ position: 'relative', zIndex: 1, marginBottom: '1.25rem' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(99, 91, 255, 0.14)', border: '1px solid rgba(99, 91, 255, 0.3)', borderRadius: '100px', padding: '4px 12px', marginBottom: '0.75rem' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#635BFF', boxShadow: '0 0 8px #635BFF' }} />
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#A5B4FC', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Service Carousel</span>
+                </div>
+                <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: '0 0 0.25rem', letterSpacing: '-0.02em' }}>
+                  Explore Campus Ecosystem
+                </h3>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.5 }}>
+                  Rotate through all student service categories in one dynamic ecosystem.
+                </p>
+              </div>
+
+              {/* 1:1 Motion Video container */}
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  width: '100%',
+                  maxWidth: '380px',
+                  margin: '0 auto',
+                  aspectRatio: '1 / 1',
+                  borderRadius: '1rem',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: '#111013',
+                  boxShadow: '0 12px 30px -10px rgba(0,0,0,0.6)'
+                }}
               >
-                <div style={{ width:44, height:44, borderRadius:'12px', background:`${cat.color}12`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, border:`1.5px solid ${cat.color}25` }}>
-                  <cat.icon style={{ width:20, height:20, color: cat.color }} />
-                </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontWeight:700, fontSize:'15px', color:'#0F172A', marginBottom:'2px' }}>{cat.name}</div>
-                  <div style={{ fontSize:'12px', color:'#94A3B8' }}>{cat.desc}</div>
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:8, flexShrink:0 }}>
-                  {cat.count && <span style={{ fontSize:'11px', fontWeight:600, color:cat.color, background:`${cat.color}12`, padding:'2px 10px', borderRadius:'100px' }}>{cat.count}+</span>}
-                  <ArrowRight className="cat-arrow" style={{ width:14, height:14, color:'#635BFF', opacity:0, transform:'translateX(-6px)', transition:'all .2s' }} />
-                </div>
-              </Link>
-            ))}
+                <video
+                  src="https://res.cloudinary.com/dga14nmzn/video/upload/v1790135891/animo-wheel-carousel-1080p_zxnjaj.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                />
+              </div>
+
+              {/* Bottom quick status bar */}
+              <div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  marginTop: '1.25rem',
+                  paddingTop: '1rem',
+                  borderTop: '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', fontWeight: 500 }}>
+                  8 Verified Categories
+                </span>
+                <Link
+                  to="/browse"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#818CF8',
+                    textDecoration: 'none'
+                  }}
+                >
+                  View live pool <ChevronRight style={{ width: 13, height: 13 }} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Category Cards Grid */}
+            <div
+              id="category-showcase-cards"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+                gap: '1px',
+                background: '#E2E8F0',
+                borderRadius: '1.25rem',
+                overflow: 'hidden',
+                alignSelf: 'stretch'
+              }}
+            >
+              {categories.map((cat, i) => (
+                <Link
+                  key={i}
+                  to={`/browse?category=${encodeURIComponent(cat.name)}`}
+                  id={`cat-${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  style={{
+                    background: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1.25rem 1.4rem',
+                    textDecoration: 'none',
+                    transition: 'all .2s',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#FAFBFF';
+                    const arrow = e.currentTarget.querySelector('.cat-arrow');
+                    if (arrow) {
+                      arrow.style.opacity = '1';
+                      arrow.style.transform = 'translateX(0)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#fff';
+                    const arrow = e.currentTarget.querySelector('.cat-arrow');
+                    if (arrow) {
+                      arrow.style.opacity = '0';
+                      arrow.style.transform = 'translateX(-6px)';
+                    }
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '10px',
+                      background: `${cat.color}12`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      border: `1.5px solid ${cat.color}25`
+                    }}
+                  >
+                    <cat.icon style={{ width: 18, height: 18, color: cat.color }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '14px',
+                        color: '#0F172A',
+                        marginBottom: '2px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {cat.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '11.5px',
+                        color: '#94A3B8',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {cat.desc}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    {cat.count && (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          color: cat.color,
+                          background: `${cat.color}12`,
+                          padding: '2px 8px',
+                          borderRadius: '100px'
+                        }}
+                      >
+                        {cat.count}+
+                      </span>
+                    )}
+                    <ArrowRight
+                      className="cat-arrow"
+                      style={{
+                        width: 13,
+                        height: 13,
+                        color: '#635BFF',
+                        opacity: 0,
+                        transform: 'translateX(-6px)',
+                        transition: 'all .2s'
+                      }}
+                    />
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -677,6 +884,9 @@ export default function Landing() {
 
       {/* Responsive helper styles */}
       <style>{`
+        @media (max-width: 1024px) {
+          #category-showcase-split { grid-template-columns: 1fr !important; gap: 2rem !important; }
+        }
         @media (max-width: 768px) {
           .vision-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
           .vision-row { grid-template-columns: 60px 1fr !important; gap: 1rem !important; }
@@ -685,6 +895,7 @@ export default function Landing() {
           .sendiyou-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 640px) {
+          #category-showcase-cards { grid-template-columns: 1fr !important; }
           .vision-row { grid-template-columns: 1fr !important; }
           .vision-row span:first-child { display: none !important; }
         }

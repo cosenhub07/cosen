@@ -9,6 +9,8 @@ import useAuthStore from '../store/authStore';
 import useRazorpay from '../hooks/useRazorpay';
 import api from '../lib/api';
 import LottieLoader from '../components/LottieLoader';
+import OrderLifecycle from '../components/OrderLifecycle';
+import PlaygroundLifecycle from '../components/PlaygroundLifecycle';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -158,9 +160,9 @@ export default function OrderDetail() {
   };
 
   /* ── Order status actions ───────────────────────────── */
-  const updateStatus = async (action) => {
+  const updateStatus = async (action, payload = null) => {
     try {
-      const { data } = await api.put(`/orders/${id}/${action}`);
+      const { data } = await api.put(`/orders/${id}/${action}`, payload);
       if (data.success) {
         setOrder(prev => ({ ...prev, status: data.order.status }));
         if (action === 'complete') {
@@ -458,6 +460,21 @@ export default function OrderDetail() {
             {order.status === 'pending_negotiation' ? 'Pending Negotiation' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
           </div>
         </div>
+
+        {!isSendiYou && !isPlayground && (
+          <OrderLifecycle 
+            order={order} 
+            isBuyer={isBuyer} 
+            onUpdateStatus={updateStatus} 
+            onReview={() => setShowReviewModal(true)} 
+          />
+        )}
+        {isPlayground && (
+          <PlaygroundLifecycle 
+            order={order} 
+            isBuyer={isBuyer} 
+          />
+        )}
 
         <div className="flex flex-col lg:flex-row gap-6 items-start">
 
@@ -1011,35 +1028,7 @@ export default function OrderDetail() {
                 )}
 
                 {/* ── Standard (Non-Playground) Workflow ── */}
-                {!isPlayground && !isBuyer && order.status === 'inProgress' && (
-                  <button onClick={() => updateStatus('deliver')} className="btn-primary w-full justify-center">
-                    Deliver Work Now
-                  </button>
-                )}
-
-                {!isPlayground && isBuyer && order.status === 'delivered' && (
-                  <div className="space-y-2 border border-green-200 bg-green-50 rounded-xl p-4 text-center">
-                    <p className="text-sm font-semibold text-green-800 mb-2">Seller marked this delivered.</p>
-                    <button
-                      onClick={() => updateStatus('complete')}
-                      className="btn-primary w-full justify-center !bg-green-600 hover:!bg-green-700"
-                    >
-                      Approve &amp; Complete
-                    </button>
-                  </div>
-                )}
-
-                {!isPlayground && order.status === 'completed' && !order.isReviewed && isBuyer && (
-                  <div className="space-y-2 border border-blue-200 bg-blue-50 rounded-xl p-4 text-center">
-                    <p className="text-sm font-semibold text-blue-800 mb-2">How was your experience?</p>
-                    <button
-                      onClick={() => setShowReviewModal(true)}
-                      className="btn-primary w-full justify-center !bg-blue-600 hover:!bg-blue-700"
-                    >
-                      Leave a Review
-                    </button>
-                  </div>
-                )}
+                {/* Actions are now handled in the OrderLifecycle component above */}
 
                 {!isPlayground && order.status === 'completed' && (!isBuyer || order.isReviewed) && (
                   <div className="flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
